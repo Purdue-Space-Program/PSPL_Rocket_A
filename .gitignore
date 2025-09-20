@@ -1,0 +1,17 @@
+# Virtual environment
+.venv
+venv
+
+# MacOS folder info
+.DS_Store
+
+# PyCharm files (i think mypy comes from PyCharm?)
+.mypy_cache
+.idea
+
+# Pylint
+.pylintrc
+*.pyc
+
+# idk
+__pycache__
