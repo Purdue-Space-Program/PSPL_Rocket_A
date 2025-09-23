@@ -13,12 +13,22 @@ maxV = 274.4 # .8 mach (max, m/s)
 def dragCalc(velocity):
     Cd = 0.55 #assuming 30 degree cone
     area = 0.07075853075 # total surface area of that cone (not including base)
-    drag = 0.5*(1.225*(velocity**2)/2)*area
+    drag = Cd*(1.225*(velocity**2)/2)*area
     return drag
 
 
 D = dragCalc(maxV) # proportion of the drag force above a certain point
-m = 2
+mtop = 2
+mbottom = 30
+mmiddle = 15
+def loadCalc(velocity, massProportion):
+    T = -massProportion * (a + g) - D
+    return T
+loadBottom = loadCalc(maxV, mbottom)
+loadTop = loadCalc(maxV, mtop)
+loadMiddle = loadCalc(maxV, mmiddle)
 
-T = -m*(a+g)-D
-print(f"Estimated compressive load per strut (uppers) = {T/3}N")
+
+print(f"Estimated compressive load per strut (uppers) = {loadTop/3}N")
+print(f"Estimated compressive load per strut (inter-tanks) = {loadMiddle/3}N")
+print(f"Estimated compressive load per strut (lowers) = {loadBottom/3}N")
