@@ -30,3 +30,11 @@ def rounded_inlet(radius, diameter):
     else:
         K = 0.5 - 1.07 * r_by_d**(0.5) - 2.13 * r_by_d + 8.24 * r_by_d**(1.5) - 8.48 * r_by_d**2 + 2.90 * r_by_d**(2.5)
     return K
+
+def sharp_edged_sudden_contraction(diameter_one, diameter_two):
+    K = 0.5 * (1 - (diameter_one / diameter_two)**2)
+    return K
+
+def sharp_edged_sudden_expansion(diameter_one, diameter_two):
+    K = 1.05 * (1 - (diameter_one / diameter_two)**2)**2
+    return K
