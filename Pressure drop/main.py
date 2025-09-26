@@ -11,6 +11,7 @@ def find_drop_ox(K, type, line_velocity_ox):
     dP.to('psi')
     print(f'LOX LINE: Pressure Drop at {type}: {dP:.2f}')
 
+
 def sharp_edged_inlet():
     K = 0.5
     return K
@@ -37,4 +38,17 @@ def sharp_edged_sudden_contraction(diameter_one, diameter_two):
 
 def sharp_edged_sudden_expansion(diameter_one, diameter_two):
     K = 1.05 * (1 - (diameter_one / diameter_two)**2)**2
+    return K
+
+def outlet():
+    K = 1.05
+    return K
+
+def bend(angle, radius, diameter, friction_factor):
+    r_by_d = radius / diameter
+    K = friction_factor * angle * r_by_d + (0.1 + 2.4 * friction_factor) * math.sin(angle / 2) + (6.6 * friction_factor * math.sin(angle / 2)**0.5 + math.sin(angle / 2)) / (r_by_d**((4 * angle) / math.pi))
+    return K
+
+def valve(flow_coefficient, diameter):
+    K = (890.4 * diameter**4) / (flow_coefficient**2)
     return K
