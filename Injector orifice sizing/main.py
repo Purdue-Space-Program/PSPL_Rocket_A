@@ -8,14 +8,14 @@ from constants import *
 g = 9.81 # [m/s^2]
 C_D_lox = 0.795 # Discharge coefficient of oxidizer orifice 
 C_D_ipa = 0.948 # Discharge coefficient of ipa orifice
-m_dot = 3.05 * LB2KG # [Kg/s]
+m_dot = 3.56 * LB2KG # [Kg/s]
 temp_lox = 90 # [K]
 pressure_lox = 250 * PSI2PA # [Pa]
 temp_ipa = 290 # [K]
 pressure_ipa = 250 * PSI2PA # [Pa]
 rho_lox = PropsSI('D', 'T', temp_lox, 'P', pressure_lox, 'Oxygen')
 rho_ipa = DENSITY_IPA # [Pa] CoolProp doesn't have IPA, assuming constant
-pressure_chamber = 190 * PSI2PA # [Pa]
+pressure_chamber = 150 * PSI2PA # [Pa]
 pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
 of_ratio = 1 # from Vehicle Parameters page
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
