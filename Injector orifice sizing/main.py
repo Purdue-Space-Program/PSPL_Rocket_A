@@ -54,10 +54,13 @@ D_lox_orifice = 0 # [m]
 velocity_ipa = 0 # [m/s]
 velocity_lox = 0 # [m/s]
 tmr_real = 0 # Real total momentum ratio
-tmr_optimal = 1 # Optimal total momentum ratio 
+tmr_optimal = 1 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
+tmr_error = 0.2 # 20% error allowed
 bf = 0 # Blockage factor
 lmr = 0 # [Local momentum ratio]
 half_angle = 0 # [radians]
+best_diff = float("inf")
+best_values = {}
 
 def closest_bit_size(d):
     closest_bit = None
@@ -67,31 +70,47 @@ def closest_bit_size(d):
         if min_distance is None or distance < min_distance:
             min_distance = distance
             closest_bit = i
-    return d, closest_bit, min_distance
+    return closest_bit, min_distance * IN2M
 
 while N_lox <= N_lox_max:
     D_lox_orifice = 2 * np.sqrt(total_area_orifice_lox / (np.pi * N_lox))
-    D_lox_orifice_inches, closest_bit, min_distance = closest_bit_size(D_lox_orifice * M2IN)
-    print(f"Diameter: {D_lox_orifice:.5f} m = {D_lox_orifice_inches:.5f} in")
-    print(f"Closest drill bit: {closest_bit}")
-    print(f"Difference: {min_distance:.5f} in")
+    closest_bit, min_distance = closest_bit_size(D_lox_orifice * M2IN)
     D_lox_orifice_real = closest_bit[1] * IN2M
     area_orifice_lox = total_area_orifice_lox / N_lox
     annular_thickness = np.pi * rho_lox * D_lox_orifice_real / (4 * rho_ipa * of_ratio**2)
     area_orifice_ipa = np.pi * (R_s + annular_thickness)**2 - np.pi * R_s**2
     velocity_ipa = m_dot_ipa / (rho_ipa * area_orifice_ipa)
     velocity_lox = m_dot_lox / (rho_lox * area_orifice_lox)
-    tmr = (m_dot_lox * velocity_lox) / (m_dot_ipa * velocity_ipa)
+    tmr_real = (m_dot_lox * velocity_lox) / (m_dot_ipa * velocity_ipa)
     bf = N_lox * D_lox_orifice_real / (np.pi * D_s)
     if bf > 1:
         N_rows += 1
-    lmr = tmr/bf
+    lmr = tmr_real/bf
     half_angle = 0.7 * np.arctan(2 * lmr)
-    print(f"TMR: {tmr}")
-    
+    diff = abs(tmr_real - tmr_optimal)
+    if diff < best_diff:
+        best_diff = diff
+        best_values = {
+            "N_lox": N_lox,
+            "D_lox_orifice_real": D_lox_orifice_real,
+            "closest_bit": closest_bit,
+            "TMR": tmr_real,
+            "BF": bf,
+            "LMR": lmr,
+            "half_angle": half_angle,
+            "velocity_lox": velocity_lox,
+            "velocity_ipa": velocity_ipa,
+            "area_orifice_ipa": area_orifice_ipa,
+            "area_orifice_lox": area_orifice_lox,
+            }
 
     N_lox += 1
-    break
 
+if best_diff > tmr_error * tmr_optimal:
+    print("The tmr value is wayyyyy out of range")
 print(f"LOx diameter: {D_lox_orifice:.3} meters")
 print(f"LOx diameter: {D_lox_orifice * M2IN:.3} inches")
+print(f"Real LOx diameter: {D_lox_orifice_real:.3} meters")
+print(f"Real LOx diameter: {D_lox_orifice_real * M2IN:.3} inches, {closest_bit[0]} size")
+print(f"Difference: {min_distance:.8f} meters")
+print(best_values)
