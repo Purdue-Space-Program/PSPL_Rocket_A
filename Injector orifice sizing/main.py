@@ -43,7 +43,7 @@ D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
 pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
-total_area_orifice_lox = m_dot_lox / (C_D_lox * np.sqrt(2 * g * rho_lox * pressure_drop))
+total_area_orifice_lox = m_dot_lox / (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
 N_lox_max = 120 # Max amount of orifices allowed, to be changed
 N_lox = 1
 N_rows = 1
@@ -87,9 +87,11 @@ while N_lox <= N_lox_max:
         N_rows += 1
     lmr = tmr/bf
     half_angle = 0.7 * np.arctan(2 * lmr)
-    print(tmr)
+    print(f"TMR: {tmr}")
+    
 
     N_lox += 1
     break
 
-print(D_lox_orifice)
+print(f"LOx diameter: {D_lox_orifice:.3} meters")
+print(f"LOx diameter: {D_lox_orifice * M2IN:.3} inches")
