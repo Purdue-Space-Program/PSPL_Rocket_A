@@ -3,9 +3,6 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import coding_utils.constants as c
-import vehicle_scripts.numpy_ndarray_handler as NNH
-
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
 import CEA_Wrap as CEA
 
@@ -49,7 +46,7 @@ def temperature_surface_calculation(heat_transfer_coefficient_value):
 
     #Surface temperature equation split into different terms
     Surface_temp_term0 = (heat_transfer_coefficient_value ** 2) * alpha * t
-    Surface_temp_term1 = (-1) * exp((Surface_temp_term0) / (k**2))
+    Surface_temp_term1 = -exp(-(Surface_temp_term0) / (k**2))
     Surface_temp_term2 = erfc((heat_transfer_coefficient_value * ((alpha * t) ** 0.5)) / k)
     Surface_temp_term3 = T_infinity - T_initial 
 
