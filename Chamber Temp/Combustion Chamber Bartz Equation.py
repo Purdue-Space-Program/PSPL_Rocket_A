@@ -1,4 +1,13 @@
 from math import exp, erfc
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import coding_utils.constants as c
+import vehicle_scripts.numpy_ndarray_handler as NNH
+
+os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
+import CEA_Wrap as CEA
 
 def heat_transfer_coefficient():
     Dt = 0.0498 #diameter of engine throat
