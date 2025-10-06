@@ -2,6 +2,7 @@ from CoolProp.CoolProp import PropsSI
 import numpy as np
 import sys
 import os
+import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
 
@@ -23,9 +24,12 @@ standard_bits_inch = {
     "P": 0.323, "Q": 0.332, "R": 0.339, "S": 0.348, "T": 0.358,
     "U": 0.368, "V": 0.377, "W": 0.386, "X": 0.397, "Y": 0.404, "Z": 0.413,
 }
-g = 9.81 # [m/s^2]
-C_D_lox = 0.795 # Discharge coefficient of oxidizer orifice 
-C_D_ipa = 0.948 # Discharge coefficient of ipa orifice
+
+#Inputs
+C_D_lox = 0.8 # Discharge coefficient of oxidizer orifice 
+C_D_ipa = 0.8 # Discharge coefficient of ipa orifice
+N_lox_max = 100 # Max amount of orifices allowed, to be changed
+N_lox_min = 10 # Min amount of orifices allowed, to be changed
 m_dot = 3.56 * LB2KG # [Kg/s]
 temp_lox = 90 # [K]
 pressure_lox = 250 * PSI2PA # [Pa]
@@ -35,6 +39,7 @@ rho_lox = PropsSI('D', 'T', temp_lox, 'P', pressure_lox, 'Oxygen')
 rho_ipa = DENSITY_IPA # [kg/m^3] CoolProp doesn't have IPA, assuming constant
 pressure_chamber = 150 * PSI2PA # [Pa]
 pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
+pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 of_ratio = 1 # from Vehicle Parameters page
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
 m_dot_lox = m_dot - m_dot_ipa # [Kg/s]
@@ -42,10 +47,10 @@ D_c = 4.5 * IN2M # Diameter of chamber (might be changed)
 D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
-pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 total_area_orifice_lox = m_dot_lox / (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
-N_lox_max = 120 # Max amount of orifices allowed, to be changed
-N_lox = 1
+#Constants
+g = 9.81 # [m/s^2]
+
 N_rows = 1
 annular_thickness = 0 # [m]
 area_orifice_ipa = 0 # [m^2]
@@ -58,7 +63,7 @@ tmr_optimal = 1 # Optimal total momentum ratio, as stated in Fundamental Combust
 tmr_error = 0.2 # 20% error allowed
 bf = 0 # Blockage factor
 lmr = 0 # [Local momentum ratio]
-half_angle = 0 # [radians]
+half_angle = 0 # degrees
 best_diff = float("inf")
 best_values = {}
 
@@ -72,21 +77,25 @@ def closest_bit_size(d):
             closest_bit = i
     return closest_bit, min_distance * IN2M
 
-while N_lox <= N_lox_max:
+for N_lox in range(N_lox_min, N_lox_max, 2):
     D_lox_orifice = 2 * np.sqrt(total_area_orifice_lox / (np.pi * N_lox))
     closest_bit, min_distance = closest_bit_size(D_lox_orifice * M2IN)
     D_lox_orifice_real = closest_bit[1] * IN2M
     area_orifice_lox = total_area_orifice_lox / N_lox
     annular_thickness = np.pi * rho_lox * D_lox_orifice_real / (4 * rho_ipa * of_ratio**2)
     area_orifice_ipa = np.pi * (R_s + annular_thickness)**2 - np.pi * R_s**2
-    velocity_ipa = m_dot_ipa / (rho_ipa * area_orifice_ipa)
     velocity_lox = m_dot_lox / (rho_lox * area_orifice_lox)
+    #velocity_ipa = C_D_ipa * np.sqrt(2 * pressure_drop / rho_ipa)
+    #area_orifice_ipa = m_dot_ipa / (rho_lox * velocity_ipa)
+    velocity_ipa = m_dot_ipa / (rho_ipa * area_orifice_ipa)
+    #annular_thickness = np.sqrt((area_orifice_ipa + np.pi * R_s**2) / np.pi) - R_s
     tmr_real = (m_dot_lox * velocity_lox) / (m_dot_ipa * velocity_ipa)
     bf = N_lox * D_lox_orifice_real / (np.pi * D_s)
+    print(N_lox, tmr_real)
     if bf > 1:
         N_rows += 1
     lmr = tmr_real/bf
-    half_angle = 0.7 * np.arctan(2 * lmr)
+    half_angle = 0.7 * np.degrees(np.arctan(2 * lmr)) # degrees
     diff = abs(tmr_real - tmr_optimal)
     if diff < best_diff:
         best_diff = diff
@@ -104,13 +113,11 @@ while N_lox <= N_lox_max:
             "area_orifice_lox": area_orifice_lox,
             }
 
-    N_lox += 1
-
 if best_diff > tmr_error * tmr_optimal:
     print("The tmr value is wayyyyy out of range")
-print(f"LOx diameter: {D_lox_orifice:.3} meters")
-print(f"LOx diameter: {D_lox_orifice * M2IN:.3} inches")
-print(f"Real LOx diameter: {D_lox_orifice_real:.3} meters")
-print(f"Real LOx diameter: {D_lox_orifice_real * M2IN:.3} inches, {closest_bit[0]} size")
+print(f"LOx diameter: {D_lox_orifice:.4f} meters")
+print(f"LOx diameter: {D_lox_orifice * M2IN:.4f} inches")
+print(f"Real LOx diameter: {D_lox_orifice_real:.4f} meters")
+print(f"Real LOx diameter: {D_lox_orifice_real * M2IN:.4f} inches, {closest_bit[0]} size")
 print(f"Difference: {min_distance:.8f} meters")
 print(best_values)
