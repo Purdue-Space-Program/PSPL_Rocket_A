@@ -26,10 +26,12 @@ standard_bits_inch = {
 }
 
 #Inputs
-C_D_lox = 0.8 # Discharge coefficient of oxidizer orifice 
-C_D_ipa = 0.8 # Discharge coefficient of ipa orifice
+C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
+C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
 N_lox_max = 100 # Max amount of orifices allowed, to be changed
 N_lox_min = 10 # Min amount of orifices allowed, to be changed
+of_ratio = 1 # from Vehicle Parameters page
+D_c = 4.5 * IN2M # Diameter of chamber (might be changed)
 m_dot = 3.56 * LB2KG # [Kg/s]
 temp_lox = 90 # [K]
 pressure_lox = 250 * PSI2PA # [Pa]
@@ -40,17 +42,15 @@ rho_ipa = DENSITY_IPA # [kg/m^3] CoolProp doesn't have IPA, assuming constant
 pressure_chamber = 150 * PSI2PA # [Pa]
 pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
 pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
-of_ratio = 1 # from Vehicle Parameters page
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
 m_dot_lox = m_dot - m_dot_ipa # [Kg/s]
-D_c = 4.5 * IN2M # Diameter of chamber (might be changed)
 D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
 total_area_orifice_lox = m_dot_lox / (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
-#Constants
-g = 9.81 # [m/s^2]
 
+#Constants and initializiing variables
+g = 9.81 # [m/s^2]
 N_rows = 1
 annular_thickness = 0 # [m]
 area_orifice_ipa = 0 # [m^2]
@@ -62,7 +62,7 @@ tmr_real = 0 # Real total momentum ratio
 tmr_optimal = 1 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
 tmr_error = 0.2 # 20% error allowed
 bf = 0 # Blockage factor
-lmr = 0 # [Local momentum ratio]
+lmr = 0 # Local momentum ratio
 half_angle = 0 # degrees
 best_diff = float("inf")
 best_values = {}
@@ -83,7 +83,8 @@ for N_lox in range(N_lox_min, N_lox_max, 2):
     D_lox_orifice_real = closest_bit[1] * IN2M
     area_orifice_lox = total_area_orifice_lox / N_lox
     annular_thickness = np.pi * rho_lox * D_lox_orifice_real / (4 * rho_ipa * of_ratio**2)
-    area_orifice_ipa = np.pi * (R_s + annular_thickness)**2 - np.pi * R_s**2
+    #area_orifice_ipa = np.pi * (R_s + annular_thickness)**2 - np.pi * R_s**2
+    area_orifice_ipa = m_dot_ipa / (C_D_ipa * np.sqrt(2 * rho_ipa * pressure_drop))
     velocity_lox = m_dot_lox / (rho_lox * area_orifice_lox)
     #velocity_ipa = C_D_ipa * np.sqrt(2 * pressure_drop / rho_ipa)
     #area_orifice_ipa = m_dot_ipa / (rho_lox * velocity_ipa)
@@ -91,7 +92,6 @@ for N_lox in range(N_lox_min, N_lox_max, 2):
     #annular_thickness = np.sqrt((area_orifice_ipa + np.pi * R_s**2) / np.pi) - R_s
     tmr_real = (m_dot_lox * velocity_lox) / (m_dot_ipa * velocity_ipa)
     bf = N_lox * D_lox_orifice_real / (np.pi * D_s)
-    print(N_lox, tmr_real)
     if bf > 1:
         N_rows += 1
     lmr = tmr_real/bf
