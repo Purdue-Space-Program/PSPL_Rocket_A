@@ -62,8 +62,8 @@ annular_thickness = np.sqrt((total_area_orifice_ipa + np.pi * R_s**2) / np.pi) -
 g = 9.81 # [m/s^2]
 N_rows = 1
 tmr_ideal = 1 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
-tmr_allowable_percent_error = 0.05 # percent error allowed in pintle's TMR
-allowable_percent_error_m_dot_lox = 0.20 # percent error allowed in LOx mass flow rate
+tmr_allowable_percent_error = 0.15 # percent error allowed in pintle's TMR
+allowable_percent_error_m_dot_lox = 0.05 # percent error allowed in LOx mass flow rate
 good_enough_found = 0
 
 N_lox_array = []
@@ -165,7 +165,7 @@ plt.axhline(tmr_allowable_percent_error, color='orange', linestyle='--', label='
 plt.axhline(allowable_percent_error_m_dot_lox, color='r', linestyle=':', label='Max allowable percent error in LOx mass flow rate')
 
 plt.grid(True, which='both', axis='x', color='lightgray', linestyle='-', linewidth=0.5)
-plt.xticks(np.arange(min(N_lox_array), max(N_lox_array)+1, 2))
+plt.xticks(np.arange(min(N_lox_array), max(N_lox_array) + 1, 2))
 plt.legend()
 plt.xlabel("Number of LOx holes")
 # plt.ylabel("LMR")
