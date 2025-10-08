@@ -17,7 +17,19 @@ standard_bits_inch = {
     "#40": 0.0980, "#30": 0.1285, "#20": 0.1610, "#10": 0.1935, "#1": 0.2280,
 }
 
-#Inputs
+def closest_bit_size(target_diameter):
+    lowest_absolute_error_bit_size = None
+
+    for key, value in standard_bits_inch.items():
+        absolute_error_bit_size = abs(value - target_diameter)
+        if (lowest_absolute_error_bit_size is None) or (absolute_error_bit_size < lowest_absolute_error_bit_size):
+            lowest_absolute_error_bit_size = absolute_error_bit_size
+            closest_bit_name = key
+            closest_bit_diameter = value
+
+    return closest_bit_diameter * IN2M, lowest_absolute_error_bit_size * IN2M, closest_bit_name
+
+# Inputs
 C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
 C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
 N_lox_max = 100 # Max amount of orifices allowed, to be changed
@@ -35,81 +47,126 @@ pressure_chamber = 150 * PSI2PA # [Pa]
 pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
 pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
-m_dot_lox = m_dot - m_dot_ipa # [Kg/s]
+m_dot_ideal_lox = m_dot - m_dot_ipa # [Kg/s]
 D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
-total_area_orifice_lox = m_dot_lox / (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
-area_orifice_ipa = m_dot_ipa / (C_D_ipa * np.sqrt(2 * rho_ipa * pressure_drop))
 
-#Constants and initializiing variables
+total_target_area_orifice_lox = m_dot_ideal_lox / (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
+
+total_area_orifice_ipa = m_dot_ipa / (C_D_ipa * np.sqrt(2 * rho_ipa * pressure_drop))
+velocity_ipa = m_dot_ipa / (rho_ipa * total_area_orifice_ipa)
+annular_thickness = np.sqrt((total_area_orifice_ipa + np.pi * R_s**2) / np.pi) - R_s
+
+# Constants and initializing variables
 g = 9.81 # [m/s^2]
 N_rows = 1
-annular_thickness = 0 # [m]
-#area_orifice_ipa = 0 # [m^2]
-area_orifice_lox = 0 # [m^2]
-D_lox_orifice = 0 # [m]
-velocity_ipa = 0 # [m/s]
-velocity_lox = 0 # [m/s]
-tmr_real = 0 # Real total momentum ratio
-tmr_optimal = 1 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
-tmr_error = 0.2 # 20% error allowed
-bf = 0 # Blockage factor
-lmr = 0 # Local momentum ratio
-half_angle = 0 # degrees
-best_diff = float("inf")
-best_values = {}
+tmr_ideal = 1 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
+tmr_allowable_percent_error = 0.05 # percent error allowed in pintle's TMR
+allowable_percent_error_m_dot_lox = 0.20 # percent error allowed in LOx mass flow rate
+good_enough_found = 0
 
-def closest_bit_size(d):
-    closest_bit = None
-    min_distance = None
-    for i in standard_bits_inch.items():
-        distance = abs(i[1] - d)
-        if min_distance is None or distance < min_distance:
-            min_distance = distance
-            closest_bit = i
-    return closest_bit, min_distance * IN2M
+N_lox_array = []
+value_1_array = []
+value_2_array = []
 
 for N_lox in range(N_lox_min, N_lox_max, 2):
-    D_lox_orifice = 2 * np.sqrt(total_area_orifice_lox / (np.pi * N_lox))
-    closest_bit, min_distance = closest_bit_size(D_lox_orifice * M2IN)
-    D_lox_orifice_real = closest_bit[1] * IN2M
-    area_orifice_lox = total_area_orifice_lox / N_lox
-    #annular_thickness = np.pi * rho_lox * D_lox_orifice_real / (4 * rho_ipa * of_ratio**2)
-    #area_orifice_ipa = np.pi * (R_s + annular_thickness)**2 - np.pi * R_s**2
-    velocity_lox = m_dot_lox / (rho_lox * area_orifice_lox)
-    #velocity_ipa = C_D_ipa * np.sqrt(2 * pressure_drop / rho_ipa)
-    #area_orifice_ipa = m_dot_ipa / (rho_lox * velocity_ipa)
-    velocity_ipa = m_dot_ipa / (rho_ipa * area_orifice_ipa)
-    annular_thickness = np.sqrt((area_orifice_ipa + np.pi * R_s**2) / np.pi) - R_s
-    tmr_real = (m_dot_lox * velocity_lox) / (m_dot_ipa * velocity_ipa)
-    bf = N_lox * D_lox_orifice_real / (np.pi * D_s)
+    # print(f"N_lox: {N_lox}")
+    
+    # consider that fact that bits in real life are not the exact diameter we want
+    D_ideal_lox_orifice = 2 * np.sqrt(total_target_area_orifice_lox / (np.pi * N_lox))
+    # print(f"D_target_lox_orifice: {D_target_lox_orifice * M2IN:.2f}")
+    closest_bit_diameter, absolute_error_bit_size, closest_bit_name = closest_bit_size(D_ideal_lox_orifice * M2IN)
+
+    D_real_lox_orifice = closest_bit_diameter
+    percent_error_bit_size = abs(absolute_error_bit_size) / D_ideal_lox_orifice
+    
+    total_area_real_orifice_lox = ((D_real_lox_orifice/2)**2) * (np.pi * N_lox)
+    # print(f"total_area_real_orifice_lox: {total_area_real_orifice_lox * M2IN:.2}")
+    m_dot_real_lox = total_area_real_orifice_lox * (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
+    
+    percent_error_m_dot_lox = abs(m_dot_real_lox - m_dot_ideal_lox) / m_dot_ideal_lox
+    
+    # print(f"area_orifice_lox: {total_area_real_orifice_lox:.2f}")
+    # print(f"area_orifice_ipa: {total_area_orifice_ipa:.2f}")
+    
+    velocity_lox = m_dot_real_lox / (rho_lox * total_area_real_orifice_lox)
+    
+    
+    # print(f"velocity_lox: {velocity_lox:.2f}")
+    # print(f"velocity_ipa: {velocity_ipa:.2f}")
+    tmr_real = (m_dot_real_lox * velocity_lox) / (m_dot_ipa * velocity_ipa)
+    # print(f"tmr_real: {tmr_real:.5f}")
+
+    
+    bf = N_lox * D_real_lox_orifice / (np.pi * D_s)
     if bf > 1:
         N_rows += 1
     lmr = tmr_real/bf
     half_angle = 0.7 * np.degrees(np.arctan(2 * lmr)) # degrees
-    diff = abs(tmr_real - tmr_optimal)
-    if diff < best_diff:
-        best_diff = diff
+    tmr_percent_error = abs(tmr_real - tmr_ideal) / tmr_ideal
+    # print(f"tmr_error: {tmr_error:.5f}")
+    # print(tmr_error < tmr_allowable_error)
+    
+    # print(f"tmr_error < tmr_allowable_error: {tmr_error <= tmr_allowable_error}")
+    
+    
+    N_lox_array.append(N_lox)
+    value_1_array.append(tmr_percent_error)
+    value_2_array.append(percent_error_m_dot_lox)
+    
+    # only update orifice sizes if a good enough one has not been found
+    if (tmr_percent_error <= tmr_allowable_percent_error) and (percent_error_m_dot_lox <= allowable_percent_error_m_dot_lox) and (good_enough_found == 0):
+        good_enough_found = 1
         best_values = {
             "N_lox": N_lox,
-            "D_lox_orifice_real": D_lox_orifice_real,
-            "closest_bit": closest_bit,
+            "Closest Bit Name": closest_bit_name,
+            
+            "Ideal diameter of LOx orifice holes [in]": D_ideal_lox_orifice * M2IN,
+            "Real diameter of LOx orifice holes [in]": D_real_lox_orifice * M2IN,
+            "Bit size error [percent]": percent_error_bit_size * 100,
+            
+            "Ideal LOx mass flow rate [kg/s]" : m_dot_ideal_lox,
+            "Real LOx mass flow rate [kg/s]" : m_dot_real_lox,
+            "LOx mass flow rate error [percent]": percent_error_m_dot_lox * 100,
+            
+            "Blockage Factor": bf,
+            "Number of Rows": N_rows,
             "TMR": tmr_real,
-            "BF": bf,
+            "Optimal TMR": tmr_ideal,
+            "TMR Error from optimal [percent]": tmr_percent_error * 100,
             "LMR": lmr,
             "half_angle": half_angle,
-            "velocity_lox": velocity_lox,
-            "velocity_ipa": velocity_ipa,
-            "area_orifice_ipa": area_orifice_ipa,
-            "area_orifice_lox": area_orifice_lox,
+            "velocity_lox [m/s]": velocity_lox,
+            "velocity_ipa [m/s]": velocity_ipa,
+            "area_orifice_ipa [in^2]": total_area_orifice_ipa * M22IN2,
+            "area_orifice_lox [in^2]": total_area_real_orifice_lox * M22IN2,
             }
+    
 
-if best_diff > tmr_error * tmr_optimal:
-    print("The tmr value is wayyyyy out of range")
-print(f"LOx diameter: {D_lox_orifice:.4f} meters")
-print(f"LOx diameter: {D_lox_orifice * M2IN:.4f} inches")
-print(f"Real LOx diameter: {D_lox_orifice_real:.4f} meters")
-print(f"Real LOx diameter: {D_lox_orifice_real * M2IN:.4f} inches, {closest_bit[0]} size")
-print(f"Difference: {min_distance:.8f} meters")
-print(best_values)
+if good_enough_found == 1:
+    for key, value in best_values.items():
+        if isinstance(value, str):
+            print(f"{key}: {value}")
+        else:
+            print(f"{key}: {value:.3f}")
+    # show where chosen orifice size is
+    plt.axvline(best_values["N_lox"], color='g', linestyle='--', label='Chosen number of holes')
+else:
+    print("NO GOOD PINTLE FOUND (ERRORS TOO HIGH)")
+
+
+plt.plot(N_lox_array, value_1_array, color='b', label="tmr_percent_error")
+plt.plot(N_lox_array, value_2_array, color='black', label="percent_error_m_dot_lox")
+
+
+# show where allowable errors are
+plt.axhline(tmr_allowable_percent_error, color='orange', linestyle='--', label='Max allowable percent error in TMR')
+plt.axhline(allowable_percent_error_m_dot_lox, color='r', linestyle=':', label='Max allowable percent error in LOx mass flow rate')
+
+plt.grid(True, which='both', axis='x', color='lightgray', linestyle='-', linewidth=0.5)
+plt.xticks(np.arange(min(N_lox_array), max(N_lox_array)+1, 2))
+plt.legend()
+plt.xlabel("Number of LOx holes")
+# plt.ylabel("LMR")
+plt.show()
