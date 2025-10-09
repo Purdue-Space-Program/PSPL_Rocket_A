@@ -61,9 +61,9 @@ annular_thickness = np.sqrt((total_area_orifice_ipa + np.pi * R_s**2) / np.pi) -
 # Constants and initializing variables
 g = 9.81 # [m/s^2]
 N_rows = 1
-tmr_ideal = 1 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
-tmr_allowable_percent_error = 0.15 # percent error allowed in pintle's TMR
-allowable_percent_error_m_dot_lox = 0.05 # percent error allowed in LOx mass flow rate
+tmr_ideal = 1.3 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
+tmr_allowable_percent_error = 0.4 # percent error allowed in pintle's TMR
+allowable_percent_error_m_dot_lox = 0.01 # percent error allowed in LOx mass flow rate
 good_enough_found = 0
 
 N_lox_array = []
