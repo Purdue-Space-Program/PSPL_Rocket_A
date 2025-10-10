@@ -15,3 +15,4 @@ venv
 
 # idk
 __pycache__
+*.~vsdx
