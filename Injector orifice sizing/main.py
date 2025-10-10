@@ -103,7 +103,11 @@ for N_lox in range(N_lox_min, N_lox_max, 2):
     if bf > 1:
         N_rows += 1
     lmr = tmr_real/bf
-    half_angle = 0.7 * np.degrees(np.arctan(2 * lmr)) # degrees
+    half_angle = 0.7 * np.degrees(np.arctan(2 * lmr)) # from: 
+                                                                    # Blakely, J., Freeberg, J., and Hogge, J., “Spray Cone Formation from
+                                                                    # Pintle-Type Injector Systems in Liquid Rocket Engines,” AIAA SciTech
+                                                                    # 2019 Forum, AIAA Paper 2019-0152, 2019.
+                                                                    # https://doi.org/10.2514/6.2019-0152
     tmr_percent_error = abs(tmr_real - tmr_ideal) / tmr_ideal
     # print(f"tmr_error: {tmr_error:.5f}")
     # print(tmr_error < tmr_allowable_error)
