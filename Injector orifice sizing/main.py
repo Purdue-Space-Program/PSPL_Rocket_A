@@ -63,7 +63,7 @@ g = 9.81 # [m/s^2]
 N_rows = 1
 tmr_ideal = 1.3 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
 tmr_allowable_percent_error = 0.4 # percent error allowed in pintle's TMR
-allowable_percent_error_m_dot_lox = 0.01 # percent error allowed in LOx mass flow rate
+allowable_percent_error_m_dot_lox = 0.006 # percent error allowed in LOx mass flow rate
 good_enough_found = 0
 
 N_lox_array = []
@@ -100,8 +100,8 @@ for N_lox in range(N_lox_min, N_lox_max, 2):
 
     
     bf = N_lox * D_real_lox_orifice / (np.pi * D_s)
-    if bf > 1:
-        N_rows += 1
+    N_rows = (N_lox * D_real_lox_orifice // (np.pi * D_s)) + 1
+    
     lmr = tmr_real/bf
     half_angle = 0.7 * np.degrees(np.arctan(2 * lmr)) # from: 
                                                                     # Blakely, J., Freeberg, J., and Hogge, J., “Spray Cone Formation from
@@ -123,22 +123,22 @@ for N_lox in range(N_lox_min, N_lox_max, 2):
     if (tmr_percent_error <= tmr_allowable_percent_error) and (percent_error_m_dot_lox <= allowable_percent_error_m_dot_lox) and (good_enough_found == 0):
         good_enough_found = 1
         best_values = {
-            "N_lox": N_lox,
+            "Number of holes": N_lox,
+            "Number of rows": N_rows,
             "Closest Bit Name": closest_bit_name,
             
             "Ideal diameter of LOx orifice holes [in]": D_ideal_lox_orifice * M2IN,
             "Real diameter of LOx orifice holes [in]": D_real_lox_orifice * M2IN,
-            "Bit size error [percent]": percent_error_bit_size * 100,
+            "Bit size error [%]": percent_error_bit_size * 100,
             
             "Ideal LOx mass flow rate [kg/s]" : m_dot_ideal_lox,
             "Real LOx mass flow rate [kg/s]" : m_dot_real_lox,
-            "LOx mass flow rate error [percent]": percent_error_m_dot_lox * 100,
+            "LOx mass flow rate error [%]": percent_error_m_dot_lox * 100,
             
             "Blockage Factor": bf,
-            "Number of Rows": N_rows,
             "TMR": tmr_real,
             "Optimal TMR": tmr_ideal,
-            "TMR Error from optimal [percent]": tmr_percent_error * 100,
+            "TMR Error from optimal [%]": tmr_percent_error * 100,
             "LMR": lmr,
             "half_angle": half_angle,
             "velocity_lox [m/s]": velocity_lox,
@@ -155,7 +155,7 @@ if good_enough_found == 1:
         else:
             print(f"{key}: {value:.3f}")
     # show where chosen orifice size is
-    plt.axvline(best_values["N_lox"], color='g', linestyle='--', label='Chosen number of holes')
+    plt.axvline(best_values["Number of holes"], color='g', linestyle='--', label='Chosen number of holes')
 else:
     print("NO GOOD PINTLE FOUND (ERRORS TOO HIGH)")
 
