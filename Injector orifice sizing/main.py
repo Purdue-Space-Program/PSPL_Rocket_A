@@ -51,7 +51,6 @@ m_dot_ideal_lox = m_dot - m_dot_ipa # [Kg/s]
 D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
-
 total_target_area_orifice_lox = m_dot_ideal_lox / (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
 
 total_area_orifice_ipa = m_dot_ipa / (C_D_ipa * np.sqrt(2 * rho_ipa * pressure_drop))
@@ -70,7 +69,7 @@ N_lox_array = []
 value_1_array = []
 value_2_array = []
 
-for N_lox in range(N_lox_min, N_lox_max, 2):
+for N_lox in range(N_lox_min, N_lox_max + 1, 2):
     # print(f"N_lox: {N_lox}")
     
     # consider that fact that bits in real life are not the exact diameter we want
@@ -125,6 +124,7 @@ for N_lox in range(N_lox_min, N_lox_max, 2):
         best_values = {
             "Number of holes": N_lox,
             "Number of rows": N_rows,
+            "Skip distance [m]": skip_dist,
             "Closest Bit Name": closest_bit_name,
             
             "Ideal diameter of LOx orifice holes [in]": D_ideal_lox_orifice * M2IN,
