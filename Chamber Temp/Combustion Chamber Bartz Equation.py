@@ -44,17 +44,16 @@ def RunCEA(
         "c_star": cea_results.cstar, #characteristic exhaust velocity
         "c_pran": cea_results.c_pran, #Prandtl number of combustion gas
         "gamma": cea_results.gamma, #specific heat ratio of combustion gas
-        "c_t": cea_results.c_t #stagnation temperature
+        "c_t": cea_results.c_t, #stagnation temperature
+        "c_cp": cea_results.c_cp, #specific heat at constant pressure of combustion gas (J/kg*K)
+        "c_visc": cea_results.c_visc, #dynamic viscosity of combustion gas (Pa*s)
     }
 
-def heat_transfer_coefficient(Pr, gamma, c_star, T0):
+def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu):
     Dt = 0.0498 #diameter of engine throat
-    mu = 4e-5 #dynamic viscosity of the combustion gas (Pa*s)
-    Cp = 2.2996 #specific heat of the combustion gas at constant pressure(J/kg*K)
-    P0 = 3e6 #stagnation/chamber pressure (I think) (Pa)
     g = 9.81 #gravitational constant
     Rt = 0.05 #radius of the throat curve
-    Area_ratio = 3 #ratio of throat area to the local area at the point of interest (contraction ratio)
+    Area_ratio = 3 #contraction ratio
     Twg = 800 #wall temperature (K) because steel can withstand up to 1100 K but safety margin
     M = 2.16 #Mach number at the throat
 
@@ -109,10 +108,13 @@ def main():
     cea_results = RunCEA(150 * PSI2PA, "ethanol", "liquid oxygen", 1.0)
 
     heat_transfer_coefficient_value = heat_transfer_coefficient(
-        Pr = cea_results["c_pran"],
-        gamma = cea_results["gamma"],
-        c_star = cea_results["c_star"],
-        T0 = cea_results["c_t"],
+        Pr = cea_results["c_pran"], #Prandlt number of the combustion gas
+        gamma = cea_results["gamma"], #specific heat ratio of the combustion gas
+        c_star = cea_results["c_star"], #characteristic exhaust velocity
+        T0 = cea_results["c_t"], #stagnation temperature of the combustion gas
+        Cp = cea_results["c_cp"], #specific heat at constant pressure of the combustion gas
+        P0 = cea_results["c_p"], #chamber pressure
+        mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas
     )
     
     print("Heat flux (h) onto the chamber wall:", heat_transfer_coefficient_value)
