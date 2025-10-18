@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from sfd import getRocketSections, returnMassModel, calculateCG
+from sfd import getRocketSections, returnMassModel, getCG
 from math import atan, pi
 
 LB2KG = 0.453592

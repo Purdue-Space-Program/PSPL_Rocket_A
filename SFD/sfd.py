@@ -63,16 +63,16 @@ def getMassModel(rocket_dict, point_masses, dy):
     # print(mass_model) # TEST
     return np.array(mass_model)
 
-def calculateTotalMass(rocket_dict, point_masses):
+def getTotalMass(rocket_dict, point_masses):
     totalPointMass = sum([pm['mass'] for pm in point_masses]) # Sum point masses
     totalSectionMass = sum([rocket_section.get('mass', 0) for rocket_section in rocket_dict.values()]) # Sum section masses
     return totalPointMass + totalSectionMass
 
-def calculateTotalLength(rocket_dict, point_masses):
+def getTotalLength(rocket_dict):
     totalLength = sum([rocket_section.get('length', 0) for rocket_section in rocket_dict.values()]) # Sum section lengths
     return totalLength
 
-def calculateCG(rocket_dict, point_masses, totalMass):
+def getCG(rocket_dict, point_masses, totalMass):
     moment = 0
     length = 0
     for section in reversed(rocket_dict.values()):
@@ -96,8 +96,10 @@ def calculateCG(rocket_dict, point_masses, totalMass):
 
 # def getFinCP(noseconeToFin, fin_obj, length, sweep_length):
 
-
-
+# Calculate center of pressure of nosecone
+def getNoseconeCP(nosecone_length, length): # Parabolic nosecone CP equation
+    xCoord = length - 0.5 * nosecone_length # Nosecone CP from aft
+    return xCoord
 
 sfd_inputs = pd.ExcelFile('sfd_inputs.xlsx', engine='openpyxl')
 rocket_dict = getRocketSections(sfd_inputs)
