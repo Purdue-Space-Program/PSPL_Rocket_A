@@ -126,6 +126,7 @@ for N_lox in range(N_lox_min, N_lox_max + 1, 2):
             "Number of rows": N_rows,
             "Skip distance [m]": skip_dist,
             "Closest Bit Name": closest_bit_name,
+            "Annular Thickness": annular_thickness * M2FT,
             
             "Ideal diameter of LOx orifice holes [in]": D_ideal_lox_orifice * M2IN,
             "Real diameter of LOx orifice holes [in]": D_real_lox_orifice * M2IN,
@@ -153,7 +154,7 @@ if good_enough_found == 1:
         if isinstance(value, str):
             print(f"{key}: {value}")
         else:
-            print(f"{key}: {value:.3f}")
+            print(f"{key}: {value:.5f}")
     # show where chosen orifice size is
     plt.axvline(best_values["Number of holes"], color='g', linestyle='--', label='Chosen number of holes')
 else:
