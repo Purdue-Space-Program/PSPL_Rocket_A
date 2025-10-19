@@ -1,86 +1,47 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from sfd import getRocketSections, returnMassModel, getCG
-from math import atan, pi
+import sfd
 
 LB2KG = 0.453592
 FT2M = 0.3048
 IN2M = 0.0254
 
+# Parameters
+diameter = 6 * IN2M
+dy = 0.005
+
 sfd_inputs = pd.ExcelFile('sfd_inputs.xlsx', engine='openpyxl')
-rocket_dict = getRocketSections(sfd_inputs)
-mass_model = returnMassModel(0.005)
-totalMass = 0
-for sec_name in rocket_dict:
-    if 'mass' in rocket_dict[sec_name]:
-        totalMass += rocket_dict[sec_name]['mass']
-# print(totalMass) # TEST
+rocket_dict = sfd.getRocketSections(sfd_inputs)
+aero_dict = sfd.getAeroProperties(sfd_inputs)
+point_masses = sfd.getPointMasses(rocket_dict)
+mass_model = sfd.getMassModel(rocket_dict, point_masses, dy)
+totalMass = sfd.getTotalMass(rocket_dict) # [kg]
+totalLength = sfd.getTotalLength(rocket_dict) # [m]
+cg = sfd.getCG(rocket_dict, point_masses, totalMass)
 
-# General parameters
-diameter = 6 * IN2M # [m] Rocket cross-sectional diameter
-S = pi * (diameter / 2)**2 # Rocket cross-sectional area
+AOA = sfd.getAOA(aero_dict)
+Q = sfd.getQ(aero_dict)
+S = sfd.getArea(diameter) # Cross sectional area [m^2]
 
-# Calculate Angle of attack
-velWind = 1 # [m/s] Wind velocity # UPDATE
-rocket_velocity = 1 # [m/s] Rocket velocity # UPDATE
-AOA = atan(velWind / rocket_velocity) # [radians] Angle of attack
+# Stability derivative
+machCoeff = sfd.getMachAdjustedCoeff(1, 0.45)
+noseSD = sfd.getNoseSD(machCoeff)
+finSD = sfd.getFinSD(rocket_dict, diameter)
 
-# Calculate dynamic pressure
-rho = 1 # Fluid density # UPDATE
-v = 1 # Fluid velocity # UPDATE
-q = rho * v / 2
+# Lift forces
+noseLift = sfd.getLiftForce(Q, S, AOA, noseSD)
+finLift = sfd.getLiftForce(Q, S, AOA, finSD)
+boattailLift = 0
+lift_dict = {'nose': noseLift, 'finLift': finLift, 'boattail': boattailLift}
 
-# Calculate lift-curve slopes
-# dCLnose = 
-# dCLfin = 
-# dCLboat = 
+# CP Location
+noseconeToFin = totalLength - rocket_dict['fins']['length']
+noseCP = sfd.getNoseCP(rocket_dict['nosecone']['length'], totalLength)
+finCP = sfd.getFinCP(noseconeToFin, rocket_dict, totalLength)
+boattailCP = 0
+cp_dict = {'nose': noseCP, 'fin': finCP, 'boattail': boattailCP}
 
-# Calculate nosecone lift at AOA = 0
-NNose = q * S * AOA * dCLnose
+ay = sfd.getLatAccel(lift_dict, totalMass)
+r = sfd.getAngularAccel(lift_dict, cp_dict, cg)
 
-
-# Calculate nosecone lift at AOA = 0
-def calculateNNose(Q, S, AOA, dCLnose):
-    '''
-    Q: Dynamic pressure
-    S: Fuselage cross-sectional area
-    AOA: Angle of attack
-    dCLnose: Lift-curve slope of nose
-    '''
-    NNose = Q * S * AOA * dCLnose
-    return NNose
-
-# Calculate fin lift at AOA = 0
-def calculateNFin(Q, S, AOA, dCLfin):
-    NFin = Q * S * AOA * dCLfin
-    return NFin
-
-# Calculate boat tail lift at AOA = 0
-def calculateLBoattail(Q, S, AOA, dCLboattail):
-    NBoattail = (-1) * Q * S * AOA * dCLboattail
-    return NBoattail
-
-# Calculate angle of attack after encountering wind gust
-def calculateAOA(velWind, velocity):
-    AOA = atan(velWind / velocity)
-    return AOA
-
-# Calculate lateral acceleration after encountering wind gust
-def calculateAy(NNose, NFin, NBoattail, totalMass):
-    Ay = (NNose + NFin + NBoattail) / totalMass
-    return Ay
-
-# Calculate angular acceleration about vehicle center of gravity after encountering wind gust
-def calculateR(NNose, NFin, NBoattail, MNose, MFin, MBoattail):
-    '''
-    MNose: Moment arm of nose from its center of pressure to CG
-    MFin: Moment arm of fin from its center of pressure to CG
-    MBoattail: Moment arm of boattail from its center of pressure to CG
-    '''
-    R = NNose * MNose + NFin * MFin + NBoattail * MBoattail
-    return R
-
-def calculateAxialLoad(T, DNose, DFuselage, DBase, S, deltaP):
-    
-    A = (-1) * T + DNose + DFuselage + DBase + S * deltaP

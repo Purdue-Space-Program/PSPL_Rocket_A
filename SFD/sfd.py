@@ -1,10 +1,12 @@
 import pandas as pd
-from math import ceil, sqrt
+from math import ceil, sqrt, atan, pi, degrees
 import numpy as np
 
 LB2KG = 0.453592
 FT2M = 0.3048
 IN2M = 0.0254
+LBF2N = 4.44822
+MPH2MPS = 0.44704
 
 def codeFriendlyName(str, delimiter='_'):
     return delimiter.join(str.split(' (')[0].split(' ')).lower() # Delimiter is character between words ex. "_"
@@ -40,6 +42,23 @@ def getPointMasses(xlsx):
         point_masses.append({'mass':mass * LB2KG, 'x_coordinate':xcoord * FT2M}) # Only point mass is batteries
     # print(point_masses) # TEST
     return point_masses
+
+def getAeroProperties(xlsx):
+    location_properties = {}
+    location_inputs = pd.read_excel(xlsx, sheet_name='Aerodynamic Properties') # Opens and reads a sheet called "Aerodynamic Properties"
+
+    for location in location_inputs.iloc:
+        location_name = codeFriendlyName(location['Name'])
+        # print(location_name) # TEST
+        location_dict = location.drop('Name').to_dict() # Each location will have the format { velocity: xx, acceleration: xx, ... }
+
+        location_properties[location_name] = {codeFriendlyName(k):v for k,v in location_dict.items()} # Creates a dictionary for each location
+        if 'thrust' in location_properties[location_name]:
+            location_properties[location_name]['thrust'] *= LBF2N
+        if 'max_wind_guss' in location_properties[location_name]:
+            location_properties[location_name]['max_wind_gust'] *= MPH2MPS
+    
+    return location_properties
 
 def getMassModel(rocket_dict, point_masses, dy):
     element_length = dy # Set element length of 5 mm
@@ -92,23 +111,84 @@ def getCG(rocket_dict, point_masses, totalMass):
     cg = moment / totalMass # Center of gravity calculation
     return cg
 
-# def getFinSD(rocket_dict, rocket_diameter):
+# Fin stability derivative for trapezoidal fins
+def getFinSD(rocket_dict, rocket_diameter):
+    root_chord, tip_chord, sweep_length, fin_height, n = rocket_dict['fins']['root_chord'], rocket_dict['fins']['tip_chord'], rocket_dict['fins']['sweep_length'], rocket_dict['fins']['height'], rocket_dict['fins']['number_of_fins']
+    mid_chord = sqrt(fin_height**2 + ((tip_chord + root_chord) / 2 + sweep_length)**2) # [m]
+    Kfb = 1 + (rocket_diameter / 2) / (fin_height + rocket_diameter / 2) # CHECK, PSPL_R4_SFD doesn't divide by 2 and does multiply fin_height by 2, Aerodynamic Equations does and doesn't
 
-# def getFinCP(noseconeToFin, fin_obj, length, sweep_length):
+    stability_derivative = Kfb * (4 * n * (fin_height / rocket_diameter)**2) / (1 + sqrt(1 + (2 * mid_chord / (root_chord + tip_chord))**2))
+    return stability_derivative
+
+# Fin center of pressure from Barrowman Equation
+def getFinCP(noseconeToFin, rocket_dict, length):
+    root_chord, tip_chord, sweep_length, fin_height = rocket_dict['fins']['root_chord'], rocket_dict['fins']['tip_chord'], rocket_dict['fins']['sweep_length'], rocket_dict['fins']['height']
+    mid_chord = sqrt(fin_height**2 + ((tip_chord + root_chord) / 2 + sweep_length)**2) # [m]
+    first_term = noseconeToFin
+    second_term = (mid_chord / 3) * ((root_chord + 2 * tip_chord) / (root_chord + tip_chord))
+    third_term = (1 / 6) * (root_chord + tip_chord - (root_chord * tip_chord) / (root_chord + tip_chord))
+
+    cp = first_term + second_term + third_term
+    return length - cp # Fin CP from aft
+
+# Calculate corrected aerodynamic coefficient
+def getMachAdjustedCoeff(coeff, mach):
+    return coeff / sqrt(abs(mach**2  -1)) # From Cambridge Aerodynamic Equations
+
+# Calculate compressible flow stability derivative for conical, ogive, and parabolic nosecone
+def getNoseSD(machCoeff):
+    return 2 * machCoeff
 
 # Calculate center of pressure of nosecone
-def getNoseconeCP(nosecone_length, length): # Parabolic nosecone CP equation
+def getNoseCP(nosecone_length, length): # Parabolic nosecone CP equation
     xCoord = length - 0.5 * nosecone_length # Nosecone CP from aft
     return xCoord
 
-sfd_inputs = pd.ExcelFile('sfd_inputs.xlsx', engine='openpyxl')
-rocket_dict = getRocketSections(sfd_inputs)
-point_masses = getPointMasses(sfd_inputs)
+def getTotalMass(rocket_dict):
+    totalMass = 0
+    for sec_name in rocket_dict:
+        if 'mass' in rocket_dict[sec_name]:
+            totalMass += rocket_dict[sec_name]['mass']
+    return totalMass
 
-def returnMassModel(dy):
-    mass_model = getMassModel(rocket_dict, point_masses, dy)
-    return mass_model
+# Calculate angle of attack when rocket encounters a wind gust
+def getAOA(aero_dict):
+    return degrees(atan(aero_dict['max_wind_gust'] / aero_dict['velocity'])) # [degrees]
+
+# Calculate dynamic pressure
+def getQ(aero_dict):
+    velocity, rho = aero_dict['velocity'], aero_dict['air_density']
+    return rho * velocity**2 / 2
+
+# Calculate cross-sectional area
+def getArea(diameter):
+    return pi * (diameter / 2)**2
+
+# Calculate lift force
+def getLiftForce(Q, S, AOA, SD):
+    return Q * S * AOA * SD
+
+# Calculate lateral acceleration when rocket encounters wind gust
+def getLatAccel(lift_dict, totalMass):
+    noseLift, finLift, boattailLift = lift_dict['nose'], lift_dict['fin'], lift_dict['boattail']
+    return (noseLift + finLift + boattailLift) / totalMass # a = F / m
+
+# Calculate angular acceleration when rocket encounters wind gust
+def getAngularAccel(lift_dict, cp_dict, cg):
+    lift = np.array([lift_dict['nose'], lift_dict['fin'], lift_dict['boattail']])
+    cp = np.array([cp_dict['nose'], cp_dict['fin'], cp_dict['boattail']])
+    cpLocation = np.absolute(cp - cg)
+    sum = 0
+    for i in range(len(lift_dict) - 1):
+        sum += (-1)**(i + 1) * lift[i] * cpLocation[i]
+    return sum
+
+# sfd_inputs = pd.ExcelFile('sfd_inputs.xlsx', engine='openpyxl')
+# rocket_dict = getRocketSections(sfd_inputs)
+# point_masses = getPointMasses(sfd_inputs)
+# aero_dict = getAeroProperties(sfd_inputs)
 
 # print(rocket_dict) # TEST
 # print(point_masses) # TEST
 # print(returnMassModel(0.005)) # TEST
+
