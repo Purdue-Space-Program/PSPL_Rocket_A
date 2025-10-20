@@ -57,7 +57,7 @@ def getAeroProperties(xlsx):
             location_properties[location_name]['thrust'] *= LBF2N
         if 'max_wind_guss' in location_properties[location_name]:
             location_properties[location_name]['max_wind_gust'] *= MPH2MPS
-    
+    # print(location_properties) # TEST
     return location_properties
 
 def getMassModel(rocket_dict, point_masses, dy):
@@ -152,12 +152,12 @@ def getTotalMass(rocket_dict):
     return totalMass
 
 # Calculate angle of attack when rocket encounters a wind gust
-def getAOA(aero_dict):
-    return degrees(atan(aero_dict['max_wind_gust'] / aero_dict['velocity'])) # [degrees]
+def getAOA(aero_dict, location):
+    return degrees(atan(aero_dict[location]['max_wind_gust'] / aero_dict[location]['velocity'])) # [degrees]
 
 # Calculate dynamic pressure
-def getQ(aero_dict):
-    velocity, rho = aero_dict['velocity'], aero_dict['air_density']
+def getQ(aero_dict, location):
+    velocity, rho = aero_dict[location]['velocity'], aero_dict[location]['air_density']
     return rho * velocity**2 / 2
 
 # Calculate cross-sectional area
@@ -168,27 +168,34 @@ def getArea(diameter):
 def getLiftForce(Q, S, AOA, SD):
     return Q * S * AOA * SD
 
+def getRotationalInertia(mass_model, cg, length):
+    lengths = np.linspace(0, length, len(mass_model))
+    rotationalInertia = np.sum(mass_model * (lengths - cg)**2)
+    return rotationalInertia
+
 # Calculate lateral acceleration when rocket encounters wind gust
 def getLatAccel(lift_dict, totalMass):
     noseLift, finLift, boattailLift = lift_dict['nose'], lift_dict['fin'], lift_dict['boattail']
     return (noseLift + finLift + boattailLift) / totalMass # a = F / m
 
 # Calculate angular acceleration when rocket encounters wind gust
-def getAngularAccel(lift_dict, cp_dict, cg):
-    lift = np.array([lift_dict['nose'], lift_dict['fin'], lift_dict['boattail']])
-    cp = np.array([cp_dict['nose'], cp_dict['fin'], cp_dict['boattail']])
+def getAngularAccel(lift_dict, cp_dict, cg, inertia):
+    lift = np.array([v for k,v in lift_dict.items()])
+    cp = np.array([v for k,v in cp_dict.items()])
     cpLocation = np.absolute(cp - cg)
     sum = 0
     for i in range(len(lift_dict) - 1):
-        sum += (-1)**(i + 1) * lift[i] * cpLocation[i]
-    return sum
+        sum += (-1)**(i + 1) * lift[i] * cpLocation[i] # lift_dict should be nose, fin, boattail so nose (-), fin (+), boattail (-)
+    return sum / inertia
 
 # sfd_inputs = pd.ExcelFile('sfd_inputs.xlsx', engine='openpyxl')
 # rocket_dict = getRocketSections(sfd_inputs)
 # point_masses = getPointMasses(sfd_inputs)
 # aero_dict = getAeroProperties(sfd_inputs)
+# mass_model = getMassModel(rocket_dict, point_masses, 0.005)
+# cg = getCG(rocket_dict, point_masses, getTotalMass(rocket_dict))
+# length = getTotalLength(rocket_dict)
 
 # print(rocket_dict) # TEST
 # print(point_masses) # TEST
-# print(returnMassModel(0.005)) # TEST
 

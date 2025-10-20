@@ -14,14 +14,15 @@ dy = 0.005
 sfd_inputs = pd.ExcelFile('sfd_inputs.xlsx', engine='openpyxl')
 rocket_dict = sfd.getRocketSections(sfd_inputs)
 aero_dict = sfd.getAeroProperties(sfd_inputs)
-point_masses = sfd.getPointMasses(rocket_dict)
+point_masses = sfd.getPointMasses(sfd_inputs)
 mass_model = sfd.getMassModel(rocket_dict, point_masses, dy)
 totalMass = sfd.getTotalMass(rocket_dict) # [kg]
 totalLength = sfd.getTotalLength(rocket_dict) # [m]
 cg = sfd.getCG(rocket_dict, point_masses, totalMass)
 
-AOA = sfd.getAOA(aero_dict)
-Q = sfd.getQ(aero_dict)
+location = ['off_the_rail', 'max_q']
+AOA = sfd.getAOA(aero_dict, location[1])
+Q = sfd.getQ(aero_dict, location[1])
 S = sfd.getArea(diameter) # Cross sectional area [m^2]
 
 # Stability derivative
@@ -33,15 +34,20 @@ finSD = sfd.getFinSD(rocket_dict, diameter)
 noseLift = sfd.getLiftForce(Q, S, AOA, noseSD)
 finLift = sfd.getLiftForce(Q, S, AOA, finSD)
 boattailLift = 0
-lift_dict = {'nose': noseLift, 'finLift': finLift, 'boattail': boattailLift}
+lift_dict = {'nose': noseLift, 'fin': finLift, 'boattail': boattailLift}
 
 # CP Location
-noseconeToFin = totalLength - rocket_dict['fins']['length']
-noseCP = sfd.getNoseCP(rocket_dict['nosecone']['length'], totalLength)
-finCP = sfd.getFinCP(noseconeToFin, rocket_dict, totalLength)
-boattailCP = 0
-cp_dict = {'nose': noseCP, 'fin': finCP, 'boattail': boattailCP}
+noseconeToFin = totalLength - rocket_dict['fins']['length'] # Distance from nosecone to fin
+noseCP = sfd.getNoseCP(rocket_dict['nosecone']['length'], totalLength) # Nose center of pressure
+finCP = sfd.getFinCP(noseconeToFin, rocket_dict, totalLength) # Fin center of pressure
+boattailCP = 0 # Boattail center of pressure
+cp_dict = {'nose': noseCP, 'fin': finCP, 'boattail': boattailCP} # Center of pressure dictionary
 
-ay = sfd.getLatAccel(lift_dict, totalMass)
-r = sfd.getAngularAccel(lift_dict, cp_dict, cg)
+inertia = sfd.getRotationalInertia(mass_model, cg, totalLength) # Inertia
+ay = sfd.getLatAccel(lift_dict, totalMass) # Lateral acceleration
+r = sfd.getAngularAccel(lift_dict, cp_dict, cg, inertia) # Angular acceleration
 
+
+
+# print(inertia)
+# print(r)
