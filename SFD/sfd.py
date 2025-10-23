@@ -11,6 +11,7 @@ MPH2MPS = 0.44704
 def codeFriendlyName(str, delimiter='_'):
     return delimiter.join(str.split(' (')[0].split(' ')).lower() # Delimiter is character between words ex. "_"
 
+# Unpack 'Vehicle Sections' in rocket Excel file into a dictionary
 def getRocketSections(xlsx):
     rocket_sections = {}
     rocket_inputs = pd.read_excel(xlsx, sheet_name='Vehicle Sections') # Opens and reads a sheet called "Vehicle Sections"
@@ -34,25 +35,28 @@ def getRocketSections(xlsx):
 
     return rocket_sections
 
+# Unpack 'Point Masses' in rocket Excel file into a dictionary
 def getPointMasses(xlsx):
     point_mass_inputs = pd.read_excel(xlsx, sheet_name='Point Masses', header=0, usecols=[1,2])
     point_masses = []
-    for point_mass in point_mass_inputs.iloc:
+    for point_mass in point_mass_inputs.iloc: # Iterates through each row (point mass) of the sheet
         mass, xcoord = list(point_mass)
         point_masses.append({'mass':mass * LB2KG, 'x_coordinate':xcoord * FT2M}) # Only point mass is batteries
     # print(point_masses) # TEST
     return point_masses
 
+# Unpack 'Aerodynamic Properties' in rocket Excel file into a dictionary
 def getAeroProperties(xlsx):
     location_properties = {}
     location_inputs = pd.read_excel(xlsx, sheet_name='Aerodynamic Properties') # Opens and reads a sheet called "Aerodynamic Properties"
 
-    for location in location_inputs.iloc:
+    for location in location_inputs.iloc: # Iterates through each row (location) of the sheet
         location_name = codeFriendlyName(location['Name'])
         # print(location_name) # TEST
         location_dict = location.drop('Name').to_dict() # Each location will have the format { velocity: xx, acceleration: xx, ... }
 
         location_properties[location_name] = {codeFriendlyName(k):v for k,v in location_dict.items()} # Creates a dictionary for each location
+        # Convert units to metric
         if 'thrust' in location_properties[location_name]:
             location_properties[location_name]['thrust'] *= LBF2N
         if 'max_wind_guss' in location_properties[location_name]:
@@ -60,18 +64,19 @@ def getAeroProperties(xlsx):
     # print(location_properties) # TEST
     return location_properties
 
+# Create a mass model of rocket in the form of an array where each point in the array has a mass of the rocket at that location
 def getMassModel(rocket_dict, point_masses, dy):
     element_length = dy # Set element length of 5 mm
     mass_model = []
     model_index = 0
-    pointMassIndices = [ceil(pm['x_coordinate']/element_length) for pm in point_masses]
+    pointMassIndices = [ceil(pm['x_coordinate'] / element_length) for pm in point_masses] # Find location in mass array that corresponds to point mass x-coordinate on rocket
     # print(pointMassIndices) # TEST
-    for section in reversed(rocket_dict.values()):
+    for section in reversed(rocket_dict.values()): # Go fin to nose instead of nose to fin
         secMass = section.get('mass')
         secLength = section.get('length')
         if not secMass: continue # Skips fins
-        elementsPerSection = ceil(secLength / element_length)
-        massPerElement = secMass / elementsPerSection
+        elementsPerSection = ceil(secLength / element_length) 
+        massPerElement = secMass / elementsPerSection 
         for i in range(elementsPerSection):
             if model_index in pointMassIndices:
                 point_mass_mass = point_masses[pointMassIndices.index(model_index)]['mass']
@@ -98,8 +103,7 @@ def getCG(rocket_dict, point_masses, totalMass):
         secMass = section.get('mass', 0)
         secLength = section.get('mass', 0)
         xCoord = length + secLength / 2 # Each section can be represented as a point mass
-        # Multiply masses by x coordinate to get moment for each section
-        moment += secMass * xCoord
+        moment += secMass * xCoord # Multiply masses by x coordinate to get moment for each section
         length += secLength # Go to next section
     
     pointMass = np.array([pm['mass'] for pm in point_masses])
@@ -129,6 +133,8 @@ def getFinCP(noseconeToFin, rocket_dict, length):
     third_term = (1 / 6) * (root_chord + tip_chord - (root_chord * tip_chord) / (root_chord + tip_chord))
 
     cp = first_term + second_term + third_term
+    print(length) # TEST
+    print(cp) # TEST
     return length - cp # Fin CP from aft
 
 # Calculate corrected aerodynamic coefficient
@@ -144,6 +150,7 @@ def getNoseCP(nosecone_length, length): # Parabolic nosecone CP equation
     xCoord = length - 0.5 * nosecone_length # Nosecone CP from aft
     return xCoord
 
+# Calculate the total mass of the rocket
 def getTotalMass(rocket_dict):
     totalMass = 0
     for sec_name in rocket_dict:
