@@ -1,6 +1,8 @@
 import pandas as pd
 from math import ceil, sqrt, atan, pi, degrees
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 LB2KG = 0.453592
 FT2M = 0.3048
@@ -33,7 +35,7 @@ def getRocketSections(xlsx):
         if 'thickness' in rocket_sections[sec_name]:
             rocket_sections[sec_name]['thickness'] *= IN2M
 
-    return rocket_sections
+    return rocket_sections # [dictionary]
 
 # Unpack 'Point Masses' in rocket Excel file into a dictionary
 def getPointMasses(xlsx):
@@ -43,7 +45,7 @@ def getPointMasses(xlsx):
         mass, xcoord = list(point_mass)
         point_masses.append({'mass':mass * LB2KG, 'x_coordinate':xcoord * FT2M}) # Only point mass is batteries
     # print(point_masses) # TEST
-    return point_masses
+    return point_masses # [dictionary]
 
 # Unpack 'Aerodynamic Properties' in rocket Excel file into a dictionary
 def getAeroProperties(xlsx):
@@ -62,7 +64,7 @@ def getAeroProperties(xlsx):
         if 'max_wind_guss' in location_properties[location_name]:
             location_properties[location_name]['max_wind_gust'] *= MPH2MPS
     # print(location_properties) # TEST
-    return location_properties
+    return location_properties # [dictionary]
 
 # Create a mass model of rocket in the form of an array where each point in the array has a mass of the rocket at that location
 def getMassModel(rocket_dict, point_masses, dy):
@@ -75,31 +77,34 @@ def getMassModel(rocket_dict, point_masses, dy):
         secMass = section.get('mass')
         secLength = section.get('length')
         if not secMass: continue # Skips fins
-        elementsPerSection = ceil(secLength / element_length) 
-        massPerElement = secMass / elementsPerSection 
+        elementsPerSection = ceil(secLength / element_length)
+        massPerElement = secMass / elementsPerSection # Split a section mass across the entire section
         for i in range(elementsPerSection):
-            if model_index in pointMassIndices:
+            if model_index in pointMassIndices: # Add mass of point masses to mass_model
                 point_mass_mass = point_masses[pointMassIndices.index(model_index)]['mass']
                 mass_model.append(massPerElement + point_mass_mass)
             else:
-                mass_model.append(massPerElement)
+                mass_model.append(massPerElement) # Add the element mass to mass_model
             model_index += 1
     # print(mass_model) # TEST
-    return np.array(mass_model)
+    return np.array(mass_model) # [array]
 
+# Calculate total mass of rocket
 def getTotalMass(rocket_dict, point_masses):
     totalPointMass = sum([pm['mass'] for pm in point_masses]) # Sum point masses
     totalSectionMass = sum([rocket_section.get('mass', 0) for rocket_section in rocket_dict.values()]) # Sum section masses
-    return totalPointMass + totalSectionMass
+    return totalPointMass + totalSectionMass # [kg] Sum point masses and section masses
 
+# Calculate total length of rocket
 def getTotalLength(rocket_dict):
     totalLength = sum([rocket_section.get('length', 0) for rocket_section in rocket_dict.values()]) # Sum section lengths
-    return totalLength
+    return totalLength # [m]
 
+# Calculate center of gravity of rocket
 def getCG(rocket_dict, point_masses, totalMass):
     moment = 0
     length = 0
-    for section in reversed(rocket_dict.values()):
+    for section in reversed(rocket_dict.values()): # Go from fin to nose instead of nose to fin
         secMass = section.get('mass', 0)
         secLength = section.get('mass', 0)
         xCoord = length + secLength / 2 # Each section can be represented as a point mass
@@ -113,49 +118,49 @@ def getCG(rocket_dict, point_masses, totalMass):
     moment += np.sum(pointMoments)
 
     cg = moment / totalMass # Center of gravity calculation
-    return cg
+    return cg # [m]
 
 # Fin stability derivative for trapezoidal fins
 def getFinSD(rocket_dict, rocket_diameter):
-    root_chord, tip_chord, sweep_length, fin_height, n = rocket_dict['fins']['root_chord'], rocket_dict['fins']['tip_chord'], rocket_dict['fins']['sweep_length'], rocket_dict['fins']['height'], rocket_dict['fins']['number_of_fins']
-    mid_chord = sqrt(fin_height**2 + ((tip_chord + root_chord) / 2 + sweep_length)**2) # [m]
-    Kfb = 1 + (rocket_diameter / 2) / (fin_height + rocket_diameter / 2) # CHECK, PSPL_R4_SFD doesn't divide by 2 and does multiply fin_height by 2, Aerodynamic Equations does and doesn't
+    root_chord, tip_chord, sweep_length, fin_height, n = rocket_dict['fins']['root_chord'], rocket_dict['fins']['tip_chord'], rocket_dict['fins']['sweep_length'], rocket_dict['fins']['height'], rocket_dict['fins']['number_of_fins'] # Unpack rocket_dict
+    mid_chord = sqrt(fin_height**2 + ((tip_chord - root_chord) / 2 + sweep_length)**2) # [m] Length of fin mid-chord line, Rocket Fin Design equation 1
+    Kfb = 1 + (rocket_diameter / 2) / (fin_height + rocket_diameter / 2) # Coefficient, Cambridge equation 32
 
-    stability_derivative = Kfb * (4 * n * (fin_height / rocket_diameter)**2) / (1 + sqrt(1 + (2 * mid_chord / (root_chord + tip_chord))**2))
+    stability_derivative = Kfb * (4 * n * (fin_height / rocket_diameter)**2) / (1 + sqrt(1 + (2 * mid_chord / (root_chord + tip_chord))**2)) # Fin stability derivative, Cambrdige Aerodynamic Equations equation 31
     return stability_derivative
 
 # Fin center of pressure from Barrowman Equation
 def getFinCP(noseconeToFin, rocket_dict, length):
-    root_chord, tip_chord, sweep_length, fin_height = rocket_dict['fins']['root_chord'], rocket_dict['fins']['tip_chord'], rocket_dict['fins']['sweep_length'], rocket_dict['fins']['height']
-    mid_chord = sqrt(fin_height**2 + ((tip_chord + root_chord) / 2 + sweep_length)**2) # [m]
+    root_chord, tip_chord, sweep_length, fin_height = rocket_dict['fins']['root_chord'], rocket_dict['fins']['tip_chord'], rocket_dict['fins']['sweep_length'], rocket_dict['fins']['height'] # Unpack rocket_dict
+    mid_chord = sqrt(fin_height**2 + ((tip_chord - root_chord) / 2 + sweep_length)**2) # [m] Length of fin mid-chord line, Rocket Fin Design equation 1
     first_term = noseconeToFin
     second_term = (mid_chord / 3) * ((root_chord + 2 * tip_chord) / (root_chord + tip_chord))
     third_term = (1 / 6) * (root_chord + tip_chord - (root_chord * tip_chord) / (root_chord + tip_chord))
 
-    cp = first_term + second_term + third_term
-    print(length) # TEST
-    print(cp) # TEST
-    return length - cp # Fin CP from aft
+    cp = first_term + second_term + third_term # Cambridge equation 33
+    # print(length) # TEST
+    # print(cp) # TEST
+    return length - cp # [m] Fin CP from aft
 
 # Calculate corrected aerodynamic coefficient
 def getMachAdjustedCoeff(coeff, mach):
-    return coeff / sqrt(abs(mach**2  -1)) # From Cambridge Aerodynamic Equations
+    return coeff / sqrt(abs(mach**2 - 1)) # Cambridge equation 55, 56
 
 # Calculate compressible flow stability derivative for conical, ogive, and parabolic nosecone
 def getNoseSD(machCoeff):
-    return 2 * machCoeff
+    return 2 * machCoeff # Cambridge equation 25
 
 # Calculate center of pressure of nosecone
 def getNoseCP(nosecone_length, length): # Parabolic nosecone CP equation
-    xCoord = length - 0.5 * nosecone_length # Nosecone CP from aft
+    xCoord = length - 0.5 * nosecone_length # [m] Nosecone CP from aft, Cambridge equation 28
     return xCoord
 
 # Calculate the total mass of the rocket
 def getTotalMass(rocket_dict):
     totalMass = 0
-    for sec_name in rocket_dict:
+    for sec_name in rocket_dict: # Loop through rocket_dict and sum masses
         if 'mass' in rocket_dict[sec_name]:
-            totalMass += rocket_dict[sec_name]['mass']
+            totalMass += rocket_dict[sec_name]['mass'] # [kg]
     return totalMass
 
 # Calculate angle of attack when rocket encounters a wind gust
@@ -173,8 +178,9 @@ def getArea(diameter):
 
 # Calculate lift force
 def getLiftForce(Q, S, AOA, SD):
-    return Q * S * AOA * SD
+    return Q * S * AOA * SD # Aspire page 14
 
+# Calculate rotational inertia
 def getRotationalInertia(mass_model, cg, length):
     lengths = np.linspace(0, length, len(mass_model))
     rotationalInertia = np.sum(mass_model * (lengths - cg)**2)
@@ -182,18 +188,54 @@ def getRotationalInertia(mass_model, cg, length):
 
 # Calculate lateral acceleration when rocket encounters wind gust
 def getLatAccel(lift_dict, totalMass):
-    noseLift, finLift, boattailLift = lift_dict['nose'], lift_dict['fin'], lift_dict['boattail']
-    return (noseLift + finLift + boattailLift) / totalMass # a = F / m
+    noseLift, finLift, boattailLift = lift_dict['nose'], lift_dict['fin'], lift_dict['boattail'] # Unpack lift_dict
+    return (noseLift + finLift + boattailLift) / totalMass # [m/s^2] a = F / m
 
 # Calculate angular acceleration when rocket encounters wind gust
 def getAngularAccel(lift_dict, cp_dict, cg, inertia):
-    lift = np.array([v for k,v in lift_dict.items()])
-    cp = np.array([v for k,v in cp_dict.items()])
-    cpLocation = np.absolute(cp - cg)
+    lift = np.array([v for k,v in lift_dict.items()]) # Create an array for lift from lift_dict
+    cp = np.array([v for k,v in cp_dict.items()]) # Create an array for cp from cp_dict
+    cpLocation = np.absolute(cp - cg) # Create an array of distance of cp from cg
     sum = 0
     for i in range(len(lift_dict) - 1):
         sum += (-1)**(i + 1) * lift[i] * cpLocation[i] # lift_dict should be nose, fin, boattail so nose (-), fin (+), boattail (-)
     return sum / inertia
+
+# Calculate shear force
+def getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg):
+    dy = totalLength / len(mass_model)
+    lengths = np.linspace(0, totalLength, len(mass_model))
+    # print(lengths) # TEST
+    
+    # Calculate shear force at each point on rocket Aspire page 21
+    shear_array = (-1) * (ay * np.cumsum(mass_model) + r * np.cumsum(mass_model * (cg - lengths)))
+    shear_array[int(cp_dict['nose'] / dy):] += lift_dict['nose']
+    shear_array[int(cp_dict['fin'] / dy):] += lift_dict['fin']
+    shear_array[int(cp_dict['boattail'] / dy):] -= lift_dict['boattail']
+    
+    return shear_array # [array]
+
+# Calculate bending force
+def getBendingForce(shear_array, totalLength):
+    dy = totalLength / len(shear_array)
+    bending_array = np.cumsum(shear_array) * dy # Bending graph is integral of shear graph
+    return bending_array # [array]
+
+# Graph shear forces
+def graphShear(shear_array, totalLength):
+    dx = totalLength / len(shear_array)
+    x = [i * dx for i in range(len(shear_array))]
+    plt.plot(x, shear_array)
+    plt.title("Shear Forces")
+    plt.show()
+
+# Graph bending forces
+def graphBending(bending_array, totalLength):
+    dx = totalLength / len(bending_array)
+    x = [i * dx for i in range(len(bending_array))]
+    plt.plot(x, bending_array)
+    plt.title("Bending Forces")
+    plt.show()
 
 # sfd_inputs = pd.ExcelFile('sfd_inputs.xlsx', engine='openpyxl')
 # rocket_dict = getRocketSections(sfd_inputs)

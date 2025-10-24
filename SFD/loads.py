@@ -47,44 +47,10 @@ inertia = sfd.getRotationalInertia(mass_model, cg, totalLength) # Inertia
 ay = sfd.getLatAccel(lift_dict, totalMass) # Lateral acceleration
 r = sfd.getAngularAccel(lift_dict, cp_dict, cg, inertia) # Angular acceleration
 
-def getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r):
-    dy = totalLength / len(mass_model)
-    lengths = [(i + 1) * dy for i in range(len(mass_model))]
-    print(lengths) # TEST
-    
-    shear_array = (-1) * (ay * np.cumsum(mass_model) + r * np.cumsum(mass_model * (cg - lengths)))
-    shear_array[int(cp_dict['nose'] / dy):] += lift_dict['nose']
-    shear_array[int(cp_dict['fin'] / dy):] += lift_dict['fin']
-    shear_array[int(cp_dict['boattail'] / dy):] -= lift_dict['boattail']
-    
-    return shear_array
-
-def getBendingForce(shear_array, totalLength):
-    dy = totalLength / len(shear_array)
-    bending_array = np.cumsum(shear_array) * dy
-    return bending_array
-
-def graphShear(shear_array, totalLength):
-    dx = totalLength / len(shear_array)
-    x = [i * dx for i in range(len(shear_array))]
-    plt.plot(x, shear_array)
-    plt.title("Shear Forces")
-    plt.show()
-
-def graphBending(bending_array, totalLength):
-    dx = totalLength / len(bending_array)
-    x = [i * dx for i in range(len(bending_array))]
-    plt.plot(x, bending_array)
-    plt.title("Bending Forces")
-    plt.show()
-
 # print(inertia)
 # print(r)
-getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r)
-print(totalLength)
 # print(mass_model)
-print(cp_dict['fin'])
-shear_array = getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r)
-bending_array = getBendingForce(shear_array, totalLength)
-# graphShear(shear_array, totalLength)
+shear_array = sfd.getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg)
+bending_array = sfd.getBendingForce(shear_array, totalLength)
+sfd.graphShear(shear_array, totalLength)
 # graphBending(bending_array, totalLength)
