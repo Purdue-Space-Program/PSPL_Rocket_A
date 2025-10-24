@@ -47,10 +47,11 @@ inertia = sfd.getRotationalInertia(mass_model, cg, totalLength) # Inertia
 ay = sfd.getLatAccel(lift_dict, totalMass) # Lateral acceleration
 r = sfd.getAngularAccel(lift_dict, cp_dict, cg, inertia) # Angular acceleration
 
+shear_array = sfd.getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg)
+bending_array = sfd.getBendingForce(shear_array, totalLength)
+# sfd.graphShear(shear_array, totalLength)
+# sfd.graphBending(bending_array, totalLength)
+
 # print(inertia)
 # print(r)
 # print(mass_model)
-shear_array = sfd.getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg)
-bending_array = sfd.getBendingForce(shear_array, totalLength)
-sfd.graphShear(shear_array, totalLength)
-# graphBending(bending_array, totalLength)

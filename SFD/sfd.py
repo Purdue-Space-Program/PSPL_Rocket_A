@@ -213,6 +213,7 @@ def getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg):
     shear_array[int(cp_dict['fin'] / dy):] += lift_dict['fin']
     shear_array[int(cp_dict['boattail'] / dy):] -= lift_dict['boattail']
     
+    # print(shear_array) # TEST
     return shear_array # [array]
 
 # Calculate bending force
@@ -220,6 +221,9 @@ def getBendingForce(shear_array, totalLength):
     dy = totalLength / len(shear_array)
     bending_array = np.cumsum(shear_array) * dy # Bending graph is integral of shear graph
     return bending_array # [array]
+
+def getAxialForces(aero_dict, mass_model):
+    return
 
 # Graph shear forces
 def graphShear(shear_array, totalLength):
