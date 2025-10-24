@@ -170,21 +170,21 @@ def getAOA(aero_dict, location):
 # Calculate dynamic pressure
 def getQ(aero_dict, location):
     velocity, rho = aero_dict[location]['velocity'], aero_dict[location]['air_density']
-    return rho * velocity**2 / 2
+    return rho * velocity**2 / 2 # [N / m^2]
 
 # Calculate cross-sectional area
 def getArea(diameter):
-    return pi * (diameter / 2)**2
+    return pi * (diameter / 2)**2 # [m^2]
 
 # Calculate lift force
 def getLiftForce(Q, S, AOA, SD):
-    return Q * S * AOA * SD # Aspire page 14
+    return Q * S * AOA * SD # [N] Aspire page 14
 
 # Calculate rotational inertia
 def getRotationalInertia(mass_model, cg, length):
     lengths = np.linspace(0, length, len(mass_model))
     rotationalInertia = np.sum(mass_model * (lengths - cg)**2)
-    return rotationalInertia
+    return rotationalInertia # [kg m^2]
 
 # Calculate lateral acceleration when rocket encounters wind gust
 def getLatAccel(lift_dict, totalMass):
@@ -199,7 +199,7 @@ def getAngularAccel(lift_dict, cp_dict, cg, inertia):
     sum = 0
     for i in range(len(lift_dict) - 1):
         sum += (-1)**(i + 1) * lift[i] * cpLocation[i] # lift_dict should be nose, fin, boattail so nose (-), fin (+), boattail (-)
-    return sum / inertia
+    return sum / inertia # [1 / s^2]
 
 # Calculate shear force
 def getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg):
@@ -214,13 +214,13 @@ def getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg):
     shear_array[int(cp_dict['boattail'] / dy):] -= lift_dict['boattail']
     
     # print(shear_array) # TEST
-    return shear_array # [array]
+    return shear_array # [array, N]
 
 # Calculate bending force
 def getBendingForce(shear_array, totalLength):
     dy = totalLength / len(shear_array)
     bending_array = np.cumsum(shear_array) * dy # Bending graph is integral of shear graph
-    return bending_array # [array]
+    return bending_array # [array, N * m]
 
 def getAxialForces(aero_dict, mass_model):
     return
@@ -230,6 +230,8 @@ def graphShear(shear_array, totalLength):
     dx = totalLength / len(shear_array)
     x = [i * dx for i in range(len(shear_array))]
     plt.plot(x, shear_array)
+    plt.xlabel("Distance from aft (m)")
+    plt.ylabel("Shear Force (N)")
     plt.title("Shear Forces")
     plt.show()
 
@@ -238,6 +240,8 @@ def graphBending(bending_array, totalLength):
     dx = totalLength / len(bending_array)
     x = [i * dx for i in range(len(bending_array))]
     plt.plot(x, bending_array)
+    plt.xlabel("Distance from aft (m)")
+    plt.ylabel("Bending Forces (N * m)")
     plt.title("Bending Forces")
     plt.show()
 
