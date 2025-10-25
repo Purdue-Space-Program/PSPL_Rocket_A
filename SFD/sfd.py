@@ -208,7 +208,7 @@ def getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg):
     # print(lengths) # TEST
     
     # Calculate shear force at each point on rocket Aspire page 21
-    shear_array = (-1) * (ay * np.cumsum(mass_model) + r * np.cumsum(mass_model * (cg - lengths)))
+    shear_array = (-1) * (ay * np.cumsum(mass_model))# + r * np.cumsum(mass_model * (cg - lengths)))
     shear_array[int(cp_dict['nose'] / dy):] += lift_dict['nose']
     shear_array[int(cp_dict['fin'] / dy):] += lift_dict['fin']
     shear_array[int(cp_dict['boattail'] / dy):] -= lift_dict['boattail']
