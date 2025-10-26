@@ -32,8 +32,8 @@ def closest_bit_size(target_diameter):
 # Inputs
 C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
 C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
-N_lox_max = 100 # Max amount of orifices allowed, to be changed
-N_lox_min = 10 # Min amount of orifices allowed, to be changed
+N_top_max = 50 # Max amount of orifices in top row allowed, to be changed (we will have 2 rows where the upper row will have holes with smaller diameter)
+N_top_min = 5 # Min amount of orifices in top row allowed, to be changed
 of_ratio = 1 # from Vehicle Parameters page
 D_c = 4.5 * IN2M # Diameter of chamber (might be changed)
 m_dot = 3.56 * LB2KG # [Kg/s]
@@ -48,7 +48,6 @@ pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
 pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
 m_dot_ideal_lox = m_dot - m_dot_ipa # [Kg/s]
-small_factor = 2 # how much smaller in diameter the upper row holes are
 D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
@@ -69,24 +68,34 @@ good_enough_found = 0
 N_lox_array = []
 value_1_array = []
 value_2_array = []
+minerr = np.inf
 
-for N_lox in range(N_lox_min, N_lox_max + 1, 2):
-    # we will have 2 rows where the upper row will have holes with smaller diameter
-    for N_top in range(N_lox):
-        N_bottom = N_lox - N_top
-        D_ideal_lox_orifice_bottom = 2 * np.sqrt(total_target_area_orifice_lox / (np.pi * (N_bottom + N_top/small_factor**2)))
-        D_ideal_lox_orifice_top = D_ideal_lox_orifice_bottom / small_factor
-        # consider that fact that bits in real life are not the exact diameter we want
+for D_real_lox_orifice_top_in in (standard_bits_inch.values()):
+    D_real_lox_orifice_top = D_real_lox_orifice_top_in * IN2M
+    N_bottom = 14
+    D_real_lox_orifice_bottom = 0.0625 * IN2M 
+    for N_top in range(N_top_min, N_top_max + 1):
+        N_lox = N_top + N_bottom
+        """consider that fact that bits in real life are not the exact diameter we want
         closest_bit_diameter_bottom, absolute_error_bit_size_bottom, closest_bit_name_bottom = closest_bit_size(D_ideal_lox_orifice_bottom * M2IN)
         D_real_lox_orifice_bottom = closest_bit_diameter_bottom
         percent_error_bit_size_bottom = abs(absolute_error_bit_size_bottom) / D_ideal_lox_orifice_bottom
 
         closest_bit_diameter_top, absolute_error_bit_size_top, closest_bit_name_top = closest_bit_size(D_ideal_lox_orifice_top * M2IN)
         D_real_lox_orifice_top = closest_bit_diameter_top
-        percent_error_bit_size_top = abs(absolute_error_bit_size_top) / D_ideal_lox_orifice_top
-        
-        total_area_real_orifice_lox = (N_bottom*D_real_lox_orifice_bottom**2 + N_top*D_real_lox_orifice_top**2) * (np.pi / 4)
+        percent_error_bit_size_top = abs(absolute_error_bit_size_top) / D_ideal_lox_orifice_top"""
+        total_area_real_bottom_orifice_lox = np.pi * (D_real_lox_orifice_bottom / 2)**2 * N_bottom
+        total_target_area_top_orifice_lox = total_target_area_orifice_lox - total_area_real_bottom_orifice_lox
+
+        total_area_real_top_orifice_lox = N_top * (D_real_lox_orifice_top / 2)**2 * np.pi
+        total_area_real_orifice_lox = total_area_real_top_orifice_lox + total_area_real_bottom_orifice_lox
+        err = (abs(total_area_real_top_orifice_lox - total_target_area_top_orifice_lox) / total_target_area_top_orifice_lox) * 100
+        print("err in area:", err)
         # print(f"total_area_real_orifice_lox: {total_area_real_orifice_lox * M2IN:.2}")
+        if err < minerr:
+            minerr = err
+
+
         m_dot_real_lox = total_area_real_orifice_lox * (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
         
         percent_error_m_dot_lox = abs(m_dot_real_lox - m_dot_ideal_lox) / m_dot_ideal_lox
@@ -103,7 +112,7 @@ for N_lox in range(N_lox_min, N_lox_max + 1, 2):
         # print(f"tmr_real: {tmr_real:.5f}")
 
         
-        bf = N_lox * D_real_lox_orifice_top + N_bottom * D_real_lox_orifice_bottom / (np.pi * D_s)
+        bf = N_top * D_real_lox_orifice_top + N_bottom * D_real_lox_orifice_bottom / (np.pi * D_s)
         #N_rows = (N_lox * D_real_lox_orifice // (np.pi * D_s)) + 1
         
         lmr = tmr_real/bf
@@ -127,21 +136,21 @@ for N_lox in range(N_lox_min, N_lox_max + 1, 2):
         if (tmr_percent_error <= tmr_allowable_percent_error) and (percent_error_m_dot_lox <= allowable_percent_error_m_dot_lox) and (good_enough_found == 0):
             good_enough_found = 1
             best_values = {
-                "Number of holes": N_lox,
+                "Number of holes": N_bottom + N_top,
                 "Number of holes in top row": N_top,
                 "Number of holes in bottom row": N_bottom,
                 #"Number of rows": N_rows,
                 "Skip distance [m]": skip_dist,
-                "Closest Bit Name (top orifices)": closest_bit_name_top,
-                "Closest Bit Name (bottom orifices)": closest_bit_name_bottom,
+                #"Closest Bit Name (top orifices)": closest_bit_name_top,
+                #"Closest Bit Name (bottom orifices)": closest_bit_name_bottom,
                 "Annular Thickness [in]": annular_thickness * M2IN,
                 
-                "Ideal diameter of top LOx orifice holes [in]": D_ideal_lox_orifice_top * M2IN,
+                #"Ideal diameter of top LOx orifice holes [in]": D_ideal_lox_orifice_top * M2IN,
                 "Real diameter of top LOx orifice holes [in]": D_real_lox_orifice_top * M2IN,
-                "Bit size error of top orifice holes [%]": percent_error_bit_size_top * 100,
-                "Ideal diameter of bottom LOx orifice holes [in]": D_ideal_lox_orifice_bottom * M2IN,
+                #"Bit size error of top orifice holes [%]": percent_error_bit_size_top * 100,
+                #"Ideal diameter of bottom LOx orifice holes [in]": D_ideal_lox_orifice_bottom * M2IN,
                 "Real diameter of bottom LOx orifice holes [in]": D_real_lox_orifice_bottom * M2IN,
-                "Bit size error of bottom orifice holes [%]": percent_error_bit_size_bottom * 100,
+                #"Bit size error of bottom orifice holes [%]": percent_error_bit_size_bottom * 100,
                 
                 "Ideal LOx mass flow rate [kg/s]" : m_dot_ideal_lox,
                 "Real LOx mass flow rate [kg/s]" : m_dot_real_lox,
@@ -157,8 +166,9 @@ for N_lox in range(N_lox_min, N_lox_max + 1, 2):
                 "velocity_ipa [m/s]": velocity_ipa,
                 "area_orifice_ipa [in^2]": total_area_orifice_ipa * M22IN2,
                 "area_orifice_lox [in^2]": total_area_real_orifice_lox * M22IN2,
+                "error in area": err
                 }
-    
+print(f"minerr: {minerr}")
 
 if good_enough_found == 1:
     for key, value in best_values.items():
@@ -170,7 +180,6 @@ if good_enough_found == 1:
     plt.axvline(best_values["Number of holes"], color='g', linestyle='--', label='Chosen number of holes')
 else:
     print("NO GOOD PINTLE FOUND (ERRORS TOO HIGH)")
-
 
 plt.plot(N_lox_array, value_1_array, color='b', label="tmr_percent_error")
 plt.plot(N_lox_array, value_2_array, color='black', label="percent_error_m_dot_lox")
