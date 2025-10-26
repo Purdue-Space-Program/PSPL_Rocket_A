@@ -137,6 +137,9 @@ def main():
     print("Surface temperature of the chamber wall (in Fahrenheit):", (1.8*(temperature_surface) - 273.15)+32)
     print("Combustion temperature in the chamber (in Fahrenheit):", (1.8*(cea_results["c_t"]) - 273.15)+32)
 
+    print("Surface temperature of the chamber wall (in Kelvin):", temperature_surface)
+    print("Combustion temperature in the chamber (in Kelvin):", cea_results["c_t"])
+
     '''
     thickness = minimum_wall_thickness(
         P = cea_results["c_p"] * 100000 #chamber pressure (Pa)
