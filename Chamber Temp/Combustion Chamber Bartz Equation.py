@@ -55,7 +55,7 @@ def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu):
     Rt = 0.05 #radius of the throat curve 
     Area_ratio = 3 #contraction ratio from vehicle parameters
     Twg = 800 #wall temperature (K) because steel can withstand up to 1100 K but safety margin
-    M = 2.16 #Mach number at the throat (no units)
+    M = 1 #Mach number at the throat (no units)
 
     #The sigma term of the Bartz equation split into different terms
     sigma_parentheses1 = ((0.5 * (Twg / T0) * (1 + ((gamma - 1)/2) * (M**2))) + 0.5) ** 0.68
