@@ -50,7 +50,7 @@ r = sfd.getAngularAccel(lift_dict, cp_dict, cg, inertia) # Angular acceleration
 shear_array = sfd.getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg)
 bending_array = sfd.getBendingForce(shear_array, totalLength)
 # sfd.graphShear(shear_array, totalLength)
-sfd.graphBending(bending_array, totalLength)
+# sfd.graphBending(bending_array, totalLength)
 
 # print(inertia)
 # print(r)
