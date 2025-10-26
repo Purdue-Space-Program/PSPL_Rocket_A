@@ -47,6 +47,7 @@ def RunCEA(
         "c_t": cea_results.c_t, #stagnation temperature (K)
         "c_cp": cea_results.c_cp, #specific heat at constant pressure of combustion gas (kJ/kg*K)
         "c_visc": cea_results.c_visc, #dynamic viscosity of combustion gas (Pa*s)
+        "c_cond": cea_results.c_cond, #conductivity of combustion gas in the chamber (W/m*K)
     }
 
 def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu):
@@ -71,27 +72,36 @@ def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu):
 
     return bartz_equation
 
-def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity):
-
+def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity, k):
+    
     alpha = 3.6e-6 #thermal diffusivity of the chamber wall material ((m^2)/s)
     T_initial = 293 #room temperature (K)
     t = 2.24 #burn time (sec)
-    k = 16.3 #thermal conductivity of the chamber wall material (W/(m*K))
 
     #Surface temperature equation split into different terms
     Surface_temp_term0 = (heat_transfer_coefficient_value ** 2) * alpha * t
     Surface_temp_term1 = exp(-(Surface_temp_term0) / (k**2))
     Surface_temp_term2 = erfc((heat_transfer_coefficient_value * ((alpha * t) ** 0.5)) / k)
     Surface_temp_term3 = T_infinity - T_initial 
-
     surface_temp = (Surface_temp_term1 * Surface_temp_term2 * Surface_temp_term3) + T_initial 
 
     return surface_temp
+    
+    '''
+    T_coolant = 300 #temperature outside of rocket (room temp) (K)
+    delta = 0.003175 #thickness of chamber wall (m)
+
+    numerator = T_g + (((heat_transfer_coefficient_value * delta) / k) * T_coolant)
+    denominator = 1 + ((heat_transfer_coefficient_value * delta) / k)
+    surface_temp = numerator / denominator 
+
+    print("Bi:", (heat_transfer_coefficient_value * delta) / k )
+    return surface_temp
+    '''
 
 '''
-def minimum_wall_thickness():
+def minimum_wall_thickness(P):
     #using the formula (PD)/(2(SE+PY))
-    P = 150 #chamber pressure (psi)
     D = 0.0498 #outer diameter of engine throat
     S = #allowed stress value which depends on the specific grade of stainless steel and design temp
     E = 1 #longitudinal weld join quality factor, depdends if material has been radiographed
@@ -111,7 +121,7 @@ def main():
         gamma = cea_results["gamma"], #specific heat ratio of the combustion gas 
         c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
         T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-        Cp = cea_results["c_cp"] / 1000, #specific heat at constant pressure of the combustion gas (kJ/(kg * K))
+        Cp = cea_results["c_cp"], #specific heat at constant pressure of the combustion gas (kJ/(kg * K))
         P0 = cea_results["c_p"] * 100000, #chamber pressure (Bar)
         mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pa * s)
     )
@@ -120,11 +130,17 @@ def main():
 
     temperature_surface = temperature_surface_calculation(
         heat_transfer_coefficient_value,
-        T_infinity = cea_results["c_t"]) #chamber temperature (K)
+        T_infinity = cea_results["c_t"], #chamber temperature (K)
+        k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K)) 
+    )   
+    
     print("Surface temperature of the chamber wall (in Fahrenheit):", (1.8*(temperature_surface) - 273.15)+32)
+    print("Combustion temperature in the chamber (in Fahrenheit):", (1.8*(cea_results["c_t"]) - 273.15)+32)
 
     '''
-    thickness = minimum_wall_thickness()
+    thickness = minimum_wall_thickness(
+        P = cea_results["c_p"] * 100000 #chamber pressure (Pa)
+    )
     print("Minimum wall thickness of the chamber (in units idk yet):", thickness)
     '''
 
