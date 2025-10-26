@@ -85,7 +85,7 @@ for N_lox in range(N_lox_min, N_lox_max + 1, 2):
         D_real_lox_orifice_top = closest_bit_diameter_top
         percent_error_bit_size_top = abs(absolute_error_bit_size_top) / D_ideal_lox_orifice_top
         
-        total_area_real_orifice_lox = (N_bottom*D_real_lox_orifice_bottom**2 + N_top*D_real_lox_orifice_top) * (np.pi / 4)
+        total_area_real_orifice_lox = (N_bottom*D_real_lox_orifice_bottom**2 + N_top*D_real_lox_orifice_top**2) * (np.pi / 4)
         # print(f"total_area_real_orifice_lox: {total_area_real_orifice_lox * M2IN:.2}")
         m_dot_real_lox = total_area_real_orifice_lox * (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
         
