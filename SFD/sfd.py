@@ -2,6 +2,11 @@ import pandas as pd
 from math import ceil, sqrt, atan, pi, degrees
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import vehicle_parameters as vehicle
 
 
 LB2KG = 0.453592
@@ -12,6 +17,26 @@ MPH2MPS = 0.44704
 
 def codeFriendlyName(str, delimiter='_'):
     return delimiter.join(str.split(' (')[0].split(' ')).lower() # Delimiter is character between words ex. "_"
+
+def getRocketDict(vehicle):
+    chamber_pressure = vehicle.parameters.chamber_pressure # [Pa]
+    thrust = vehicle.parameters.jet_thrust # [N]
+    tank_pressure = vehicle.parameters.tank_pressure # [Pa]
+    fuel_tank_length = vehicle.parameters.fuel_tank_length # [m]
+    fuel_total_mass = vehicle.parameters.fuel_total_mass # [kg]
+    oxidizer_tank_length = vehicle.parameters.oxidizer_tank_length # [m]
+    oxidizer_total_mass = vehicle.parameters.oxidizer_total_mass # [kg]
+    total_length = vehicle.parameters.total_length # [m]
+    wet_mass = vehicle.parameters.wet_mass # [kg]
+    dry_mass = vehicle.parameters.dry_mass # [kg]
+    off_the_rail_acceleration = vehicle.parameters.off_the_rail_acceleration * 9.81 # [m/s^2] obtained by multiplying by gravitational acceleration
+    off_the_rail_velocity = vehicle.parameters.off_the_rail_velocity # [m/s]
+    max_acceleration = vehicle.parameters.max_acceleration * 9.81 # [m/s^2] obtained by multiplying by gravitational acceleration
+    max_velocity = vehicle.parameters.max_velocity # [m/s]
+
+    lox_tank = {'mass': 0, 'length': oxidizer_tank_length, 'prop_mass': oxidizer_total_mass}
+    fuel_tank = {'mass': 0, 'length': fuel_tank_length, 'prop_mass': fuel_total_mass}
+    
 
 # Unpack 'Vehicle Sections' in rocket Excel file into a dictionary
 def getRocketSections(xlsx):
@@ -222,7 +247,10 @@ def getBendingForce(shear_array, totalLength):
     bending_array = np.cumsum(shear_array) * dy # Bending graph is integral of shear graph
     return bending_array # [array, N * m]
 
-def getAxialForces(aero_dict, mass_model):
+def getAxialForces(aero_dict, mass_model, S):
+    velocity, cd, thrust, air_density = aero_dict['max_q']['velocity'], aero_dict['max_q']['cd'], aero_dict['max_q']['thrust'], aero_dict['max_q']['air_density']
+    dragNose = 0.5 * cd * air_density * S * velocity**2
+    
     return
 
 # Graph shear forces
