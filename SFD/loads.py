@@ -61,3 +61,5 @@ bending_array = sfd.getBendingForce(shear_array, totalLength)
 # print(r)
 # print(mass_model)
 
+chamber_pressure = vehicle.parameters.chamber_pressure # [Pa]
+print(chamber_pressure)

@@ -15,6 +15,157 @@ IN2M = 0.0254
 LBF2N = 4.44822
 MPH2MPS = 0.44704
 
+# Need q = 1/2 rho v^2 (done)
+# Need AOA = tan^-1(wind_gust / velocity) (done)
+# Need S (cross-sectional area)= pi * (diameter / 2)^2 (done)
+# Need SD stability derivative (done)
+# SD for fins = Cambridge equation 31 (done)
+# Need Kfb for finSD = Cambridge equation 32 (done)
+# SD for nose = 2 * machcoeff (done)
+# machcoeff = 1 / sqrt(abs(mach^2 - 1)) (done)
+# Need lift = q * S * AOA * SD
+# Need total mass
+# Need total length
+# Need center of gravity = (sum mass_x * x_coord for all x in length) / total mass
+# Need I rotational inertia = sum mass_x * (x_coord - center of gravity)^2
+# Need ay lateral acceleration = sum lift / total mass
+# Need r angular acceleration = (sum lift_x * (cp_x_coord - center of gravity)) / rotational inertia
+# Need cp center of pressure
+# Need finCP = Cambridge equation 33
+# Need noseCP = noseLength / 2 literally middle of nose
+# Need shear = (sum lift) - ay * mass up to x - r * mass up to x * (cg - mass up to x) for all x in length
+# Need axial = - thrust + nose drag + fuselage drag + base drag + S * pressure difference + forward acceleration * mass up to x
+# Given thrust, forward acceleration
+# Worry about axial later
+
+# Need rho, velocity, wind gust, diameter, fin dimensions, mach, linear density, total mass, total length, 
+
+# Calculate dynamic pressure
+def calcQ(rho, velocity):
+    '''
+    rho: air density [kg / m^3]
+    velocity: air velocity = rocket velocity [m/s]
+    Q: Dynamic pressure [Pa]
+    '''
+    return rho * velocity**2 / 2
+
+# Calculate angle of attack
+def calcAOA(wind_gust, velocity):
+    '''
+    wind_gust: wind gust velocity [m/s]
+    velocity: rocket velocity [m/s]
+    AOA: Angle of attack [degrees]
+    '''
+    return degrees[atan[wind_gust / velocity]]
+
+# Calculate cross sectional area
+def calcS(diameter):
+    '''
+    diameter: rocket diameter [m]
+    S: Cross sectional area [m^2]
+    '''
+    return pi * (diameter / 2)**2
+
+# Calculate fin stability derivative
+def calcFinSD(root_chord, tip_chord, sweep_length, fin_height, numFins, diameter):
+    '''
+    root_chord: fin root chord length [m]
+    tip_chord: fin tip chord length [m]
+    sweep_length: fin sweep length [m]
+    fin_height: fin height aka fin span [m]
+    numFins: Number of fins [unitless]
+    diameter: Rocket diameter [m]
+    finSD: Stability derivative [unitless]
+    '''
+    mid_chord = sqrt(fin_height**2 + ((tip_chord - root_chord) / 2 + sweep_length)**2) # [m] Length of fin mid-chord line, Rocket Fin Design equation 1
+    Kfb = 1 + (diameter / 2) / (fin_height + diameter / 2) # Coefficient, Cambridge equation 32
+    
+    stability_derivative = Kfb * (4 * numFins * (fin_height / diameter)**2) / (1 + sqrt(1 + (2 * mid_chord / (root_chord + tip_chord))**2)) # Fin stability derivative, Cambrdige Aerodynamic Equations equation 31
+    return stability_derivative
+
+# Calculate mach coefficient
+def calcMachCoeff(coeff, mach):
+    '''
+    coeff: [unitless] Some coefficient, I think we use 1
+    mach: [unitless] Speed of rocket in mach, something about the Prandtl-Glauert rule
+    '''
+    return coeff / sqrt(1 - mach**2) # Cambridge equation 55, 56, assume rocket goes subsonic
+
+# Calculate nose stability derivative
+def calcNoseSD(machCoeff):
+    '''
+    machCoeff: Mach coefficient
+    why don't I include the mach coefficient for fins?
+    '''
+    return 2 * machCoeff # Cambridge equation 25
+
+# Calculate lift
+def calcLift(Q, S, AOA, SD):
+    '''
+    Q: Dynamic pressure [Pa]
+    S: Cross sectional area [m^2]
+    AOA: Angle of attack [degrees ]'''
+    return Q * S * AOA * SD # [N] Aspire page 14
+
+# Calculate center of gravity
+def calcCG(linear_density_array, length_along_rocket_linspace):
+    '''
+    linear_density_array: Array of linear density as a function of length [kg / m]
+    length_along_rocket_linspace: Array of length along rocket [m]
+    cg: Location of center of gravity of rocket from aft [m]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    totalMass = np.sum(linear_density_array * dx)
+    moments = 0
+    for x in range(len(length_along_rocket_linspace)):
+        moments += length_along_rocket_linspace[x] * linear_density_array[x] * dx
+    cg = moments / totalMass
+    return cg
+
+# print(calcCG(vehicle.linear_density_array, vehicle.length_along_rocket_linspace) / FT2M) # TEST
+
+# Create an array of center of gravity with respect to time
+def updateCG(vehicle, burn_time):
+    length_along_rocket_linspace = vehicle.length_along_rocket_linspace
+    cg = []
+    dt = 0.005
+    times = np.arange(0.0, burn_time, dt)
+    mass_flow_rate = vehicle.parameters.mass_flow_rate
+    OF_ratio = vehicle.parameters.OF_ratio
+    ox_flow_rate = mass_flow_rate * OF_ratio / (1 + OF_ratio)
+    fuel_flow_rate = mass_flow_rate * 1 / (1 + OF_ratio)
+    ox_location, ox_length = vehicle.oxidizer_tank.bottom_distance_from_aft, vehicle.oxidizer_tank.length
+    fuel_location, fuel_length = vehicle.fuel_tank.bottom_distance_from_aft, vehicle.fuel_tank.length
+    # print(times) # TEST
+    for t in times:
+        linear_density_array = np.zeros(vehicle.num_points)
+        for component in vehicle.mass_distribution.components:
+            if component is vehicle.mass_distribution.components.oxidizer_tank:
+                component.mass -= ox_flow_rate * t
+            if component is vehicle.mass_distribution.components.fuel_tank:
+                component.mass -= fuel_flow_rate * t
+            linear_density = component.mass / component.length
+            for index, length_along_rocket in enumerate(length_along_rocket_linspace):
+                above_component_bottom = length_along_rocket >= component.bottom_distance_from_aft
+                below_component_top = length_along_rocket <= (component.bottom_distance_from_aft + component.length)
+                
+                if (above_component_bottom and below_component_top):
+                    linear_density_array[index] += linear_density
+        cg.append(calcCG(linear_density_array, length_along_rocket_linspace))
+    return cg
+
+print(updateCG(vehicle, 2.24)) # TEST
+
+# Calculate rotational inertia
+def calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg):
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    r = 0
+    for x in range(len(length_along_rocket_linspace)):
+        r += linear_density_array[x] * dx * (length_along_rocket_linspace[x] - cg)**2
+    return r
+
+
+
 def codeFriendlyName(str, delimiter='_'):
     return delimiter.join(str.split(' (')[0].split(' ')).lower() # Delimiter is character between words ex. "_"
 
