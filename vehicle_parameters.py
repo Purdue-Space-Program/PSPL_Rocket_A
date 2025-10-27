@@ -245,78 +245,78 @@ mass_distribution = MassDistribution(components=
     ]
 )
 
-if __name__ == "__main__":
 
-    import matplotlib.pyplot as plt
-    import numpy as np
-    
-    
-    num_points = 500
-    length_along_rocket_linspace = np.linspace(mass_distribution.components[0].bottom_distance_from_aft, mass_distribution.components[-1].StartAfter(), num_points)
-    
-    # x = np.linspace(0, nosecone.StartAfter(), num_points_per_component * np.size(mass_distribution))
-    # y = np.zeros(num_points_per_component * len(mass_distribution))
 
-    linear_density_array = np.zeros(num_points)
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+num_points = 500
+length_along_rocket_linspace = np.linspace(mass_distribution.components[0].bottom_distance_from_aft, mass_distribution.components[-1].StartAfter(), num_points)
+
+# x = np.linspace(0, nosecone.StartAfter(), num_points_per_component * np.size(mass_distribution))
+# y = np.zeros(num_points_per_component * len(mass_distribution))
+
+linear_density_array = np.zeros(num_points)
+
+for component in mass_distribution.components:
     
-    for component in mass_distribution.components:
+    linear_density = (component.mass / component.length) # The average mass in the length of the component
+    
+    for index, length_along_rocket in enumerate(length_along_rocket_linspace):
+        above_component_bottom = length_along_rocket >= component.bottom_distance_from_aft
+        below_component_top = length_along_rocket <= (component.bottom_distance_from_aft + component.length)
         
-        linear_density = (component.mass / component.length) # The average mass in the length of the component
-        
-        for index, length_along_rocket in enumerate(length_along_rocket_linspace):
-            above_component_bottom = length_along_rocket >= component.bottom_distance_from_aft
-            below_component_top = length_along_rocket <= (component.bottom_distance_from_aft + component.length)
+        if (above_component_bottom and below_component_top):
+            linear_density_array[index] += linear_density
+
+
+    
+    # component_range = np.linspace(component.bottom_distance_from_aft, component.bottom_distance_from_aft + component.length, num_points_per_component, endpoint=False)
+    
+    # for point in component_range:
+    #     point_nearest = 999999999999999999999
+    #     for potential_nearest_point in x:
+    #         if (abs(potential_nearest_point - point) < point_nearest):
+    #             point_nearest = potential_nearest_point
             
-            if (above_component_bottom and below_component_top):
-                linear_density_array[index] += linear_density
-
-
-        
-        # component_range = np.linspace(component.bottom_distance_from_aft, component.bottom_distance_from_aft + component.length, num_points_per_component, endpoint=False)
-        
-        # for point in component_range:
-        #     point_nearest = 999999999999999999999
-        #     for potential_nearest_point in x:
-        #         if (abs(potential_nearest_point - point) < point_nearest):
-        #             point_nearest = potential_nearest_point
+    #         if (x != []) and (abs((point - point_nearest)) <= 0.000000001):
+    #             while point < sorted(x)[i]:
+    #                 i += 1
+    #             y[i-1] += average_mass
+    #         else:
+    #             x.append(point)
+    #             y.append(average_mass)
                 
-        #         if (x != []) and (abs((point - point_nearest)) <= 0.000000001):
-        #             while point < sorted(x)[i]:
-        #                 i += 1
-        #             y[i-1] += average_mass
-        #         else:
-        #             x.append(point)
-        #             y.append(average_mass)
-                    
-                    
-        
-        # x.extend(component_range)
-        # y.extend([] * len(component_range))
+                
     
-    
-    
-    
-    
-    # num_points = 1000  # high resolution along rocket length
-    # x = np.linspace(0, nosecone.StartAfter(), num_points)
-    # y = np.zeros_like(x)
+    # x.extend(component_range)
+    # y.extend([] * len(component_range))
 
-    # for component in mass_distribution:
-    #     component_range_mask = (x >= component.bottom_distance_from_aft) & (x <= component.bottom_distance_from_aft + component.length)
-    #     y[component_range_mask] += component.mass / component.length
 
-    
-    
-    print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LB} lbm")
-    print(f"engine mass: {engine.mass * c.KG2LB} lbm")
-    
-    panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
-    print(f"panels mass: {panels_mass * c.KG2LB} lbm")
-    
-    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
-    plt.xlabel("length [feet]")
-    plt.ylabel("mass density [lbs/feet]")
-    plt.show()
-    
-    
+
+
+
+# num_points = 1000  # high resolution along rocket length
+# x = np.linspace(0, nosecone.StartAfter(), num_points)
+# y = np.zeros_like(x)
+
+# for component in mass_distribution:
+#     component_range_mask = (x >= component.bottom_distance_from_aft) & (x <= component.bottom_distance_from_aft + component.length)
+#     y[component_range_mask] += component.mass / component.length
+
+
+
+print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LB} lbm")
+print(f"engine mass: {engine.mass * c.KG2LB} lbm")
+
+panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
+print(f"panels mass: {panels_mass * c.KG2LB} lbm")
+
+# plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
+# plt.xlabel("length [feet]")
+# plt.ylabel("mass density [lbs/feet]")
+# plt.show()
+
+
 

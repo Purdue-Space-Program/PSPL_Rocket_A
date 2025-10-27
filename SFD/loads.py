@@ -2,6 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import sfd
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import vehicle_parameters as vehicle
 
 LB2KG = 0.453592
 FT2M = 0.3048
@@ -55,3 +60,6 @@ bending_array = sfd.getBendingForce(shear_array, totalLength)
 # print(inertia)
 # print(r)
 # print(mass_model)
+
+chamber_pressure = vehicle.parameters.chamber_pressure # [Pa]
+print(chamber_pressure)

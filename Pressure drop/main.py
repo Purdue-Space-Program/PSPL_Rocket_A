@@ -3,14 +3,24 @@ from fluids import core
 from CoolProp import CoolProp as CP
 from pint import UnitRegistry
 import math
+import constants
 
 u = UnitRegistry()
+
+# Define fluid properties
+fuel_type = "Isopropanol"
+ox_type = "Oxygen"
+
+tank_pressure_ox = 250 * u.psi
+saturation_temp_ox = CP.PropsSI('T', 'P', tank_pressure_ox.magnitude, 'Q', 0, 'oxygen') * u.kelvin
+
+rho_fuel = constants.DENSITY_IPA * (u.kilogram / u.meter**3)
+rho_ox = CP.PropsSI("D", "P", tank_pressure_ox.magnitude + 10, "T", saturation_temp_ox.magnitude, ox_type) * (u.kilogram / u.meter**3)
 
 def find_drop_ox(K, type, line_velocity_ox):
     dP = core.dP_from_K(K, rho=rho_ox.magnitude, V=line_velocity_ox.magnitude) * u.Pa
     dP.to('psi')
     print(f'LOX LINE: Pressure Drop at {type}: {dP:.2f}')
-
 
 def sharp_edged_inlet():
     K = 0.5
@@ -52,3 +62,5 @@ def bend(angle, radius, diameter, friction_factor):
 def valve(flow_coefficient, diameter):
     K = (890.4 * diameter**4) / (flow_coefficient**2)
     return K
+
+find_drop_ox(sharp_edged_inlet(), "Sharp Edged Inlet", )
