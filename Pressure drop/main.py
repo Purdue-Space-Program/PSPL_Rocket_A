@@ -4,18 +4,56 @@ from CoolProp import CoolProp as CP
 from pint import UnitRegistry
 import math
 import constants
+import pandas as pd
 
 u = UnitRegistry()
 
-# Define fluid properties
-fuel_type = "Isopropanol"
-ox_type = "Oxygen"
+ox_type = 'oxygen'
 
-tank_pressure_ox = 250 * u.psi
-saturation_temp_ox = CP.PropsSI('T', 'P', tank_pressure_ox.magnitude, 'Q', 0, 'oxygen') * u.kelvin
+# Fluid Properties and other initial parameters
+chamber_press = 150 * u.psi  # Pressure in psi
+tank_press_ox = 250 * u.psi  # Pressure in psi
+tank_press_ipa = 250 * u.psi
+mdot_ox = 1.78 * (u.pound / u.second)  # LOx mass flow rate
+mdot_ipa = 1.78 * (u.pound / u.second)  # Isopropyl alcohol mass flow rate
 
-rho_fuel = constants.DENSITY_IPA * (u.kilogram / u.meter**3)
-rho_ox = CP.PropsSI("D", "P", tank_pressure_ox.magnitude + 10, "T", saturation_temp_ox.magnitude, ox_type) * (u.kilogram / u.meter**3)
+# Conversions into metric units
+chamber_press = chamber_press.to(u.pascal)  # Convert to pascals
+tank_press_ox = tank_press_ox.to(u.pascal)  # Convert to pascals
+tank_press_ipa = tank_press_ipa.to(u.pascal)
+mdot_ox = mdot_ox.to(u.kilogram / u.second)  # Convert to kg/s
+mdot_ipa = mdot_ipa.to(u.kilogram / u.second)  # Convert to kg/s
+
+saturation_temp_ox = CP.PropsSI('T', 'P', tank_press_ox.magnitude, 'Q', 0, ox_type) * u.kelvin
+saturation_temp_ipa = 453.01 * u.kelvin # This is sat temp for IPA at 250 psi
+
+rho_ox = CP.PropsSI("D", "P", tank_press_ox.magnitude + 10, "T", saturation_temp_ox.magnitude, ox_type) * (u.kilogram / u.meter**3)
+dynamic_mu_ox = CP.PropsSI('V', 'P', tank_press_ox.magnitude + 10, 'T', saturation_temp_ox.magnitude, 'oxygen') * (u.pascal * u.second)
+kinetic_mu_ox = dynamic_mu_ox / rho_ox
+
+rho_ipa = constants.DENSITY_IPA * (u.kilogram / u.meter**3)
+dynamic_mu_ipa = 0.002055 * (u.pascal * u.second) # No clue if this is right, got from here: https://www.celsius-process.com/wp-content/uploads/2020/01/isopropanol.pdf
+kinetic_mu_ipa = dynamic_mu_ipa / rho_ipa
+
+# Function by Keshav Narayanan and Isaiah Jarvis from Rocket 4 
+def pipe_properties(d_outer, thic, ar):
+    d_inner = (d_outer - 2 * thic).to(u.meter)  #inner diameter
+
+    area = math.pi * (d_inner / 2)**2   #hydraulic area
+    area = area.to(u.meter**2)
+
+    line_vel_ox = (mdot_ox / (rho_ox * area)).to(u.meter / u.second)    #line velocity
+    line_vel_ipa = (mdot_ipa / (rho_ipa * area)).to(u.meter / u.second)
+
+    rel_rough = core.relative_roughness(d_inner.magnitude, ar.to(u.meter).magnitude)   #relative roughness
+
+    reynold_ox = core.Reynolds(D=d_inner.magnitude, V=line_vel_ox.magnitude, nu=kinetic_mu_ox.magnitude)    #Reynold's number
+    reynold_ipa = core.Reynolds(D=d_inner.magnitude, V=line_vel_ipa.magnitude, nu=kinetic_mu_ipa.magnitude)
+
+    fric_ox = fittings.friction_factor(reynold_ox, eD=rel_rough)    #Darcy friction factor
+    fric_ipa = fittings.friction_factor(reynold_ipa, eD=rel_rough)
+
+    return d_inner, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough
 
 def find_drop_ox(K, type, line_velocity_ox):
     dP = core.dP_from_K(K, rho=rho_ox.magnitude, V=line_velocity_ox.magnitude) * u.Pa
@@ -63,4 +101,96 @@ def valve(flow_coefficient, diameter):
     K = (890.4 * diameter**4) / (flow_coefficient**2)
     return K
 
-find_drop_ox(sharp_edged_inlet(), "Sharp Edged Inlet", )
+def main():
+    # Majority of this code is by Keshav Narayanan and Isaiah Jarvis from Rocket 4
+    reading_ox = False    #The excel sheet will assume it is reading Fuel until the 'Fu' keyword comes up. Then it will switch to Oxygen.
+
+    file = pd.read_excel('pressure_drop_components.xlsx')
+
+    print("\nFuel pressure drops:\n")
+    for row in range(len(file)-1, -1, -1):
+
+        name = file.loc[row, 'Name']
+        
+        if file.loc[row, 'Type'] == 'Fu':
+            reading_ox = True
+            print("\nLOx pressure drops:\n")
+
+        if file.loc[row, 'Type'] == 'Straight Tube':
+
+            '''
+            length = file.loc[row, 'Property 1'] * u.inch
+            d_outer = file.loc[row, 'Property 3'] * u.inch
+            wall_thickness = file.loc[row, 'Property 4'] * u.inch
+            abs_rough = file.loc[row, 'Property 5'] * u.mm
+            '''
+
+            if reading_ox == True:
+                #part_pd = straight_dp_ox(length, d_outer, wall_thickness, abs_rough)
+                print(f"{name}\nPart Type: Straight Tube\nPressure Drop: {1:.2f}\n")
+                #current_press_ox += part_pd
+            else:
+                #part_pd = straight_dp_eth(length, d_outer, wall_thickness, abs_rough)
+                print(f"{name}\nPart Type: Straight Tube\nPressure Drop: {1:.2f}\n")
+                #current_press_eth += part_pd
+
+        if file.loc[row, 'Type'] == 'Bend':
+
+            '''angle = file.loc[row, 'Property 1'] * u.degree
+            bend_radius = file.loc[row, 'Property 2'] * u.inch
+            d_outer = file.loc[row, 'Property 3'] * u.inch
+            wall_thickness = file.loc[row, 'Property 4'] * u.inch
+            abs_rough = file.loc[row, 'Property 5'] * u.mm'''
+
+            if reading_ox == True:
+                #part_pd = bend_dp_ox(angle, bend_radius, d_outer, wall_thickness, abs_rough)
+                print(f"{name}\nPart Type: Bend\nPressure Drop: {1:.2f}\n")
+                #current_press_ox += part_pd
+            else:
+                #part_pd = bend_dp_eth(angle, bend_radius, d_outer, wall_thickness, abs_rough)
+                print(f"{name}\nPart Type: Bend\nPressure Drop: {1:.2f}\n")
+                #current_press_eth += part_pd
+
+
+        if file.loc[row, 'Type'] == 'Ball Valve':
+
+            '''inner_dia = file.loc[row, 'Property 1'] * u.inch
+            Cv = file.loc[row, 'Property 2']
+            d_outer = file.loc[row, 'Property 3'] * u.inch
+            wall_thickness = file.loc[row, 'Property 4'] * u.inch
+            abs_rough = file.loc[row, 'Property 5'] * u.mm'''
+
+            if reading_ox == True:
+                #part_pd = ball_valve_dp_ox(Cv, inner_dia, wall_thickness, abs_rough)
+                print(f"{name}\nPart Type: Ball Valve\nPressure Drop: {1:.2f}\n")
+                #current_press_ox += part_pd
+            else:
+                #part_pd = ball_valve_dp_eth(Cv, inner_dia, wall_thickness, abs_rough)
+                print(f"{name}\nPart Type: Ball Valve\nPressure Drop: {1:.2f}\n")
+                #current_press_eth += part_pd
+
+        if file.loc[row, 'Type'] == 'Venturi':
+            if reading_ox == True:
+                #venturi_inlet_press = current_press_ox / .8    #assumes an 80% pressure recovery rate
+                #venturi_pd = venturi_inlet_press - current_press_ox
+                print(f"{name}\nPart Type: Venturi\nPressure Drop: {1:.2f}\n")
+                #current_press_ox += venturi_pd
+            else:
+                #venturi_inlet_press = current_press_eth / .8
+                #venturi_pd = venturi_inlet_press - current_press_eth
+                print(f"{name}\nPart Type: Venturi\nPressure Drop: {1:.2f}\n")
+                #current_press_eth += venturi_pd
+
+            
+
+
+    print("\nTotal system pressure drops:")
+    '''
+    print(f"Oxygen system: {(current_press_ox - chamber_press).to(u.psi):.2f}")
+    print(f"Ethanol system: {(current_press_eth - chamber_press).to(u.psi):.2f}")
+    print(f"With a LOx chamber pressure of {chamber_press.to(u.psi):.2f}, the tank pressure will be {current_press_ox.to(u.psi):.2f}")
+    print(f"With an ethanol chamber pressure of {chamber_press.to(u.psi):.2f}, the tank pressure will be {current_press_eth.to(u.psi):.2f}")
+    '''
+
+if __name__ == "__main__":
+    main()
