@@ -98,9 +98,9 @@ engine_wall_thickness = 0.5 * c.IN2M
 engine_ID = propellant_tank_outer_diameter - (2 * engine_wall_thickness)
 
 # engine_mass = c.DENSITY_SS316 * CalcTubeVolume(propellant_tank_outer_diameter, engine_ID, engine_length)
-engine_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, engine_ID, engine_length)
+engine_mass = c.DENSITY_SS316 * CalcTubeVolume(propellant_tank_outer_diameter, engine_ID, engine_length)
 
-injector_mass = c.DENSITY_AL * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
+injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
 
 valves_mass = 2 * 3.26 * c.LB2KG # fuel and ox 3/4 inch valve https://habonim.com/wp-content/uploads/2020/08/C47-BD_C47__2023_VO4_28-06-23.pdf
 lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, lower_length)
@@ -182,6 +182,7 @@ structures
 
 @dataclass(frozen=True)
 class MassComponent:
+    name : str                # name of the component [string]
     mass: float               # [kilograms]
     bottom_distance_from_aft: float   # distance from the bottom of the rocket to the bottom of the mass component [meters]
     length: float              # [meters]
@@ -202,24 +203,24 @@ class MassDistribution:
     #         yield getattr(self, f.name)
 
 
-engine =                  MassComponent(mass = engine_mass,            bottom_distance_from_aft = 0,                                                length = engine_length)
-injector =                MassComponent(mass = injector_mass,          bottom_distance_from_aft = engine.StartAfter(),                              length = injector_length)
-lower =                   MassComponent(mass = lower_mass,             bottom_distance_from_aft = injector.StartAfter(),                            length = lower_length)
+engine =                  MassComponent(name = 'engine',                      mass = engine_mass,            bottom_distance_from_aft = 0,                                                length = engine_length)
+injector =                MassComponent(name = 'injector',                    mass = injector_mass,          bottom_distance_from_aft = engine.StartAfter(),                              length = injector_length)
+lower =                   MassComponent(name = 'lower',                       mass = lower_mass,             bottom_distance_from_aft = injector.StartAfter(),                            length = lower_length)
 
-lower_fuel_bulkhead =     MassComponent(mass = bulkhead_mass,          bottom_distance_from_aft = lower.StartAfter(),                               length = bulkhead_length)
-fuel_tank =               MassComponent(mass = fuel_tank_wet_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.StartAfter(),                 length = parameters.fuel_tank_length)
-upper_fuel_bulkhead =     MassComponent(mass = bulkhead_mass,          bottom_distance_from_aft = fuel_tank.StartAfter() - (bulkhead_length),       length = bulkhead_length)
+lower_fuel_bulkhead =     MassComponent(name = 'lower_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = lower.StartAfter(),                               length = bulkhead_length)
+fuel_tank =               MassComponent(name = 'fuel_tank',                   mass = fuel_tank_wet_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.StartAfter(),                 length = parameters.fuel_tank_length)
+upper_fuel_bulkhead =     MassComponent(name = 'upper_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = fuel_tank.StartAfter() - (bulkhead_length),       length = bulkhead_length)
 
-lower_oxidizer_bulkhead = MassComponent(mass = bulkhead_mass,          bottom_distance_from_aft = upper_fuel_bulkhead.StartAfter(),                 length = bulkhead_length)
-oxidizer_tank =           MassComponent(mass = oxidizer_tank_wet_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.StartAfter(),             length = parameters.oxidizer_tank_length)
-upper_oxidizer_bulkhead = MassComponent(mass = bulkhead_mass,          bottom_distance_from_aft = oxidizer_tank.StartAfter() - (bulkhead_length),   length = bulkhead_length)
+lower_oxidizer_bulkhead = MassComponent(name = 'lower_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = upper_fuel_bulkhead.StartAfter(),                 length = bulkhead_length)
+oxidizer_tank =           MassComponent(name = 'oxidizer_tank',               mass = oxidizer_tank_wet_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.StartAfter(),             length = parameters.oxidizer_tank_length)
+upper_oxidizer_bulkhead = MassComponent(name = 'upper_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = oxidizer_tank.StartAfter() - (bulkhead_length),   length = bulkhead_length)
 
-upper =                   MassComponent(mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.StartAfter(),             length = upper_length)
-helium_bay =              MassComponent(mass = helium_bay_mass,        bottom_distance_from_aft = upper.StartAfter(),                               length = helium_bay_length)
-avionics_bay =            MassComponent(mass = avionics_bay_mass,      bottom_distance_from_aft = helium_bay.StartAfter(),                          length = avionics_bay_length)
-recovery_bay =            MassComponent(mass = recovery_bay_mass,      bottom_distance_from_aft = avionics_bay.StartAfter(),                        length = recovery_bay_length)
+upper =                   MassComponent(name = 'upper',                       mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.StartAfter(),             length = upper_length)
+helium_bay =              MassComponent(name = 'helium_bay',                  mass = helium_bay_mass,        bottom_distance_from_aft = upper.StartAfter(),                               length = helium_bay_length)
+avionics_bay =            MassComponent(name = 'avionics_bay',                mass = avionics_bay_mass,      bottom_distance_from_aft = helium_bay.StartAfter(),                          length = avionics_bay_length)
+recovery_bay =            MassComponent(name = 'recovery_bay',                mass = recovery_bay_mass,      bottom_distance_from_aft = avionics_bay.StartAfter(),                        length = recovery_bay_length)
 
-nosecone =                MassComponent(mass = nose_cone_mass,         bottom_distance_from_aft = recovery_bay.StartAfter(),                        length=nosecone_length)
+nosecone =                MassComponent(name = 'nosecone',                    mass = nose_cone_mass,         bottom_distance_from_aft = recovery_bay.StartAfter(),                        length=nosecone_length)
 
 
 mass_distribution = MassDistribution(components=
@@ -313,10 +314,10 @@ print(f"engine mass: {engine.mass * c.KG2LB} lbm")
 panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
 print(f"panels mass: {panels_mass * c.KG2LB} lbm")
 
-# plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
-# plt.xlabel("length [feet]")
-# plt.ylabel("mass density [lbs/feet]")
-# plt.show()
+plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
+plt.xlabel("length [feet]")
+plt.ylabel("mass density [lbs/feet]")
+plt.show()
 
 
 
