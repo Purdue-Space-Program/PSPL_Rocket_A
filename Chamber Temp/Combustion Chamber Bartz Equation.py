@@ -1,6 +1,8 @@
-from math import exp, erfc
+from math import exp, erfc, pi
+from scipy.optimize import fsolve
 import sys
 import os
+import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
@@ -51,10 +53,22 @@ def RunCEA(
         "mach": cea_results.mach, #Mach number at the nozzle exit (no units)
     }
 
-def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu, M):
+def calculating_MachNumber(gamma, area_ratio_value, initial_guess = 0.2):
+
+    def f(M):
+        Mach_function_part1 = ((gamma + 1)/2)**(-(gamma + 1)/(2*(gamma-1)))
+        Mach_function_part2 = (1/M) * ((1 + (((gamma - 1)/2) * M**2)) ** ((gamma + 1)/(2*(gamma-1))))
+        Mach_function = (Mach_function_part1 * Mach_function_part2) - area_ratio_value
+        return Mach_function
+    
+    
+    M_solution = fsolve(f, initial_guess)
+    return M_solution
+
+
+def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu, M, local_Area_ratio):
     Dt = 0.1524 #diameter of chamber (m)
     Rt = 0.05 #radius of the throat curve 
-    Area_ratio = 3 #contraction ratio from vehicle parameters
     Twg = 800 #wall temperature (K) because steel can withstand up to 1100 K but safety margin
 
     #The sigma term of the Bartz equation split into different terms
@@ -68,7 +82,7 @@ def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu, M):
     heat_transfer_term3 = (P0 / (c_star)) ** 0.8
     heat_transfer_term4 = (Dt / Rt) ** 0.1
 
-    bartz_equation = heat_transfer_term1 * heat_transfer_term2 * heat_transfer_term3 * heat_transfer_term4 * (Area_ratio ** 0.9) * sigma
+    bartz_equation = heat_transfer_term1 * heat_transfer_term2 * heat_transfer_term3 * heat_transfer_term4 * (local_Area_ratio ** 0.9) * sigma
 
     return bartz_equation
 
@@ -95,7 +109,6 @@ def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity,
     denominator = 1 + ((heat_transfer_coefficient_value * delta) / k)
     surface_temp = numerator / denominator 
 
-    print("Bi:", (heat_transfer_coefficient_value * delta) / k )
     return surface_temp
     '''
 
@@ -116,32 +129,47 @@ def main():
 
     cea_results = RunCEA(150 * PSI2PA, "ethanol", "liquid oxygen", 1.0)
 
-    heat_transfer_coefficient_value = heat_transfer_coefficient(
-        Pr = cea_results["c_pran"], #Prandlt number of the combustion gas
-        gamma = cea_results["gamma"], #specific heat ratio of the combustion gas 
-        c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
-        T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-        Cp = cea_results["c_cp"], #specific heat at constant pressure of the combustion gas (kJ/(kg * K))
-        P0 = cea_results["c_p"] * 100000, #chamber pressure (Bar)
-        mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pa * s)
-        M = cea_results["mach"] #Mach number at the nozzle exit (no units)
-    )
-    
-    print("Heat flux (h) onto the chamber wall (in SI units):", heat_transfer_coefficient_value)
+    #Chamber geometery parameters
+    chamber_length = 20 #chamber length (m)
+    dx = 0.001 #increments of 1mm
+    D_star = 1 #throat diamater (m)
+    Astar = 1 #throat area (m^2)
+    chamber_diameter = 3.5 #chamber diameter (m)
+    chamber_area = pi * (chamber_diameter/2)**2 #chamber area (m^2)
 
-    print("mach number:", cea_results["mach"])
+    #linearly interpolating area along chamber length (hopefully it's a straight line)
+    x_positions = np.arange(0,chamber_length + dx, dx) #position along the chamber length (m)
+    area_values = np.linspace(Astar, chamber_area, len(x_positions)) #area at each position along the chamber length (m^2)
+    area_ratios = area_values / Astar #area ratio at each position along the chamber length (no units)
 
-    temperature_surface = temperature_surface_calculation(
-        heat_transfer_coefficient_value,
-        T_infinity = cea_results["c_t"], #chamber temperature (K)
-        k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K)) 
-    )   
-    
-    print("Surface temperature of the chamber wall (in Fahrenheit):", (1.8*(temperature_surface) - 273.15)+32)
-    print("Combustion temperature in the chamber (in Fahrenheit):", (1.8*(cea_results["c_t"]) - 273.15)+32)
+    #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values
+    Mach_array = np.zeros_like(area_ratios) #mach number at each axial position
+    h_array = np.zeros_like(area_ratios) #heat transfer coefficient at each axial position
+    Temp_surface_array = np.zeros_like(area_ratios) #surface temperature at each axial position
 
-    print("Surface temperature of the chamber wall (in Kelvin):", temperature_surface)
-    print("Combustion temperature in the chamber (in Kelvin):", cea_results["c_t"])
+    #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
+    for i, A_ratio in enumerate(area_ratios):
+        Mach_array[i] = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio)
+
+        h_array[i] = heat_transfer_coefficient(
+            Pr = cea_results["c_pran"], #Prandlt number of the combustion gas       
+            gamma = cea_results["gamma"], #specific heat ratio of the combustion gas
+            c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
+            T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
+            Cp = cea_results["c_cp"], #specific heat at constant pressure of the combustion gas
+            P0 = cea_results["c_p"] * 100000, #chamber pressure (Bar)
+            mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pa
+            M = Mach_array[i], #Mach number at the local axial point (no units)
+            local_Area_ratio = area_ratios[i] #area ratio at the local axial point (no units)
+
+        )
+
+        Temp_surface_array[i] = temperature_surface_calculation(
+            heat_transfer_coefficient_value = h_array[i],
+            T_infinity = cea_results["c_t"], #chamber temperature (K)
+            k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
+        )
+
 
     '''
     thickness = minimum_wall_thickness(
