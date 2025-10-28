@@ -128,20 +128,34 @@ def nozzle_contour(At, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     plt.axis('equal')
     plt.show()
     
+    
 
 
     return chamber_diameter, Lc, chamber_length, x_arr[0]*-1
 
-At = 0.00270322
-exp_ratio = 3
-Lstar = 15
-contract_ratio = 2.288
+At = 0.0027 #m^2
+exp_ratio = 2.288
+Lstar = 50
 con_angle = 30
 filename = 'Pathfinder Rocket Nozzle Contour3'
 theta_n = 20.88
 theta_e = 14.6
-Dc = 3.494
-
+Dc = 6
+IN2M = 0.0254
+Ac = ((((Dc * IN2M)/2)**2)*np.pi) #m^2
+contract_ratio = Ac/At
+print(f"Contraction Ratio: {contract_ratio}")
 
 
 nozzle_contour(At, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename)
+
+
+
+
+
+
+
+
+
+
+
