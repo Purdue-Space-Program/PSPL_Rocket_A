@@ -48,14 +48,14 @@ def RunCEA(
         "c_cp": cea_results.c_cp, #specific heat at constant pressure of combustion gas (kJ/kg*K)
         "c_visc": cea_results.c_visc, #dynamic viscosity of combustion gas (Pa*s)
         "c_cond": cea_results.c_cond, #conductivity of combustion gas in the chamber (W/m*K)
+        "mach": cea_results.mach, #Mach number at the nozzle exit (no units)
     }
 
-def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu):
+def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu, M):
     Dt = 0.1524 #diameter of chamber (m)
     Rt = 0.05 #radius of the throat curve 
     Area_ratio = 3 #contraction ratio from vehicle parameters
     Twg = 800 #wall temperature (K) because steel can withstand up to 1100 K but safety margin
-    M = 1 #Mach number at the throat (no units)
 
     #The sigma term of the Bartz equation split into different terms
     sigma_parentheses1 = ((0.5 * (Twg / T0) * (1 + ((gamma - 1)/2) * (M**2))) + 0.5) ** 0.68
@@ -124,9 +124,12 @@ def main():
         Cp = cea_results["c_cp"], #specific heat at constant pressure of the combustion gas (kJ/(kg * K))
         P0 = cea_results["c_p"] * 100000, #chamber pressure (Bar)
         mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pa * s)
+        M = cea_results["mach"] #Mach number at the nozzle exit (no units)
     )
     
     print("Heat flux (h) onto the chamber wall (in SI units):", heat_transfer_coefficient_value)
+
+    print("mach number:", cea_results["mach"])
 
     temperature_surface = temperature_surface_calculation(
         heat_transfer_coefficient_value,
