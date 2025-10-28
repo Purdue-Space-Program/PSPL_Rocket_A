@@ -104,7 +104,10 @@ def calcLift(Q, S, AOA, SD):
     '''
     Q: Dynamic pressure [Pa]
     S: Cross sectional area [m^2]
-    AOA: Angle of attack [degrees ]'''
+    AOA: Angle of attack [degrees ]
+    SD: Stability derivative
+    Lift: Lift [N]
+    '''
     return Q * S * AOA * SD # [N] Aspire page 14
 
 # Calculate center of gravity
@@ -116,20 +119,25 @@ def calcCG(linear_density_array, length_along_rocket_linspace):
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
     totalMass = np.sum(linear_density_array * dx)
-    moments = 0
-    for x in range(len(length_along_rocket_linspace)):
-        moments += length_along_rocket_linspace[x] * linear_density_array[x] * dx
+    # print(totalMass / LB2KG)
+    lengths = np.array(length_along_rocket_linspace)
+    masses = np.array(linear_density_array * dx)
+    moments = np.sum(lengths * masses)
     cg = moments / totalMass
     return cg
 
 # print(calcCG(vehicle.linear_density_array, vehicle.length_along_rocket_linspace) / FT2M) # TEST
 
 # Create an array of center of gravity with respect to time
-def updateCG(vehicle, burn_time):
+def updateCG(vehicle, burn_time, total_time):
+    '''
+    vehicle: imported vehicle
+    burn_time: burn time [s]
+    '''
     length_along_rocket_linspace = vehicle.length_along_rocket_linspace
     cg = []
     dt = 0.005
-    times = np.arange(0.0, burn_time, dt)
+    times = np.arange(0.0, total_time, dt)
     mass_flow_rate = vehicle.parameters.mass_flow_rate
     OF_ratio = vehicle.parameters.OF_ratio
     ox_flow_rate = mass_flow_rate * OF_ratio / (1 + OF_ratio)
@@ -138,34 +146,131 @@ def updateCG(vehicle, burn_time):
     fuel_location, fuel_length = vehicle.fuel_tank.bottom_distance_from_aft, vehicle.fuel_tank.length
     # print(times) # TEST
     for t in times:
-        linear_density_array = np.zeros(vehicle.num_points)
-        for component in vehicle.mass_distribution.components:
-            if component is vehicle.mass_distribution.components.oxidizer_tank:
-                component.mass -= ox_flow_rate * t
-            if component is vehicle.mass_distribution.components.fuel_tank:
-                component.mass -= fuel_flow_rate * t
-            linear_density = component.mass / component.length
-            for index, length_along_rocket in enumerate(length_along_rocket_linspace):
-                above_component_bottom = length_along_rocket >= component.bottom_distance_from_aft
-                below_component_top = length_along_rocket <= (component.bottom_distance_from_aft + component.length)
-                
-                if (above_component_bottom and below_component_top):
-                    linear_density_array[index] += linear_density
-        cg.append(calcCG(linear_density_array, length_along_rocket_linspace))
+        if t > burn_time: 
+            cg.append(cg[-1])
+        else:
+            linear_density_array = np.zeros(vehicle.num_points)
+            for component in vehicle.mass_distribution.components:
+                mass = component.mass
+                if component.name == 'oxidizer_tank':
+                    mass -= ox_flow_rate * t
+                if component.name == 'fuel_tank':
+                    mass -= fuel_flow_rate * t
+                linear_density = mass / component.length
+                for index, length_along_rocket in enumerate(length_along_rocket_linspace):
+                    above_component_bottom = length_along_rocket >= component.bottom_distance_from_aft
+                    below_component_top = length_along_rocket <= (component.bottom_distance_from_aft + component.length)
+                    
+                    if (above_component_bottom and below_component_top):
+                        linear_density_array[index] += linear_density
+            cg.append(calcCG(linear_density_array, length_along_rocket_linspace))
     return cg
 
-print(updateCG(vehicle, 2.24)) # TEST
+'''
+TEST
+print(updateCG(vehicle, 2.24, 10)[0]) # TEST & VALIDATE
+print(calcCG(vehicle.linear_density_array, vehicle.length_along_rocket_linspace))
+plt.plot(np.arange(0.0, 10, 0.005), updateCG(vehicle, 2.24, 10))
+plt.xlabel("time")
+plt.ylabel("center of gravity")
+plt.show()
+'''
 
 # Calculate rotational inertia
 def calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg):
+    '''
+    linear_density_array: Array of linear density across rocket [array]
+    length_along_rocket_linspace: Numpy linspace for lengths along rocket [array]
+    cg: Location of center of gravity [m]
+    '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    r = 0
+    inertia = 0
     for x in range(len(length_along_rocket_linspace)):
-        r += linear_density_array[x] * dx * (length_along_rocket_linspace[x] - cg)**2
+        inertia += linear_density_array[x] * dx * (length_along_rocket_linspace[x] - cg)**2
+    return inertia
+
+# Calculate lateral acceleration, need a way to update total_mass
+def calcLateralAcceleration(lift_dict, total_mass):
+    '''
+    lift_dict: Dictionary of lift forces
+    total_mass: Total mass of rocket
+    '''
+    noseLift, finLift, boattailLift = lift_dict['nose'], lift_dict['fin'], lift_dict['boattail'] # Unpack lift_dict
+    return (noseLift + finLift + boattailLift) / total_mass # [m/s^2] a = F / m
+
+# Calculate the location of the fin center of pressure
+def calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin):
+    '''
+    root_chord: Length of fin root chord [m]
+    tip_chord: Length of fin tip_chord [m]
+    sweep_length: Length of fin sweep length [m]
+    fin_height: Fin height [m]
+    total_length: Total length of rocket [m]
+    noseconeToFin: Length from noescone to find [m]
+    finCP: Location of center of pressure of the fin
+    '''
+    mid_chord = sqrt(fin_height**2 + ((tip_chord - root_chord) / 2 + sweep_length)**2) # [m] Length of fin mid-chord line, Rocket Fin Design equation 1
+    first_term = noseconeToFin
+    second_term = (mid_chord / 3) * ((root_chord + 2 * tip_chord) / (root_chord + tip_chord))
+    third_term = (1 / 6) * (root_chord + tip_chord - (root_chord * tip_chord) / (root_chord + tip_chord))
+    
+    finCP = first_term + second_term + third_term # Cambridge equation 33
+    # print(length) # TEST
+    # print(cp) # TEST
+    return total_length - finCP # [m] Fin CP from aft
+
+def calcNoseCP(nosecone_length, total_length):
+    '''
+    nosecone_length: Length of nosecone [m]
+    total_length [m]
+    noseCP: Location of center of pressure of the nose
+    '''
+    noseCP = 0.5 * nosecone_length
+    return total_length - noseCP # [m] Nose CP from aft
+
+def calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg):
+    '''
+    noseLift: Nosecone lift [N]
+    finLift: Fin lift [N]
+    noseCP: Location of center of pressure of the nose [m]
+    finCP: Location of center of pressure of the fin [m]
+    inertia: Rotational inertia around center of gravity [kg m^2]
+    cg: Location of center of gravity of rocket [m]
+    r: Angular acceleration [1 / s^2]
+    '''
+    r = ((-1) * noseLift * (abs(noseCP - cg)) + finLift * (abs(finCP - cg))) / inertia
     return r
 
+def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace):
+    '''
+    noseLift: Nosecone lift [N]
+    finLift: Fin lift [N]
+    noseCP: Location of center of pressure of the nose [m]
+    finCP: Location of center of pressure of the fin [m]
+    ay: Lateral acceleration [m / s^2]
+    linear_density_array: Array of linear density across rocket length [kg / m]
+    length_along_rocket_linspace: Array of rocket lengths [m]
+    shear_array: Array of shear forces across rocket length [N]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    shear_array = (-1) * ay * np.cumsum(linear_density_array * dx)
+    # print(shear_array[-1]) # TEST
+    shear_array[int(noseCP / dx):] += noseLift
+    shear_array[int(finCP / dx):] += finLift
 
+    return shear_array
 
+def calcBending(shear_array, length_along_rocket_linspace):
+    '''
+    shear_array: Array of shear forces across rocket length [N]
+    length_along_rocket_linspace: Array of rocket lengths [m]
+    bending_array: Array of bending forces across rocket length [N m]
+    '''
+    dy = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    bending_array = np.cumsum(shear_array) * dy
+    return bending_array
+
+'''
 def codeFriendlyName(str, delimiter='_'):
     return delimiter.join(str.split(' (')[0].split(' ')).lower() # Delimiter is character between words ex. "_"
 
@@ -434,4 +539,4 @@ def graphBending(bending_array, totalLength):
 
 # print(rocket_dict) # TEST
 # print(point_masses) # TEST
-
+'''
