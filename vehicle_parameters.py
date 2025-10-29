@@ -46,7 +46,7 @@ class VehicleParameters:
     off_the_rail_acceleration: float = 6.81       # The target acceleration of the rocket off the launch rail [standard gravity]
     off_the_rail_velocity: float = 29.72          # The target velocity of the rocket off the launch rail [meters/second]
     max_acceleration: float = 7.47 # (upwards)    # The maximum acceleration of the rocket during flight [standard gravity]
-    # max_velocity: float = 0.454                   # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    max_mach: float = 0.454                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
     max_velocity: float = 155.722                 # The maximum speed of the rocket during flight [meters/second]
     total_impulse: float = 5934                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
@@ -314,10 +314,10 @@ print(f"engine mass: {engine.mass * c.KG2LB} lbm")
 panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
 print(f"panels mass: {panels_mass * c.KG2LB} lbm")
 
-plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
-plt.xlabel("length [feet]")
-plt.ylabel("mass density [lbs/feet]")
-plt.show()
+# plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
+# plt.xlabel("length [feet]")
+# plt.ylabel("mass density [lbs/feet]")
+# plt.show()
 
 
 

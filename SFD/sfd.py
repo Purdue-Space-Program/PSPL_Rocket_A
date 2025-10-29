@@ -56,7 +56,7 @@ def calcAOA(wind_gust, velocity):
     velocity: rocket velocity [m/s]
     AOA: Angle of attack [degrees]
     '''
-    return degrees[atan[wind_gust / velocity]]
+    return atan(wind_gust / velocity)
 
 # Calculate cross sectional area
 def calcS(diameter):
@@ -190,13 +190,12 @@ def calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg
     return inertia
 
 # Calculate lateral acceleration, need a way to update total_mass
-def calcLateralAcceleration(lift_dict, total_mass):
+def calcLateralAcceleration(noseLift, finLift, total_mass):
     '''
     lift_dict: Dictionary of lift forces
     total_mass: Total mass of rocket
     '''
-    noseLift, finLift, boattailLift = lift_dict['nose'], lift_dict['fin'], lift_dict['boattail'] # Unpack lift_dict
-    return (noseLift + finLift + boattailLift) / total_mass # [m/s^2] a = F / m
+    return (noseLift + finLift) / total_mass # [m/s^2] a = F / m
 
 # Calculate the location of the fin center of pressure
 def calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin):
@@ -219,15 +218,17 @@ def calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, nos
     # print(cp) # TEST
     return total_length - finCP # [m] Fin CP from aft
 
+# Calculate the location of the nose center of pressure
 def calcNoseCP(nosecone_length, total_length):
     '''
     nosecone_length: Length of nosecone [m]
     total_length [m]
     noseCP: Location of center of pressure of the nose
     '''
-    noseCP = 0.5 * nosecone_length
+    noseCP = 0.5 * nosecone_length # [m] Nosecone CP, Cambridge equation 28
     return total_length - noseCP # [m] Nose CP from aft
 
+# Calculate angular acceleration across rocket length
 def calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg):
     '''
     noseLift: Nosecone lift [N]
@@ -241,7 +242,8 @@ def calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg):
     r = ((-1) * noseLift * (abs(noseCP - cg)) + finLift * (abs(finCP - cg))) / inertia
     return r
 
-def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace):
+# Calculate shear forces across the rocket length and output an array of shear forces
+def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg):
     '''
     noseLift: Nosecone lift [N]
     finLift: Fin lift [N]
@@ -253,13 +255,17 @@ def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length
     shear_array: Array of shear forces across rocket length [N]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    shear_array = (-1) * ay * np.cumsum(linear_density_array * dx)
-    # print(shear_array[-1]) # TEST
+    shear_array = (-1) * ay * np.cumsum(linear_density_array * dx) # - r * np.cumsum(linear_density_array * dx)
+    print(shear_array) # TEST
+    print(f"Lateral acceleration: {ay}")
+    print(f"Nose lift: {noseLift}") # TEST
+    print(f"Fin lift: {finLift}") # TEST
     shear_array[int(noseCP / dx):] += noseLift
     shear_array[int(finCP / dx):] += finLift
 
     return shear_array
 
+# Calculate bending forces across rocket length and output an array of bending forces
 def calcBending(shear_array, length_along_rocket_linspace):
     '''
     shear_array: Array of shear forces across rocket length [N]
@@ -269,6 +275,33 @@ def calcBending(shear_array, length_along_rocket_linspace):
     dy = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
     bending_array = np.cumsum(shear_array) * dy
     return bending_array
+
+# Calculate axial forces across rocket length and output an array of bending forces
+def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace):
+    '''
+    thrust: Rocket thrust [N]
+    ax: Acceleration [m / s^2]
+    linear_density_array: Array of linear density across rocket length [kg / m]
+    length_along_rocket_linspace: Array of rocket length [m]
+    axial: Array of axial forces across rocket length [N]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    masses = np.cumsum(linear_density_array) * dx
+    masses1 = masses[::-1]
+
+    axial_tb = []
+    for mass in masses1:
+        axial_p = thrust - (ax * mass)
+        axial_tb.append(axial_p)
+    axial = axial_tb[::-1]
+    return axial
+
+'''
+plt.plot(vehicle.length_along_rocket_linspace, calcAxial(vehicle.parameters.jet_thrust, vehicle.parameters.max_acceleration, vehicle.linear_density_array, vehicle.length_along_rocket_linspace))
+plt.xlabel("length [m]")
+plt.ylabel("axial force [N]")
+plt.show()
+'''
 
 '''
 def codeFriendlyName(str, delimiter='_'):
