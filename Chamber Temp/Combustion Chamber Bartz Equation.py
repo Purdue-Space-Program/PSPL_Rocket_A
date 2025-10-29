@@ -3,6 +3,7 @@ from scipy.optimize import fsolve
 import sys
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
@@ -66,9 +67,7 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess = 0.2):
     return M_solution
 
 
-def heat_transfer_coefficient(Pr, gamma, c_star, T0, Cp, P0, mu, M, local_Area_ratio):
-    Dt = 0.1524 #diameter of chamber (m)
-    Rt = 0.05 #radius of the throat curve 
+def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Cp, P0, mu, M, local_Area_ratio):
     Twg = 800 #wall temperature (K) because steel can withstand up to 1100 K but safety margin
 
     #The sigma term of the Bartz equation split into different terms
@@ -104,15 +103,16 @@ def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity,
 
 def main():
     PSI2PA = 6894.76 # [Pa/psi] Conversion factor from psi to Pa
+    Conversion_in_to_m = 1 / 39.37
 
     cea_results = RunCEA(150 * PSI2PA, "ethanol", "liquid oxygen", 1.0)
 
     #Chamber geometery parameters
-    chamber_length = 11.167 / 39.37 #chamber length (m)
+    chamber_length = 11.167 * Conversion_in_to_m #chamber length (m)
     dx = 0.001 #increments of 1mm
-    D_star = 2.3094013 / 38.37 #throat diamater (m)
+    D_star = 2.3094013 * Conversion_in_to_m #throat diamater (m)
     Astar = pi * (D_star / 2)**2 #throat area (m^2)
-    chamber_diameter = 6 #chamber diameter (m)
+    chamber_diameter = 6 * Conversion_in_to_m #chamber diameter (m)
     chamber_area = pi * ((chamber_diameter/2)**2) #chamber area (m^2)
 
     #linearly interpolating area along chamber length (hopefully it's a straight line)
@@ -137,6 +137,8 @@ def main():
         initial_guess = M_local
 
         h_local = heat_transfer_coefficient(
+            Dt = chamber_diameter, #diameter of chamber (m)
+            Rt = D_star, #radius of throat curve (m)
             Pr = cea_results["c_pran"], #Prandlt number of the combustion gas       
             gamma = cea_results["gamma"], #specific heat ratio of the combustion gas
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
@@ -156,7 +158,30 @@ def main():
             k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
         )
 
+    
     #printing results
+
+    #printing axial positions vs surface temp plot
+    plt.figure()
+    plt.plot(x_positions, Temp_surface_array)
+    plt.xlim(0, chamber_length)
+    plt.xlabel("Axial Position (m) ")
+    plt.ylabel("Surface Temperature (K) ")
+    plt.title("help")
+    plt.grid(True)
+    plt.show()
+
+    #printing axial position vs heat transfer coefficient
+    plt.figure()
+    plt.plot(x_positions, h_array)
+    plt.xlim(0, chamber_length)
+    plt.xlabel("Axial Position (m) ")
+    plt.ylabel("Heat Transfer Coefficient (W/m^2K) ")
+    plt.title("help2")
+    plt.grid(True)
+    plt.show()
+
+        
     for i in range(len(x_positions)):
         print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
 
