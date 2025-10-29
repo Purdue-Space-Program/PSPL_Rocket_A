@@ -108,16 +108,16 @@ def main():
     cea_results = RunCEA(150 * PSI2PA, "ethanol", "liquid oxygen", 1.0)
 
     #Chamber geometery parameters
-    chamber_length = 20 #chamber length (m)
+    chamber_length = 11.167 / 39.37 #chamber length (m)
     dx = 0.001 #increments of 1mm
-    D_star = 1 #throat diamater (m)
+    D_star = 2.3094013 / 38.37 #throat diamater (m)
     Astar = pi * (D_star / 2)**2 #throat area (m^2)
-    chamber_diameter = 3.5 #chamber diameter (m)
-    chamber_area = pi * (chamber_diameter/2)**2 #chamber area (m^2)
+    chamber_diameter = 6 #chamber diameter (m)
+    chamber_area = pi * ((chamber_diameter/2)**2) #chamber area (m^2)
 
     #linearly interpolating area along chamber length (hopefully it's a straight line)
-    x_positions = np.arange(0,chamber_length + dx, dx) #position along the chamber length (m)
-    area_values = np.linspace(Astar, chamber_area, len(x_positions)) #local areas (m^2)
+    x_positions = np.arange(0,chamber_length, dx) #position along the chamber length (m)
+    area_values = np.linspace(chamber_area, Astar, len(x_positions)) #local areas (m^2)
     area_ratios = area_values / Astar #area ratio A/A* (no units)
 
     #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values
@@ -156,6 +156,9 @@ def main():
             k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
         )
 
+    #printing results
+    for i in range(len(x_positions)):
+        print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
 
 if __name__ == "__main__":
     main()
