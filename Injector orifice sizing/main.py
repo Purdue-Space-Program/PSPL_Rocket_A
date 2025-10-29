@@ -35,7 +35,7 @@ C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
 N_top_max = 50 # Max amount of orifices in top row allowed, to be changed (we will have 2 rows where the upper row will have holes with smaller diameter)
 N_top_min = 5 # Min amount of orifices in top row allowed, to be changed
 of_ratio = 1 # from Vehicle Parameters page
-D_c = 4.5 * IN2M # Diameter of chamber (might be changed)
+D_c = 6 * IN2M # Diameter of chamber (might be changed)
 m_dot = 3.56 * LB2KG # [Kg/s]
 temp_lox = 90 # [K]
 pressure_lox = 250 * PSI2PA # [Pa]
@@ -92,8 +92,8 @@ for D_real_lox_orifice_top_in in (standard_bits_inch.values()):
         err = (abs(total_area_real_top_orifice_lox - total_target_area_top_orifice_lox) / total_target_area_top_orifice_lox) * 100
         print("err in area:", err)
         # print(f"total_area_real_orifice_lox: {total_area_real_orifice_lox * M2IN:.2}")
-        if err < minerr:
-            minerr = err
+        #if err < minerr:
+        #    minerr = err
 
 
         m_dot_real_lox = total_area_real_orifice_lox * (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
@@ -168,7 +168,7 @@ for D_real_lox_orifice_top_in in (standard_bits_inch.values()):
                 "area_orifice_lox [in^2]": total_area_real_orifice_lox * M22IN2,
                 "error in area": err
                 }
-print(f"minerr: {minerr}")
+#print(f"minerr: {minerr}")
 
 if good_enough_found == 1:
     for key, value in best_values.items():
@@ -194,4 +194,39 @@ plt.xticks(np.arange(min(N_lox_array), max(N_lox_array) + 1, 2))
 plt.legend()
 plt.xlabel("Number of LOx holes")
 # plt.ylabel("LMR")
+plt.show()
+
+
+########### Film cooling orifices sizing ##########
+
+C_D_film = 0.6
+m_dot_ideal_film = 0.1 * m_dot_ipa
+total_target_area_orifice_film = m_dot_ideal_film / (C_D_film * np.sqrt(2 * rho_ipa * pressure_drop))
+N_film_max = 100
+N_film_min = 10
+allowable_percent_error_m_dot_film = 0.6 # percent error allowed in Film mass flow rate
+x_num = []
+y_err = []
+for N_film in range(N_film_min, N_film_max +1):
+    D_ideal_orifice_film = 2 * np.sqrt(total_target_area_orifice_film / (np.pi * N_film))
+    closest_bit_diameter, absolute_error_bit_size, closest_bit_name = closest_bit_size(D_ideal_orifice_film * M2IN)
+    D_real_orifice_film = closest_bit_diameter * IN2M
+    total_area_real_orifice_film = (np.pi / 4) * D_real_orifice_film**2
+    m_dot_real_film = total_area_real_orifice_film * (C_D_film * np.sqrt(2 * rho_ipa * pressure_drop))
+    percent_error_m_dot_film = (abs(m_dot_real_film - m_dot_ideal_film) / m_dot_ideal_film) * 100
+    if percent_error_m_dot_film <= allowable_percent_error_m_dot_film:
+        print(f"Number of film orifices: {N_film}")
+        print(f"Diameter of target orifice(in): {D_ideal_orifice_film:.6f}")
+        print(f"Diameter of orifice(m): {D_real_orifice_film:.6f}")
+        print(f"Diameter of orifice(in): {D_real_orifice_film * M2IN:.6f}")
+        print(f"Bit size(in): {closest_bit_name}")
+        print(f"absolute_error_bit_size: {absolute_error_bit_size}")
+        print(f"Error percent of mass flow rate: {percent_error_m_dot_film}")
+    x_num.append(N_film)
+    y_err.append(percent_error_m_dot_film)
+plt.plot(x_num, y_err)
+plt.xlabel("Number of holes")
+plt.ylabel("Percentage error in mass flow rate")
+plt.title("Number of holes vs m_dot error comparision")
+plt.axhline(allowable_percent_error_m_dot_film, color='g', linestyle='--', label='Chosen number of holes')
 plt.show()
