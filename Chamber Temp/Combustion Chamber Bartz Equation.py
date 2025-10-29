@@ -100,29 +100,7 @@ def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity,
     surface_temp = (Surface_temp_term1 * Surface_temp_term2 * Surface_temp_term3) + T_initial 
 
     return surface_temp
-    
-    '''
-    T_coolant = 300 #temperature outside of rocket (room temp) (K)
-    delta = 0.003175 #thickness of chamber wall (m)
 
-    numerator = T_g + (((heat_transfer_coefficient_value * delta) / k) * T_coolant)
-    denominator = 1 + ((heat_transfer_coefficient_value * delta) / k)
-    surface_temp = numerator / denominator 
-
-    return surface_temp
-    '''
-
-'''
-def minimum_wall_thickness(P):
-    #using the formula (PD)/(2(SE+PY))
-    D = 0.0498 #outer diameter of engine throat
-    S = #allowed stress value which depends on the specific grade of stainless steel and design temp
-    E = 1 #longitudinal weld join quality factor, depdends if material has been radiographed
-    Y = 0.7 #wall thickness coefficient, stainless steel for above 900F
-
-    thickness = (P * D) / (2 * ((S * E) + (P * Y)))
-    return thickness
-'''
 
 def main():
     PSI2PA = 6894.76 # [Pa/psi] Conversion factor from psi to Pa
@@ -133,25 +111,32 @@ def main():
     chamber_length = 20 #chamber length (m)
     dx = 0.001 #increments of 1mm
     D_star = 1 #throat diamater (m)
-    Astar = 1 #throat area (m^2)
+    Astar = pi * (D_star / 2)**2 #throat area (m^2)
     chamber_diameter = 3.5 #chamber diameter (m)
     chamber_area = pi * (chamber_diameter/2)**2 #chamber area (m^2)
 
     #linearly interpolating area along chamber length (hopefully it's a straight line)
     x_positions = np.arange(0,chamber_length + dx, dx) #position along the chamber length (m)
-    area_values = np.linspace(Astar, chamber_area, len(x_positions)) #area at each position along the chamber length (m^2)
-    area_ratios = area_values / Astar #area ratio at each position along the chamber length (no units)
+    area_values = np.linspace(Astar, chamber_area, len(x_positions)) #local areas (m^2)
+    area_ratios = area_values / Astar #area ratio A/A* (no units)
 
     #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values
     Mach_array = np.zeros_like(area_ratios) #mach number at each axial position
     h_array = np.zeros_like(area_ratios) #heat transfer coefficient at each axial position
     Temp_surface_array = np.zeros_like(area_ratios) #surface temperature at each axial position
 
+    initial_guess = 2
+
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for i, A_ratio in enumerate(area_ratios):
-        Mach_array[i] = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio)
+        
+        M_local = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
+        Mach_array[i] = M_local
 
-        h_array[i] = heat_transfer_coefficient(
+        #updating initial guess for next iteration
+        initial_guess = M_local
+
+        h_local = heat_transfer_coefficient(
             Pr = cea_results["c_pran"], #Prandlt number of the combustion gas       
             gamma = cea_results["gamma"], #specific heat ratio of the combustion gas
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
@@ -163,21 +148,13 @@ def main():
             local_Area_ratio = area_ratios[i] #area ratio at the local axial point (no units)
 
         )
+        h_array[i] = h_local
 
         Temp_surface_array[i] = temperature_surface_calculation(
             heat_transfer_coefficient_value = h_array[i],
             T_infinity = cea_results["c_t"], #chamber temperature (K)
             k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
         )
-
-
-    '''
-    thickness = minimum_wall_thickness(
-        P = cea_results["c_p"] * 100000 #chamber pressure (Pa)
-    )
-    print("Minimum wall thickness of the chamber (in units idk yet):", thickness)
-    '''
-
 
 
 if __name__ == "__main__":
