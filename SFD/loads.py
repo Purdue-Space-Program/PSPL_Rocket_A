@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 import sfd
 import os
 import sys
@@ -12,54 +11,67 @@ LB2KG = 0.453592
 FT2M = 0.3048
 IN2M = 0.0254
 
-# Parameters
-diameter = 6 * IN2M
-dy = 0.005
+air_density = 1.225 # [kg / m^3] NEED
+velocity = vehicle.parameters.max_velocity # [m / s]
+wind_gust = 30 # [m / s] about 69 mph NEED
+diameter = vehicle.parameters.tube_outer_diameter # [m]
 
-sfd_inputs = pd.ExcelFile('sfd_inputs.xlsx', engine='openpyxl')
-rocket_dict = sfd.getRocketSections(sfd_inputs)
-aero_dict = sfd.getAeroProperties(sfd_inputs)
-point_masses = sfd.getPointMasses(sfd_inputs)
-mass_model = sfd.getMassModel(rocket_dict, point_masses, dy)
-totalMass = sfd.getTotalMass(rocket_dict) # [kg]
-totalLength = sfd.getTotalLength(rocket_dict) # [m]
-cg = sfd.getCG(rocket_dict, point_masses, totalMass)
+# Fins
+root_chord = 0.3 # [m] NEED
+tip_chord = 0.1 # [m] NEED
+sweep_length = 0.2 # [m] NEED
+fin_height = 0.3 # [m] NEED
+numFins = 3 # [m] NEED
 
-location = ['off_the_rail', 'max_q']
-AOA = sfd.getAOA(aero_dict, location[1])
-Q = sfd.getQ(aero_dict, location[1])
-S = sfd.getArea(diameter) # Cross sectional area [m^2]
+mach = vehicle.parameters.max_mach
 
-# Stability derivative
-machCoeff = sfd.getMachAdjustedCoeff(1, 0.45)
-noseSD = sfd.getNoseSD(machCoeff)
-finSD = sfd.getFinSD(rocket_dict, diameter)
+linear_density_array = vehicle.linear_density_array # [kg / m]
+length_along_rocket_linspace = vehicle.length_along_rocket_linspace # [m]
 
-# Lift forces
-noseLift = sfd.getLiftForce(Q, S, AOA, noseSD)
-finLift = sfd.getLiftForce(Q, S, AOA, finSD)
-boattailLift = 0
-lift_dict = {'nose': noseLift, 'fin': finLift, 'boattail': boattailLift}
+burn_time = 2.24 # [s]
+total_time = 5 # [s]
 
-# CP Location
-noseconeToFin = totalLength - rocket_dict['fins']['length'] # Distance from nosecone to fin
-noseCP = sfd.getNoseCP(rocket_dict['nosecone']['length'], totalLength) # Nose center of pressure
-finCP = sfd.getFinCP(noseconeToFin, rocket_dict, totalLength) # Fin center of pressure
-boattailCP = 0 # Boattail center of pressure
-cp_dict = {'nose': noseCP, 'fin': finCP, 'boattail': boattailCP} # Center of pressure dictionary
+noseconeToFin = 2 # [m] NEED
 
-inertia = sfd.getRotationalInertia(mass_model, cg, totalLength) # Inertia
-ay = sfd.getLatAccel(lift_dict, totalMass) # Lateral acceleration
-r = sfd.getAngularAccel(lift_dict, cp_dict, cg, inertia) # Angular acceleration
+total_mass = np.sum(component.mass for component in vehicle.mass_distribution) # [kg]
+total_length = length_along_rocket_linspace[-1] # [m]
 
-shear_array = sfd.getShearForce(mass_model, totalLength, lift_dict, cp_dict, ay, r, cg)
-bending_array = sfd.getBendingForce(shear_array, totalLength)
-# sfd.graphShear(shear_array, totalLength)
-# sfd.graphBending(bending_array, totalLength)
+thrust = vehicle.parameters.jet_thrust
+ax = vehicle.parameters.max_acceleration
 
-# print(inertia)
-# print(r)
-# print(mass_model)
 
-chamber_pressure = vehicle.parameters.chamber_pressure # [Pa]
-print(chamber_pressure)
+Q = sfd.calcQ(air_density, velocity)
+AOA = sfd.calcAOA(wind_gust, velocity)
+S = sfd.calcS(diameter)
+
+# Fins
+finSD = sfd.calcFinSD(root_chord, tip_chord, sweep_length, fin_height, numFins, diameter)
+machCoeff = sfd.calcMachCoeff(1, mach)
+noseSD = sfd.calcNoseSD(machCoeff)
+noseLift = sfd.calcLift(Q, S, AOA, noseSD)
+finLift = sfd.calcLift(Q, S, AOA, finSD)
+cg = sfd.calcCG(linear_density_array, length_along_rocket_linspace)
+cg_array = sfd.updateCG(vehicle, burn_time, total_time)
+inertia = sfd.calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg)
+ay = sfd.calcLateralAcceleration(noseLift, finLift, total_mass)
+finCP = sfd.calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin)
+noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length)
+r = sfd.calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg)
+shear_array = sfd.calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg)
+bending_array = sfd.calcBending(shear_array, length_along_rocket_linspace)
+axial_array = sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace)
+
+
+variable = "shear_array"
+
+if variable == "shear_array":
+    plot = shear_array
+    ylabel = "Shear Force [N]"
+if variable == "bending_array":
+    plot = bending_array
+    ylabel = "Bending Moment [N-m]"
+
+plt.plot(length_along_rocket_linspace, plot)
+plt.xlabel("Length from aft [m]")
+plt.ylabel(ylabel)
+plt.show()
