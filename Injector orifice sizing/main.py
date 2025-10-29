@@ -29,6 +29,10 @@ def closest_bit_size(target_diameter):
 
     return closest_bit_diameter * IN2M, lowest_absolute_error_bit_size * IN2M, closest_bit_name
 
+def calc_area(m_dot, C_D, rho, pressure_drop):
+    total_area = m_dot / (C_D * np.sqrt(2 * rho * pressure_drop))
+    return total_area
+
 # Inputs
 C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
 C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
@@ -51,9 +55,8 @@ m_dot_ideal_lox = m_dot - m_dot_ipa # [Kg/s]
 D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
-total_target_area_orifice_lox = m_dot_ideal_lox / (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
-
-total_area_orifice_ipa = m_dot_ipa / (C_D_ipa * np.sqrt(2 * rho_ipa * pressure_drop))
+total_target_area_orifice_lox = calc_area(m_dot_ideal_lox, C_D_lox, rho_lox, pressure_drop)
+total_area_orifice_ipa = calc_area(m_dot_ipa, C_D_ipa, rho_ipa, pressure_drop)
 velocity_ipa = m_dot_ipa / (rho_ipa * total_area_orifice_ipa)
 annular_thickness = np.sqrt((total_area_orifice_ipa + np.pi * R_s**2) / np.pi) - R_s
 
@@ -90,7 +93,7 @@ for D_real_lox_orifice_top_in in (standard_bits_inch.values()):
         total_area_real_top_orifice_lox = N_top * (D_real_lox_orifice_top / 2)**2 * np.pi
         total_area_real_orifice_lox = total_area_real_top_orifice_lox + total_area_real_bottom_orifice_lox
         err = (abs(total_area_real_top_orifice_lox - total_target_area_top_orifice_lox) / total_target_area_top_orifice_lox) * 100
-        print("err in area:", err)
+        #print("err in area:", err)
         # print(f"total_area_real_orifice_lox: {total_area_real_orifice_lox * M2IN:.2}")
         #if err < minerr:
         #    minerr = err
@@ -166,7 +169,7 @@ for D_real_lox_orifice_top_in in (standard_bits_inch.values()):
                 "velocity_ipa [m/s]": velocity_ipa,
                 "area_orifice_ipa [in^2]": total_area_orifice_ipa * M22IN2,
                 "area_orifice_lox [in^2]": total_area_real_orifice_lox * M22IN2,
-                "error in area": err
+                "error in area [m^2]": err
                 }
 #print(f"minerr: {minerr}")
 
@@ -200,17 +203,18 @@ plt.show()
 ########### Film cooling orifices sizing ##########
 
 C_D_film = 0.6
-m_dot_ideal_film = 0.1 * m_dot_ipa
-total_target_area_orifice_film = m_dot_ideal_film / (C_D_film * np.sqrt(2 * rho_ipa * pressure_drop))
-N_film_max = 100
-N_film_min = 10
+m_dot_ideal_film = 0.1 * m_dot_ipa / 0.9
+#print(m_dot_ideal_film)
+total_target_area_orifice_film = calc_area(m_dot_ideal_film, C_D_film, rho_ipa, pressure_drop)
+N_film_max = 10
+N_film_min = 1
 allowable_percent_error_m_dot_film = 0.6 # percent error allowed in Film mass flow rate
 x_num = []
 y_err = []
-for N_film in range(N_film_min, N_film_max +1):
+for N_film in range(N_film_min, N_film_max + 1):
     D_ideal_orifice_film = 2 * np.sqrt(total_target_area_orifice_film / (np.pi * N_film))
     closest_bit_diameter, absolute_error_bit_size, closest_bit_name = closest_bit_size(D_ideal_orifice_film * M2IN)
-    D_real_orifice_film = closest_bit_diameter * IN2M
+    D_real_orifice_film = closest_bit_diameter
     total_area_real_orifice_film = (np.pi / 4) * D_real_orifice_film**2
     m_dot_real_film = total_area_real_orifice_film * (C_D_film * np.sqrt(2 * rho_ipa * pressure_drop))
     percent_error_m_dot_film = (abs(m_dot_real_film - m_dot_ideal_film) / m_dot_ideal_film) * 100
@@ -220,10 +224,11 @@ for N_film in range(N_film_min, N_film_max +1):
         print(f"Diameter of orifice(m): {D_real_orifice_film:.6f}")
         print(f"Diameter of orifice(in): {D_real_orifice_film * M2IN:.6f}")
         print(f"Bit size(in): {closest_bit_name}")
-        print(f"absolute_error_bit_size: {absolute_error_bit_size}")
+        print(f"absolute_error_bit_size(m): {absolute_error_bit_size}")
         print(f"Error percent of mass flow rate: {percent_error_m_dot_film}")
     x_num.append(N_film)
     y_err.append(percent_error_m_dot_film)
+    #print(percent_error_m_dot_film)
 plt.plot(x_num, y_err)
 plt.xlabel("Number of holes")
 plt.ylabel("Percentage error in mass flow rate")
