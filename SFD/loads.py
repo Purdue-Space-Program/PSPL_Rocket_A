@@ -57,21 +57,26 @@ ay = sfd.calcLateralAcceleration(noseLift, finLift, total_mass)
 finCP = sfd.calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin)
 noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length)
 r = sfd.calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg)
-shear_array = sfd.calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg)
-bending_array = sfd.calcBending(shear_array, length_along_rocket_linspace)
-axial_array = sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace)
+shear_array = np.array(sfd.calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg))
+bending_array = np.array(sfd.calcBending(shear_array, length_along_rocket_linspace))
+axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace))
 
 
-variable = "shear_array"
+variable = "axial_array"
+N2LBS = 0.224809
+M2FT = 3.28084
 
 if variable == "shear_array":
-    plot = shear_array
-    ylabel = "Shear Force [N]"
+    plot = shear_array * N2LBS
+    ylabel = "Shear Force [lbs]"
 if variable == "bending_array":
-    plot = bending_array
-    ylabel = "Bending Moment [N-m]"
+    plot = bending_array * N2LBS
+    ylabel = "Bending Moment [lbs-ft]"
+if variable == "axial_array":
+    plot = axial_array * N2LBS
+    ylabel = "Axial Force [lbs]"
 
-plt.plot(length_along_rocket_linspace, plot)
-plt.xlabel("Length from aft [m]")
+plt.plot(length_along_rocket_linspace * M2FT, plot)
+plt.xlabel("Length from aft [ft]")
 plt.ylabel(ylabel)
 plt.show()
