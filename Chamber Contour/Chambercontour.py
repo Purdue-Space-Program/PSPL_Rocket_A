@@ -52,7 +52,7 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     Qx = (c2 - c1) / (m1 - m2)
     Qy = ((m1 * c2) - (m2 * c1)) / (m1 - m2)
     
-    theta_bell = np.linspace(0, 1, num=20)
+    theta_bell = np.linspace(0, 1, num=30)
     x_bell = (((1 - theta_bell)**2) * Nx) + (2 * (1 - theta_bell) * theta_bell * Qx) + ((theta_bell**2) * Ex)
     y_bell = (((1 - theta_bell)**2) * Ny) + (2 * (1 - theta_bell) * theta_bell * Qy) + ((theta_bell**2) * Ey) #bezier curve to draw parabola
 # Converging section
@@ -78,7 +78,7 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     Vc = (Lstar * At) - V_con # Volume of cylindrical section 
     Lc = Vc / Ac # Length of chamber
     # Chamber
-    x_c = np.linspace(-Lc+x_con_rad[0], x_con_rad[0]) 
+    x_c = np.linspace(-Lc+x_con_rad[0], x_con_rad[0], num=3) 
     y_c = np.zeros(np.size(x_c)) + Rc
     x_c = np.delete(x_c, -1)
     y_c = np.delete(y_c, -1)
@@ -137,7 +137,3 @@ print(f"Contraction Ratio: {contract_ratio:.4f}")
 
 
 nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename)
-
-
-
-
