@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ChamberContour", "chamber_contour_meters"))
 
+
 import constants as c
 
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
@@ -34,7 +35,7 @@ def main():
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
-    station_inner_radii = chamber_contour[:, 0]
+    station_inner_radii = chamber_contour[:, 1]
 
     station_areas = np.pi * (station_inner_radii**2)
     station_area_ratios = station_areas / A_star
@@ -81,7 +82,7 @@ def main():
     h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
     Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
 
-    initial_guess = 0.2
+    initial_guess = 0.5
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
@@ -89,7 +90,7 @@ def main():
         if station_index > 0:
             initial_guess = Mach_total[station_index - 1]
         else:
-            initial_guess = 0.2
+            initial_guess = 0.5
         
         M_local = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
         Mach_total[station_index] = M_local
@@ -97,9 +98,12 @@ def main():
         #updating initial guess for next iteration
         initial_guess = M_local
 
+        Dt_local = 2 * station_inner_radii[station_index]
+        Rt_throat = ((1.725 * IN2M) + (0.4393 * IN2M)) * 0.5  # throat radius of curvature
+
         h_local = heat_transfer_coefficient(
-            Dt = chamber_diameter, #diameter of chamber (m)
-            Rt = D_star,     #radius of throat curve (m)
+            Dt = Dt_local, #diameter of chamber (m)
+            Rt = Rt_throat,     #radius of throat curve (m)
             Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
             gamma = cea_results["gamma"], #specific heat ratio of the combustion gas (n/a)
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
@@ -145,7 +149,6 @@ def main():
         print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
     '''
     
-    print("units for cstar", cea_results["c_star"])
 
 def RunCEA(
     chamber_pressure,
