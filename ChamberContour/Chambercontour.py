@@ -98,8 +98,8 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     
     z_arr = np.zeros(np.size(x_arr))
     nozzle = np.transpose(np.array([x_arr, y_arr, z_arr]))
-    nozzle_in = nozzle / IN2M
-    np.savetxt(filename, nozzle_in, delimiter=',')
+    np.savetxt(filename + "_meters", nozzle, delimiter=',')
+    np.savetxt(filename + "_inches", nozzle / IN2M, delimiter=',')
 
 
 # Nozzle contour plot
@@ -120,7 +120,7 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     plt.ylabel("Radius [in]")
     plt.axis('equal')
     plt.show()
-
+    
 
 
 Dt = 2.3094013 #in
