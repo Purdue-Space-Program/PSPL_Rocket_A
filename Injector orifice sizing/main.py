@@ -55,8 +55,8 @@ def CalculateIdealHoleDiameter(area, number_holes):
 # Inputs
 C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
 C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
-N_top_max = 50 # Max amount of orifices in top row allowed, to be changed (we will have 2 rows where the upper row will have holes with smaller diameter)
-N_top_min = 5 # Min amount of orifices in top row allowed, to be changed
+N_bottom_max = 50 # Max amount of orifices in bottom row allowed, to be changed (we will have 2 rows where the bottom row will have holes with smaller diameter)
+N_bottom_min = 5 # Min amount of orifices in bottom row allowed, to be changed
 of_ratio = 1 # from Vehicle Parameters page
 D_c = 6 * IN2M # Diameter of chamber (might be changed)
 m_dot = 3.56 * LB2KG # [Kg/s]
@@ -92,10 +92,10 @@ value_1_array = []
 value_2_array = []
 minerr = np.inf
 
-for D_real_lox_orifice_top in (standard_bits_inch.values()):
-    N_bottom = 14
-    D_real_lox_orifice_bottom = 1/16 * IN2M 
-    for N_top in range(N_top_min, N_top_max + 1):
+for D_real_lox_orifice_bottom in (standard_bits_inch.values()):
+    N_top = 14
+    D_real_lox_orifice_top = 1/16 * IN2M 
+    for N_bottom in range(N_bottom_min, N_bottom_max + 1):
         N_lox = N_top + N_bottom
         """consider that fact that bits in real life are not the exact diameter we want
         closest_bit_diameter_bottom, absolute_error_bit_size_bottom, closest_bit_name_bottom = closest_bit_size(D_ideal_lox_orifice_bottom)
@@ -105,12 +105,12 @@ for D_real_lox_orifice_top in (standard_bits_inch.values()):
         closest_bit_diameter_top, absolute_error_bit_size_top, closest_bit_name_top = closest_bit_size(D_ideal_lox_orifice_top)
         D_real_lox_orifice_top = closest_bit_diameter_top
         percent_error_bit_size_top = abs(absolute_error_bit_size_top) / D_ideal_lox_orifice_top"""
-        total_area_real_bottom_orifice_lox = np.pi * (D_real_lox_orifice_bottom / 2)**2 * N_bottom
-        total_target_area_top_orifice_lox = total_target_area_orifice_lox - total_area_real_bottom_orifice_lox
+        total_area_real_top_orifice_lox = np.pi * (D_real_lox_orifice_top / 2)**2 * N_top
+        total_target_area_bottom_orifice_lox = total_target_area_orifice_lox - total_area_real_top_orifice_lox
 
-        total_area_real_top_orifice_lox = N_top * (D_real_lox_orifice_top / 2)**2 * np.pi
-        total_area_real_orifice_lox = total_area_real_top_orifice_lox + total_area_real_bottom_orifice_lox
-        err = (abs(total_area_real_top_orifice_lox - total_target_area_top_orifice_lox) / total_target_area_top_orifice_lox) * 100
+        total_area_real_bottom_orifice_lox = N_bottom * (D_real_lox_orifice_bottom / 2)**2 * np.pi
+        total_area_real_orifice_lox = total_area_real_bottom_orifice_lox + total_area_real_top_orifice_lox
+        err = (abs(total_area_real_top_orifice_lox - total_target_area_bottom_orifice_lox) / total_target_area_bottom_orifice_lox) * 100
         #print("err in area:", err)
         # print(f"total_area_real_orifice_lox: {total_area_real_orifice_lox * M2IN:.2}")
         #if err < minerr:
