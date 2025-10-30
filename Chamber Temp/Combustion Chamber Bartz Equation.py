@@ -6,10 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import constants as c
-
 chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ChamberContour", "chamber_contour_meters"))
 
+import constants as c
 
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
 import CEA_Wrap as CEA
@@ -19,15 +18,17 @@ import CEA_Wrap as CEA
 
 
 def main():
+    M2IN = 39.3701
+    IN2M = 1 / 39.3701
 
     cea_results = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
 
     #cylinder part of the chamber geometry parameters
-    chamber_length = 11.167 * c.IN2M #chamber length (m)
+    chamber_length = 11.167 * IN2M #chamber length (m)
     dx = 0.001 #increments of 1mm
-    D_star = 2.3094013 * c.IN2M #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
+    D_star = 2.3094013 * IN2M #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
     A_star = pi * (D_star / 2)**2 #throat area (m^2)
-    chamber_diameter = 6 * c.IN2M #chamber diameter (m)
+    chamber_diameter = 6 * IN2M #chamber diameter (m)
     chamber_area = pi * ((chamber_diameter/2)**2) #chamber area (m^2)
 
 
@@ -39,9 +40,6 @@ def main():
     station_area_ratios = station_areas / A_star
 
     
-
-
-
 
 
     # #linearly interpolating area along cylinder chamber length (hopefully it's a straight line)
@@ -101,7 +99,7 @@ def main():
             gamma = cea_results["gamma"], #specific heat ratio of the combustion gas (n/a)
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
             T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-            Cp = cea_results["c_cp"], #specific heat at constant pressure of the combustion gas (J/kg/K)
+            Cp = cea_results["c_cp"] / 1000, #specific heat at constant pressure of the combustion gas (J/kg/K)
             P0 = cea_results["c_p"], #chamber pressure (Pascals)
             mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
             M = Mach_total[station_index], #Mach number at the local axial point (no units)
@@ -121,19 +119,19 @@ def main():
 
     #printing axial positions vs surface temp plot
     plt.figure()
-    plt.plot(station_depths * c.M2IN, Temp_surface_total)
+    plt.plot(station_depths * M2IN, Temp_surface_total)
     plt.xlabel("Axial Position Relative to Throat (in) ")
     plt.ylabel("Surface Temperature (K) ")
-    plt.title("help")
+    plt.title("Surface temperature vs Axial Position")
     plt.grid(True)
     plt.show()
 
     #printing axial position vs heat transfer coefficient
     plt.figure()
-    plt.plot(station_depths * c.M2IN, h_total)
+    plt.plot(station_depths * M2IN, h_total)
     plt.xlabel("Axial Position Relative to Throat (in) ")
     plt.ylabel("Heat Transfer Coefficient (W/m^2 K) ")
-    plt.title("help2")
+    plt.title("Heat Transfer Coefficient vs Axial Position")
     plt.grid(True)
     plt.show()
 
@@ -205,9 +203,9 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Cp, P0, mu, M, loca
     Twg = 800 #wall temperature (K) because steel can withstand up to 1100 K but safety margin
 
     #The sigma term of the Bartz equation split into different terms
-    sigma_parentheses1 = ((0.5 * (Twg / T0) * (1 + ((gamma - 1)/2) * (M**2))) + 0.5) ** 0.68
+    sigma_parentheses1 = ((0.5 * (Twg / T0) * (1 + (((gamma - 1) * M**2)/2))) + 0.5) ** 0.68
     sigma_parentheses2 = (1 + (((gamma - 1)/2) * (M**2))) ** 0.12
-    sigma = (sigma_parentheses1 * sigma_parentheses2) ** (-1)
+    sigma = 1 / (sigma_parentheses1 * sigma_parentheses2)
 
     #Bartz equations split into different terms
     heat_transfer_term1 = 0.026 / (Dt ** 0.2)
