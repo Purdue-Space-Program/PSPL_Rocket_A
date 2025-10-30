@@ -6,9 +6,124 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import constants as c
+import ChamberContour.pa
 
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
 import CEA_Wrap as CEA
+
+
+
+def main():
+
+    cea_results = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
+
+    #cylinder part of the chamber geometry parameters
+    chamber_length = 11.167 * c.IN2M #chamber length (m)
+    dx = 0.001 #increments of 1mm
+    D_star = 2.3094013 * c.IN2M #throat diameter (m)
+    Astar = pi * (D_star / 2)**2 #throat area (m^2)
+    chamber_diameter = 6 * c.IN2M #chamber diameter (m)
+    chamber_area = pi * ((chamber_diameter/2)**2) #chamber area (m^2)
+
+    #linearly interpolating area along cylinder chamber length (hopefully it's a straight line)
+    x_positions = np.arange(0,chamber_length, dx) #position along the chamber length (m)
+    area_values = np.linspace(chamber_area, Astar, len(x_positions)) #local areas (m^2)
+    area_ratios = area_values / Astar #area ratio A/A* (no units)
+
+    #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values
+    Mach_array = np.zeros_like(area_ratios) #mach number at each axial position
+    h_array = np.zeros_like(area_ratios) #heat transfer coefficient at each axial position
+    Temp_surface_array = np.zeros_like(area_ratios) #surface temperature at each axial position
+
+    #The values above were only for the cylindrical chamber section, now adding the nozzle
+    converging_length = 4.464 * c.IN2M #converging section length (m)
+    diverging_length = 1.768 * c.IN2M #diverging section length (m)
+    dx = 0.001 #increments of 1mm
+
+    #adding new axial positions for converging and diverging sections
+    x_converging = np.arange(-converging_length, 0, dx)
+    x_diverging = np.arange(chamber_length, chamber_length + diverging_length, dx)
+
+    #adding new area ratio profiles for nozzle
+    #converging section area ratios (from end of cylinder chamber to A*)
+    area_converging = np.linspace(chamber_area, Astar, len(x_converging))
+    area_ratio_converging = area_converging / Astar
+
+    #diverging section area ratios (from A* to exit area)
+    expansion_ratio = 2.88
+    A_exit = Astar * expansion_ratio
+    area_diverging = np.linspace(Astar, A_exit, len(x_diverging))
+    area_ratio_diverging = area_diverging / Astar
+
+    #full geometry of the chamber
+    x_total = np.concatenate([x_converging, x_positions, x_diverging])
+    area_ratio_total = np.concatenate([area_ratio_converging, area_ratios, area_ratio_diverging])
+
+    #initializing new arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
+    Mach_total = np.zeros_like(area_ratio_total) #mach number at each axial position
+    h_total = np.zeros_like(area_ratio_total) #heat transfer coefficient at each axial position
+    Temp_surface_total = np.zeros_like(area_ratio_total) #surface temperature at each axial position
+
+    initial_guess = 2
+
+    #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
+    for i, A_ratio in enumerate(area_ratio_total):
+        
+        M_local = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
+        Mach_total[i] = M_local
+
+        #updating initial guess for next iteration
+        initial_guess = M_local
+
+        h_local = heat_transfer_coefficient(
+            Dt = chamber_diameter, #diameter of chamber (m)
+            Rt = D_star,     #radius of throat curve (m)
+            Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
+            gamma = cea_results["gamma"], #specific heat ratio of the combustion gas (n/a)
+            c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
+            T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
+            Cp = cea_results["c_cp"], #specific heat at constant pressure of the combustion gas (J/kg/K)
+            P0 = cea_results["c_p"], #chamber pressure (Pascals)
+            mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
+            M = Mach_total[i], #Mach number at the local axial point (no units)
+            local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
+
+        )
+        h_total[i] = h_local
+
+        Temp_surface_total[i] = temperature_surface_calculation(
+            heat_transfer_coefficient_value = h_total[i],
+            T_infinity = cea_results["c_t"], #chamber temperature (K)
+            k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
+        )
+
+    
+    #printing results
+
+    #printing axial positions vs surface temp plot
+    plt.figure()
+    plt.plot(x_total, Temp_surface_total)
+    plt.xlabel("Axial Position (m) ")
+    plt.ylabel("Surface Temperature (K) ")
+    plt.title("help")
+    plt.grid(True)
+    plt.show()
+
+    #printing axial position vs heat transfer coefficient
+    plt.figure()
+    plt.plot(x_total, h_total)
+    plt.xlabel("Axial Position (m) ")
+    plt.ylabel("Heat Transfer Coefficient (W/m^2K) ")
+    plt.title("help2")
+    plt.grid(True)
+    plt.show()
+
+    '''     
+    for i in range(len(x_positions)):
+        print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
+    '''
+    
 
 def RunCEA(
     chamber_pressure,
@@ -31,11 +146,11 @@ def RunCEA(
     else:
         raise ValueError(f"{oxidizer_name} not supported")
 
-
-    pressure_ratio = chamber_pressure / (15 * 6894.76) # assume exit pressure is a constantly at the pressure of air a bit above sea level
+    exit_pressure = 15 # [psi]
+    pressure_ratio = chamber_pressure / exit_pressure # assume exit pressure is a constantly at the pressure of air a bit above sea level
 
     rocket = CEA.RocketProblem(
-        pressure =       chamber_pressure * (1 / 6894.76),
+        pressure =       chamber_pressure,
         pip =            pressure_ratio, # pip is "Pressure ratio of chamber pressure to exit pressure." github.com/civilwargeeky/CEA_Wrap/blob/main/README.md#rocket-problem-constructor-additional-parameters
         materials =      [CEA_fuel_name, CEA_oxidizer_name],
         o_f =            OF_Ratio,
@@ -54,7 +169,7 @@ def RunCEA(
         "c_cond": cea_results.c_cond, #conductivity of combustion gas in the chamber (W/m*K)
         "mach": cea_results.mach, #Mach number at the nozzle exit (no units)
     }
-
+    
 def calculating_MachNumber(gamma, area_ratio_value, initial_guess = 0.2):
 
     def f(M):
@@ -99,127 +214,8 @@ def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity,
     Surface_temp_term3 = T_infinity - T_initial 
     surface_temp = (Surface_temp_term1 * Surface_temp_term2 * Surface_temp_term3) + T_initial 
 
-    return surface_temp
-
-def main():
-    PSI2PA = 6894.76 # [Pa/psi] Conversion factor from psi to Pa
-    Conversion_in_to_m = 1 / 39.37
-
-    cea_results = RunCEA(150 * PSI2PA, "ethanol", "liquid oxygen", 1.0)
-
-    #cylinder part of the chamber geometery parameters
-    chamber_length = 11.167 * Conversion_in_to_m #chamber length (m)
-    dx = 0.001 #increments of 1mm
-    D_star = 2.3094013 * Conversion_in_to_m #throat diamater (m)
-    Astar = pi * (D_star / 2)**2 #throat area (m^2)
-    chamber_diameter = 6 * Conversion_in_to_m #chamber diameter (m)
-    chamber_area = pi * ((chamber_diameter/2)**2) #chamber area (m^2)
-
-    #linearly interpolating area along cylinder chamber length (hopefully it's a straight line)
-    x_positions = np.arange(0,chamber_length, dx) #position along the chamber length (m)
-    area_values = np.linspace(chamber_area, Astar, len(x_positions)) #local areas (m^2)
-    area_ratios = area_values / Astar #area ratio A/A* (no units)
-
-    #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values
-    Mach_array = np.zeros_like(area_ratios) #mach number at each axial position
-    h_array = np.zeros_like(area_ratios) #heat transfer coefficient at each axial position
-    Temp_surface_array = np.zeros_like(area_ratios) #surface temperature at each axial position
-
-    #The values above were only for the cylindrical chamber section, now adding the nozzle
-    converging_length = 4.464 * Conversion_in_to_m #converging section length (m)
-    diverging_length = 1.768 * Conversion_in_to_m #diverging section length (m)
-    dx = 0.001 #increments of 1mm
-
-    #adding new axial postions for converging and diverging sections
-    x_converging = np.arange(-converging_length, 0, dx)
-    x_diverging = np.arange(chamber_length, chamber_length + diverging_length, dx)
-
-    #adding new area ratio profiles for nozzle
-    #converging section area ratios (from end of cylinder chamber to A*)
-    area_converging = np.linspace(chamber_area, Astar, len(x_converging))
-    area_ratio_converging = area_converging / Astar
-
-    #diverging section area ratios (from A* to exit area)
-    expansion_ratio = 2.88
-    A_exit = Astar * expansion_ratio
-    area_diverging = np.linspace(Astar, A_exit, len(x_diverging))
-    area_ratio_diverging = area_diverging / Astar
-
-    #full geometry of the chamber
-    x_total = np.concatenate([x_converging, x_positions, x_diverging])
-    area_ratio_total = np.concatenate([area_ratio_converging, area_ratios, area_ratio_diverging])
-
-    #initializing new arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
-    Mach_total = np.zeros_like(area_ratio_total) #mach number at each axial position
-    h_total = np.zeros_like(area_ratio_total) #heat transfer coefficient at each axial position
-    Temp_surface_total = np.zeros_like(area_ratio_total) #surface temperature at each axial position
-
-    initial_guess = 2
-
-    #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
-    for i, A_ratio in enumerate(area_ratio_total):
-        
-        M_local = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
-        Mach_total[i] = M_local
-
-        #updating initial guess for next iteration
-        initial_guess = M_local
-
-        h_local = heat_transfer_coefficient(
-            Dt = chamber_diameter, #diameter of chamber (m)
-            Rt = D_star,     #radius of throat curve (m)
-            Pr = cea_results["c_pran"], #Prandlt number of the combustion gas       
-            gamma = cea_results["gamma"], #specific heat ratio of the combustion gas
-            c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
-            T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-            Cp = cea_results["c_cp"], #specific heat at constant pressure of the combustion gas
-            P0 = cea_results["c_p"] * 100000, #chamber pressure (Bar)
-            mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pa
-            M = Mach_total[i], #Mach number at the local axial point (no units)
-            local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
-
-        )
-        h_total[i] = h_local
-
-        Temp_surface_total[i] = temperature_surface_calculation(
-            heat_transfer_coefficient_value = h_total[i],
-            T_infinity = cea_results["c_t"], #chamber temperature (K)
-            k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
-        )
-
-    
-    #printing results
-
-    #printing axial positions vs surface temp plot
-    plt.figure()
-    plt.plot(x_total, Temp_surface_total)
-    plt.xlabel("Axial Position (m) ")
-    plt.ylabel("Surface Temperature (K) ")
-    plt.title("help")
-    plt.grid(True)
-    plt.show()
-
-    #printing axial position vs heat transfer coefficient
-    plt.figure()
-    plt.plot(x_total, h_total)
-    plt.xlabel("Axial Position (m) ")
-    plt.ylabel("Heat Transfer Coefficient (W/m^2K) ")
-    plt.title("help2")
-    plt.grid(True)
-    plt.show()
-
-    '''     
-    for i in range(len(x_positions)):
-        print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
-    '''
-        
+    return surface_temp        
 
 
 if __name__ == "__main__":
     main()
-    
-
-
-
-
-

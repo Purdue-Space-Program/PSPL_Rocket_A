@@ -86,7 +86,9 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     x_arr = np.concatenate([x_c, x_con_rad, x_cone, x_con, x_div, x_bell])
     y_arr = np.concatenate([y_c, y_con_rad, y_cone, y_con, y_div, y_bell])
 
-    chamber_length = x_arr[-1] - x_arr[0]
+    first_point_depth = x_arr[0]
+    last_point_depth = x_arr[-1]
+    chamber_length = last_point_depth - first_point_depth
 
     print(f'Combustion chamber length: {Lc / IN2M:.3f} in')
     print(f'Total chamber length: {chamber_length / IN2M:.3f} in')
@@ -125,7 +127,7 @@ Dt = 2.3094013 #in
 exp_ratio = 2.288
 Lstar = 50
 con_angle = 30
-filename = 'Pathfinder Rocket Nozzle Contour3'
+filename = 'chamber_contour'
 theta_n = 20.88
 theta_e = 14.6
 Dc = 6
