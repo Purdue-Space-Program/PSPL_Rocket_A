@@ -81,10 +81,15 @@ def main():
     h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
     Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
 
-    initial_guess = 2
+    initial_guess = 0.2
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
+
+        if station_index > 0:
+            initial_guess = Mach_total[station_index - 1]
+        else:
+            initial_guess = 0.2
         
         M_local = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
         Mach_total[station_index] = M_local
@@ -99,8 +104,8 @@ def main():
             gamma = cea_results["gamma"], #specific heat ratio of the combustion gas (n/a)
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
             T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-            Cp = cea_results["c_cp"] / 1000, #specific heat at constant pressure of the combustion gas (J/kg/K)
-            P0 = cea_results["c_p"], #chamber pressure (Pascals)
+            Cp = cea_results["c_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/kg/K)
+            P0 = cea_results["c_p"] * 1e5, #chamber pressure (Pascals)
             mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
             M = Mach_total[station_index], #Mach number at the local axial point (no units)
             local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
@@ -140,6 +145,7 @@ def main():
         print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
     '''
     
+    print("units for cstar", cea_results["c_star"])
 
 def RunCEA(
     chamber_pressure,
