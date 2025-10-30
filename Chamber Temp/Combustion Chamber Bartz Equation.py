@@ -65,7 +65,7 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess = 0.2):
     
     
     M_solution = fsolve(f, initial_guess)
-    return M_solution
+    return float(M_solution[0])
 
 
 def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Cp, P0, mu, M, local_Area_ratio):
@@ -120,11 +120,6 @@ def main():
     area_values = np.linspace(chamber_area, Astar, len(x_positions)) #local areas (m^2)
     area_ratios = area_values / Astar #area ratio A/A* (no units)
 
-    #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values
-    Mach_array = np.zeros_like(area_ratios) #mach number at each axial position
-    h_array = np.zeros_like(area_ratios) #heat transfer coefficient at each axial position
-    Temp_surface_array = np.zeros_like(area_ratios) #surface temperature at each axial position
-
     #The values above were only for the cylindrical chamber section, now adding the nozzle
     converging_length = 4.464 * Conversion_in_to_m #converging section length (m)
     diverging_length = 1.768 * Conversion_in_to_m #diverging section length (m)
@@ -132,17 +127,18 @@ def main():
 
     #adding new axial postions for converging and diverging sections
     x_converging = np.arange(-converging_length, 0, dx)
+    x_positions = np.arange(0, chamber_length, dx)
     x_diverging = np.arange(chamber_length, chamber_length + diverging_length, dx)
 
     #adding new area ratio profiles for nozzle
     #converging section area ratios (from end of cylinder chamber to A*)
-    area_converging = np.linspace(chamber_area, Astar, len(x_converging))
+    area_converging = chamber_area - ((chamber_area - Astar) * (np.linspace(0, 1, len(x_converging))**2)) #using a quadratic profile for converging section
     area_ratio_converging = area_converging / Astar
 
     #diverging section area ratios (from A* to exit area)
     expansion_ratio = 2.88
     A_exit = Astar * expansion_ratio
-    area_diverging = np.linspace(Astar, A_exit, len(x_diverging))
+    area_diverging = Astar + (A_exit - Astar) * (np.linspace(0, 1, len(x_diverging))**1.8) #using a quadratic profile for diverging section
     area_ratio_diverging = area_diverging / Astar
 
     #full geometry of the chamber
@@ -154,10 +150,15 @@ def main():
     h_total = np.zeros_like(area_ratio_total) #heat transfer coefficient at each axial position
     Temp_surface_total = np.zeros_like(area_ratio_total) #surface temperature at each axial position
 
-    initial_guess = 2
+    initial_guess = 0.2
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for i, A_ratio in enumerate(area_ratio_total):
+
+        if i>0:
+            initial_guess = Mach_total[i-1]
+        else:
+            initial_guess = 0.2
         
         M_local = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
         Mach_total[i] = M_local
@@ -186,7 +187,6 @@ def main():
             T_infinity = cea_results["c_t"], #chamber temperature (K)
             k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
         )
-
     
     #printing results
 
@@ -195,7 +195,7 @@ def main():
     plt.plot(x_total, Temp_surface_total)
     plt.xlabel("Axial Position (m) ")
     plt.ylabel("Surface Temperature (K) ")
-    plt.title("help")
+    plt.title("Surface Temp vs Axial Position")
     plt.grid(True)
     plt.show()
 
@@ -204,7 +204,7 @@ def main():
     plt.plot(x_total, h_total)
     plt.xlabel("Axial Position (m) ")
     plt.ylabel("Heat Transfer Coefficient (W/m^2K) ")
-    plt.title("help2")
+    plt.title("Heat Transfer Coefficient vs Axial Position")
     plt.grid(True)
     plt.show()
 
