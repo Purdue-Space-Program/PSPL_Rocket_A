@@ -17,6 +17,9 @@ standard_bits_inch = {
     "#40": 0.0980, "#30": 0.1285, "#20": 0.1610, "#10": 0.1935, "#1": 0.2280,
 }
 
+for key, value in standard_bits_inch.items():
+        standard_bits_inch[key] = value * IN2M 
+
 def closest_bit_size(target_diameter):
     lowest_absolute_error_bit_size = None
 
@@ -27,11 +30,27 @@ def closest_bit_size(target_diameter):
             closest_bit_name = key
             closest_bit_diameter = value
 
-    return closest_bit_diameter * IN2M, lowest_absolute_error_bit_size * IN2M, closest_bit_name
+    return closest_bit_diameter, lowest_absolute_error_bit_size, closest_bit_name
 
-def calc_area(m_dot, C_D, rho, pressure_drop):
+def CalculateAreaFromMassFlowRate(m_dot, C_D, rho, pressure_drop):
     total_area = m_dot / (C_D * np.sqrt(2 * rho * pressure_drop))
     return total_area
+
+def CalculateAreaFromHoles(hole_diameter, number_holes):
+    hole_radius = hole_diameter/2
+    area_per_hole = np.pi * (hole_radius)**2
+    total_area = area_per_hole * number_holes
+
+    return total_area
+
+def CalculateMassFlowRate(area, Cd, rho, pressure_drop):
+    m_dot = area * (Cd * np.sqrt(2 * rho * pressure_drop))
+    return m_dot
+def CalculateIdealHoleDiameter(area, number_holes):
+    area_per_hole = area/number_holes
+    ideal_hole_radius = np.sqrt(area_per_hole / np.pi)
+    ideal_hole_diameter = 2 * ideal_hole_radius
+    return ideal_hole_diameter
 
 # Inputs
 C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
@@ -49,14 +68,14 @@ rho_lox = PropsSI('D', 'T', temp_lox, 'P', pressure_lox, 'Oxygen')
 rho_ipa = DENSITY_IPA # [kg/m^3] CoolProp doesn't have IPA, assuming constant
 pressure_chamber = 150 * PSI2PA # [Pa]
 pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
-pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
+desired_pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
 m_dot_ideal_lox = m_dot - m_dot_ipa # [Kg/s]
 D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
-total_target_area_orifice_lox = calc_area(m_dot_ideal_lox, C_D_lox, rho_lox, pressure_drop)
-total_area_orifice_ipa = calc_area(m_dot_ipa, C_D_ipa, rho_ipa, pressure_drop)
+total_target_area_orifice_lox = CalculateAreaFromMassFlowRate(m_dot_ideal_lox, C_D_lox, rho_lox, desired_pressure_drop)
+total_area_orifice_ipa = CalculateAreaFromMassFlowRate(m_dot_ipa, C_D_ipa, rho_ipa, desired_pressure_drop)
 velocity_ipa = m_dot_ipa / (rho_ipa * total_area_orifice_ipa)
 annular_thickness = np.sqrt((total_area_orifice_ipa + np.pi * R_s**2) / np.pi) - R_s
 
@@ -73,18 +92,17 @@ value_1_array = []
 value_2_array = []
 minerr = np.inf
 
-for D_real_lox_orifice_top_in in (standard_bits_inch.values()):
-    D_real_lox_orifice_top = D_real_lox_orifice_top_in * IN2M
+for D_real_lox_orifice_top in (standard_bits_inch.values()):
     N_bottom = 14
-    D_real_lox_orifice_bottom = 0.0625 * IN2M 
+    D_real_lox_orifice_bottom = 1/16 * IN2M 
     for N_top in range(N_top_min, N_top_max + 1):
         N_lox = N_top + N_bottom
         """consider that fact that bits in real life are not the exact diameter we want
-        closest_bit_diameter_bottom, absolute_error_bit_size_bottom, closest_bit_name_bottom = closest_bit_size(D_ideal_lox_orifice_bottom * M2IN)
+        closest_bit_diameter_bottom, absolute_error_bit_size_bottom, closest_bit_name_bottom = closest_bit_size(D_ideal_lox_orifice_bottom)
         D_real_lox_orifice_bottom = closest_bit_diameter_bottom
         percent_error_bit_size_bottom = abs(absolute_error_bit_size_bottom) / D_ideal_lox_orifice_bottom
 
-        closest_bit_diameter_top, absolute_error_bit_size_top, closest_bit_name_top = closest_bit_size(D_ideal_lox_orifice_top * M2IN)
+        closest_bit_diameter_top, absolute_error_bit_size_top, closest_bit_name_top = closest_bit_size(D_ideal_lox_orifice_top)
         D_real_lox_orifice_top = closest_bit_diameter_top
         percent_error_bit_size_top = abs(absolute_error_bit_size_top) / D_ideal_lox_orifice_top"""
         total_area_real_bottom_orifice_lox = np.pi * (D_real_lox_orifice_bottom / 2)**2 * N_bottom
@@ -99,7 +117,7 @@ for D_real_lox_orifice_top_in in (standard_bits_inch.values()):
         #    minerr = err
 
 
-        m_dot_real_lox = total_area_real_orifice_lox * (C_D_lox * np.sqrt(2 * rho_lox * pressure_drop))
+        m_dot_real_lox = total_area_real_orifice_lox * (C_D_lox * np.sqrt(2 * rho_lox * desired_pressure_drop))
         
         percent_error_m_dot_lox = abs(m_dot_real_lox - m_dot_ideal_lox) / m_dot_ideal_lox
         
@@ -120,10 +138,10 @@ for D_real_lox_orifice_top_in in (standard_bits_inch.values()):
         
         lmr = tmr_real/bf
         half_angle = 0.7 * np.degrees(np.arctan(2 * lmr)) # from: 
-                                                                        # Blakely, J., Freeberg, J., and Hogge, J., “Spray Cone Formation from
-                                                                        # Pintle-Type Injector Systems in Liquid Rocket Engines,” AIAA SciTech
-                                                                        # 2019 Forum, AIAA Paper 2019-0152, 2019.
-                                                                        # https://doi.org/10.2514/6.2019-0152
+                                                                # Blakely, J., Freeberg, J., and Hogge, J., “Spray Cone Formation from
+                                                                # Pintle-Type Injector Systems in Liquid Rocket Engines,” AIAA SciTech
+                                                                # 2019 Forum, AIAA Paper 2019-0152, 2019.
+                                                                # https://doi.org/10.2514/6.2019-0152
         tmr_percent_error = abs(tmr_real - tmr_ideal) / tmr_ideal
         # print(f"tmr_error: {tmr_error:.5f}")
         # print(tmr_error < tmr_allowable_error)
@@ -205,27 +223,31 @@ plt.show()
 C_D_film = 0.6
 m_dot_ideal_film = 0.1 * m_dot_ipa / 0.9
 #print(m_dot_ideal_film)
-total_target_area_orifice_film = calc_area(m_dot_ideal_film, C_D_film, rho_ipa, pressure_drop)
-N_film_max = 10
+total_target_area_orifice_film = CalculateAreaFromMassFlowRate(m_dot_ideal_film, C_D_film, rho_ipa, desired_pressure_drop)
+N_film_max = 100
 N_film_min = 1
-allowable_percent_error_m_dot_film = 0.6 # percent error allowed in Film mass flow rate
+allowable_percent_error_m_dot_film = 0.4 # percent error allowed in Film mass flow rate
 x_num = []
 y_err = []
 for N_film in range(N_film_min, N_film_max + 1):
-    D_ideal_orifice_film = 2 * np.sqrt(total_target_area_orifice_film / (np.pi * N_film))
-    closest_bit_diameter, absolute_error_bit_size, closest_bit_name = closest_bit_size(D_ideal_orifice_film * M2IN)
+    D_ideal_orifice_film = CalculateIdealHoleDiameter(total_target_area_orifice_film, N_film)
+    closest_bit_diameter, absolute_error_bit_size, closest_bit_name = closest_bit_size(D_ideal_orifice_film)
     D_real_orifice_film = closest_bit_diameter
-    total_area_real_orifice_film = (np.pi / 4) * D_real_orifice_film**2
-    m_dot_real_film = total_area_real_orifice_film * (C_D_film * np.sqrt(2 * rho_ipa * pressure_drop))
+    
+    total_area_real_orifice_film = CalculateAreaFromHoles(D_real_orifice_film, N_film)
+    m_dot_real_film = CalculateMassFlowRate(total_area_real_orifice_film, C_D_film, rho_ipa, desired_pressure_drop)
+    
     percent_error_m_dot_film = (abs(m_dot_real_film - m_dot_ideal_film) / m_dot_ideal_film) * 100
+    
     if percent_error_m_dot_film <= allowable_percent_error_m_dot_film:
+        print(f"\n------------ FILM ------------")
         print(f"Number of film orifices: {N_film}")
-        print(f"Diameter of target orifice(in): {D_ideal_orifice_film:.6f}")
-        print(f"Diameter of orifice(m): {D_real_orifice_film:.6f}")
-        print(f"Diameter of orifice(in): {D_real_orifice_film * M2IN:.6f}")
+        print(f"Diameter of target film hole [in]: {D_ideal_orifice_film:.6f}")
+        print(f"Diameter of film hole [m]: {D_real_orifice_film:.6f}")
+        print(f"Diameter of film hole [in]: {D_real_orifice_film * M2IN:.6f}")
         print(f"Bit size(in): {closest_bit_name}")
-        print(f"absolute_error_bit_size(m): {absolute_error_bit_size}")
-        print(f"Error percent of mass flow rate: {percent_error_m_dot_film}")
+        print(f"Absolute Error Bit Size [m]: {absolute_error_bit_size}")
+        print(f"Error percent of mass flow rate: {percent_error_m_dot_film * 100}")
     x_num.append(N_film)
     y_err.append(percent_error_m_dot_film)
     #print(percent_error_m_dot_film)
@@ -235,3 +257,4 @@ plt.ylabel("Percentage error in mass flow rate")
 plt.title("Number of holes vs m_dot error comparision")
 plt.axhline(allowable_percent_error_m_dot_film, color='g', linestyle='--', label='Chosen number of holes')
 plt.show()
+
