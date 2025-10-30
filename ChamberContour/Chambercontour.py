@@ -1,14 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import constants as c
+import vehicle_parameters
+
 def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename):
-    # Unit conversions
-    IN2M = 0.0254
     
-    # Nozzle dimensions
-    Lstar = Lstar * IN2M
-    Dc = Dc * IN2M
-    Dt = Dt * IN2M
     Rt = Dt/2  # Throat radius
     At = np.pi*Rt**2
     Ae = At * exp_ratio # Exit area
@@ -90,52 +90,53 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     last_point_depth = x_arr[-1]
     chamber_length = last_point_depth - first_point_depth
 
-    print(f'Combustion chamber length: {Lc / IN2M:.3f} in')
-    print(f'Total chamber length: {chamber_length / IN2M:.3f} in')
-    print(f'Injector-to-throat length: {x_arr[0]*-1 / IN2M:.3f} in')
+    print(f'Combustion chamber length: {Lc * c.M2IN:.3f} in')
+    print(f'Total chamber length: {chamber_length * c.M2IN:.3f} in')
+    print(f'Injector-to-throat length: {-x_arr[0] * c.M2IN:.3f} in')
     print(f'Initial parabola angle: {np.rad2deg(theta_n):.2f} degrees')
     print(f'Exit parabola angle: {np.rad2deg(theta_e):.2f} degrees')
     
     z_arr = np.zeros(np.size(x_arr))
     nozzle = np.transpose(np.array([x_arr, y_arr, z_arr]))
     np.savetxt(filename + "_meters", nozzle, delimiter=',')
-    np.savetxt(filename + "_inches", nozzle / IN2M, delimiter=',')
+    np.savetxt(filename + "_inches", nozzle * c.M2IN, delimiter=',')
 
 
 # Nozzle contour plot
-    plt.plot(x_arr/IN2M, y_arr/IN2M, 'k', x_arr/IN2M, -y_arr/IN2M, 'k')
+    plt.plot(x_arr * c.M2IN, y_arr * c.M2IN, 'k', x_arr * c.M2IN, -y_arr * c.M2IN, 'k')
     
-    print(f"Start of exit parabola: ({Nx/ IN2M:.4f}, {Ny/ IN2M:.4f})")
-    print(f"Middle of exit parabola: ({Qx/ IN2M:.4f}, {Qy/ IN2M:.4f})")
-    print(f"End of exit parabola: ({Ex/ IN2M:.4f}, {Ey/ IN2M:.4f})")
+    print(f"Start of exit parabola: ({Nx * c.M2IN:.4f}, {Ny * c.M2IN:.4f})")
+    print(f"Middle of exit parabola: ({Qx * c.M2IN:.4f}, {Qy * c.M2IN:.4f})")
+    print(f"End of exit parabola: ({Ex * c.M2IN:.4f}, {Ey * c.M2IN:.4f})")
     
-
-    plt.plot(Nx/ IN2M, -Ny/ IN2M, "ro")
-    plt.plot(Qx/ IN2M, -Qy/ IN2M, "go")
-    plt.plot(Ex/ IN2M, -Ey/ IN2M, "bo")
+    # debugging stuff
+    # plt.plot(x_c, y_c, x_con_rad, y_con_rad, x_cone, y_cone, x_con, y_con, x_div, y_div, x_bell, y_bell)
+    # plt.plot(Nx * c.M2IN, -Ny * c.M2IN, "ro")
+    # plt.plot(Qx * c.M2IN, -Qy * c.M2IN, "go")
+    # plt.plot(Ex * c.M2IN, -Ey * c.M2IN, "bo")
     
-    plt.plot(x_c, y_c, x_con_rad, y_con_rad, x_cone, y_cone, x_con, y_con, x_div, y_div, x_bell, y_bell)
     plt.title("Nozzle Contour")
     plt.xlabel("Axial Distance [in]")
     plt.ylabel("Radius [in]")
     plt.axis('equal')
+    plt.grid()
     plt.show()
     
 
 
-Dt = 2.3094013 #in
 exp_ratio = 2.288
-Lstar = 50
+Lstar = 50 * c.IN2M # [meters]
 con_angle = 30
 filename = 'chamber_contour'
 theta_n = 20.88
 theta_e = 14.6
-Dc = 6
-IN2M = 0.0254
-Ac = ((((Dc * IN2M)/2)**2)*np.pi) #m^2
-At= 0.027 #m^2
-contract_ratio = Ac/At
+
+chamber_diameter = 6 * c.IN2M # [meters]
+chamber_area = np.pi * ((chamber_diameter/2)**2) # [m^2]
+throat_diameter = 2.3094013 * c.IN2M # [meters]
+throat_area = 0.027 # [m^2]
+contract_ratio = chamber_area/throat_area
 print(f"Contraction Ratio: {contract_ratio:.4f}")
 
 
-nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename)
+nozzle_contour(throat_diameter, exp_ratio, Lstar, contract_ratio, con_angle, chamber_diameter, filename)
