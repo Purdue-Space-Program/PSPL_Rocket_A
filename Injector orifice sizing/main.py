@@ -83,8 +83,8 @@ annular_thickness = np.sqrt((total_area_orifice_ipa + np.pi * R_s**2) / np.pi) -
 g = 9.81 # [m/s^2]
 N_rows = 1
 tmr_ideal = 1.3 # Optimal total momentum ratio, as stated in Fundamental Combustion Characteristics of Ethanol/Liquid Oxygen Rocket Engine Combustor with Planar Pintle-type Injector"
-tmr_allowable_percent_error = 0.4 # percent error allowed in pintle's TMR
-allowable_percent_error_m_dot_lox = 0.006 # percent error allowed in LOx mass flow rate
+tmr_allowable_percent_error = 40 # percent error allowed in pintle's TMR
+allowable_percent_error_m_dot_lox = 1 # percent error allowed in LOx mass flow rate
 good_enough_found = 0
 
 N_lox_array = []
@@ -93,7 +93,10 @@ value_2_array = []
 minerr = np.inf
 
 for D_real_lox_orifice_bottom in (standard_bits_inch.values()):
-    N_top = 14
+    N_lox_array = []
+    value_1_array = []
+    value_2_array = []
+    N_top = 16
     D_real_lox_orifice_top = 1/16 * IN2M 
     for N_bottom in range(N_bottom_min, N_bottom_max + 1):
         N_lox = N_top + N_bottom
@@ -110,7 +113,7 @@ for D_real_lox_orifice_bottom in (standard_bits_inch.values()):
 
         total_area_real_bottom_orifice_lox = N_bottom * (D_real_lox_orifice_bottom / 2)**2 * np.pi
         total_area_real_orifice_lox = total_area_real_bottom_orifice_lox + total_area_real_top_orifice_lox
-        err = (abs(total_area_real_top_orifice_lox - total_target_area_bottom_orifice_lox) / total_target_area_bottom_orifice_lox) * 100
+        err = (abs(total_area_real_orifice_lox - total_target_area_orifice_lox) / total_target_area_orifice_lox) * 100
         #print("err in area:", err)
         # print(f"total_area_real_orifice_lox: {total_area_real_orifice_lox * M2IN:.2}")
         #if err < minerr:
@@ -119,7 +122,7 @@ for D_real_lox_orifice_bottom in (standard_bits_inch.values()):
 
         m_dot_real_lox = total_area_real_orifice_lox * (C_D_lox * np.sqrt(2 * rho_lox * desired_pressure_drop))
         
-        percent_error_m_dot_lox = abs(m_dot_real_lox - m_dot_ideal_lox) / m_dot_ideal_lox
+        percent_error_m_dot_lox = (abs(m_dot_real_lox - m_dot_ideal_lox) / m_dot_ideal_lox) * 100
         
         # print(f"area_orifice_lox: {total_area_real_orifice_lox:.2f}")
         # print(f"area_orifice_ipa: {total_area_orifice_ipa:.2f}")
@@ -133,7 +136,7 @@ for D_real_lox_orifice_bottom in (standard_bits_inch.values()):
         # print(f"tmr_real: {tmr_real:.5f}")
 
         
-        bf = N_top * D_real_lox_orifice_top + N_bottom * D_real_lox_orifice_bottom / (np.pi * D_s)
+        bf = (N_top * D_real_lox_orifice_top + N_bottom * D_real_lox_orifice_bottom) / (np.pi * D_s)
         #N_rows = (N_lox * D_real_lox_orifice // (np.pi * D_s)) + 1
         
         lmr = tmr_real/bf
@@ -142,14 +145,14 @@ for D_real_lox_orifice_bottom in (standard_bits_inch.values()):
                                                                 # Pintle-Type Injector Systems in Liquid Rocket Engines,” AIAA SciTech
                                                                 # 2019 Forum, AIAA Paper 2019-0152, 2019.
                                                                 # https://doi.org/10.2514/6.2019-0152
-        tmr_percent_error = abs(tmr_real - tmr_ideal) / tmr_ideal
+        tmr_percent_error = (abs(tmr_real - tmr_ideal) / tmr_ideal) * 100
         # print(f"tmr_error: {tmr_error:.5f}")
         # print(tmr_error < tmr_allowable_error)
         
         # print(f"tmr_error < tmr_allowable_error: {tmr_error <= tmr_allowable_error}")
         
         
-        N_lox_array.append(N_lox)
+        N_lox_array.append(N_bottom)
         value_1_array.append(tmr_percent_error)
         value_2_array.append(percent_error_m_dot_lox)
         
@@ -177,7 +180,7 @@ for D_real_lox_orifice_bottom in (standard_bits_inch.values()):
                 "Real LOx mass flow rate [kg/s]" : m_dot_real_lox,
                 "LOx mass flow rate error [%]": percent_error_m_dot_lox * 100,
                 
-                #"Blockage Factor": bf,
+                "Blockage Factor": bf,
                 "TMR": tmr_real,
                 "Optimal TMR": tmr_ideal,
                 "TMR Error from optimal [%]": tmr_percent_error * 100,
@@ -189,8 +192,21 @@ for D_real_lox_orifice_bottom in (standard_bits_inch.values()):
                 "area_orifice_lox [in^2]": total_area_real_orifice_lox * M22IN2,
                 "error in area [m^2]": err
                 }
-#print(f"minerr: {minerr}")
 
+    plt.plot(N_lox_array, value_1_array, color='b', label="tmr_percent_error")
+    plt.plot(N_lox_array, value_2_array, color='black', label="percent_error_m_dot_lox")
+    plt.title(f"{D_real_lox_orifice_bottom * M2IN} in")
+
+    # show where allowable errors are
+    plt.axhline(tmr_allowable_percent_error, color='orange', linestyle='--', label='Max allowable percent error in TMR')
+    plt.axhline(allowable_percent_error_m_dot_lox, color='r', linestyle=':', label='Max allowable percent error in LOx mass flow rate')
+
+    plt.grid(True, which='both', axis='x', color='lightgray', linestyle='-', linewidth=0.5)
+    plt.xticks(np.arange(min(N_lox_array), max(N_lox_array) + 1, 2))
+    plt.legend()
+    plt.xlabel("Number of Bottom LOx holes")
+    # plt.ylabel("LMR")
+    plt.show()
 if good_enough_found == 1:
     for key, value in best_values.items():
         if isinstance(value, str):
@@ -202,20 +218,7 @@ if good_enough_found == 1:
 else:
     print("NO GOOD PINTLE FOUND (ERRORS TOO HIGH)")
 
-plt.plot(N_lox_array, value_1_array, color='b', label="tmr_percent_error")
-plt.plot(N_lox_array, value_2_array, color='black', label="percent_error_m_dot_lox")
 
-
-# show where allowable errors are
-plt.axhline(tmr_allowable_percent_error, color='orange', linestyle='--', label='Max allowable percent error in TMR')
-plt.axhline(allowable_percent_error_m_dot_lox, color='r', linestyle=':', label='Max allowable percent error in LOx mass flow rate')
-
-plt.grid(True, which='both', axis='x', color='lightgray', linestyle='-', linewidth=0.5)
-plt.xticks(np.arange(min(N_lox_array), max(N_lox_array) + 1, 2))
-plt.legend()
-plt.xlabel("Number of LOx holes")
-# plt.ylabel("LMR")
-plt.show()
 
 
 ########### Film cooling orifices sizing ##########
@@ -258,3 +261,4 @@ plt.title("Number of holes vs m_dot error comparision")
 plt.axhline(allowable_percent_error_m_dot_film, color='g', linestyle='--', label='Chosen number of holes')
 plt.show()
 
+print(desired_pressure_drop * PA2PSI)
