@@ -221,12 +221,12 @@ plt.show()
 ########### Film cooling orifices sizing ##########
 
 C_D_film = 0.6
-m_dot_ideal_film = 0.1 * m_dot_ipa / 0.9
+m_dot_ideal_film = 0.2 * m_dot_ipa / 0.8
 #print(m_dot_ideal_film)
 total_target_area_orifice_film = CalculateAreaFromMassFlowRate(m_dot_ideal_film, C_D_film, rho_ipa, desired_pressure_drop)
 N_film_max = 100
 N_film_min = 1
-allowable_percent_error_m_dot_film = 0.4 # percent error allowed in Film mass flow rate
+allowable_percent_error_m_dot_film = 3 # percent error allowed in Film mass flow rate
 x_num = []
 y_err = []
 for N_film in range(N_film_min, N_film_max + 1):
@@ -247,7 +247,7 @@ for N_film in range(N_film_min, N_film_max + 1):
         print(f"Diameter of film hole [in]: {D_real_orifice_film * M2IN:.6f}")
         print(f"Bit size(in): {closest_bit_name}")
         print(f"Absolute Error Bit Size [m]: {absolute_error_bit_size}")
-        print(f"Error percent of mass flow rate: {percent_error_m_dot_film * 100}")
+        print(f"Error percent of mass flow rate: {percent_error_m_dot_film}")
     x_num.append(N_film)
     y_err.append(percent_error_m_dot_film)
     #print(percent_error_m_dot_film)
