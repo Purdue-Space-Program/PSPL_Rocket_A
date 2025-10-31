@@ -32,7 +32,7 @@ def main():
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
-    station_inner_radii = chamber_contour[:, 1]
+    station_inner_radii = chamber_contour[:, 0]
 
     station_areas = np.pi * (station_inner_radii**2)
     station_area_ratios = station_areas / A_star
@@ -89,7 +89,7 @@ def main():
         else:
             initial_guess = 0.5
         
-        M_local = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
+        M_local = calculating_MachNumber(gamma = cea_results["c_gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
         Mach_total[station_index] = M_local
 
         #updating initial guess for next iteration
@@ -99,10 +99,10 @@ def main():
             Dt = 2 * station_inner_radii[station_index],  # local diameter
             Rt = ((1.725 * IN2M) + (0.4393 * IN2M)) * 0.5,     #radius of throat curve (m)
             Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
-            gamma = cea_results["gamma"], #specific heat ratio of the combustion gas (n/a)
+            gamma = cea_results["c_gamma"], #specific heat ratio of the combustion gas (n/a)
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
             T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-            Twg = 0.6 * cea_results["c_t"] + 0.4 * cea_results["c_t"] * (1 / A_ratio**0.5),
+            Twg = cea_results["c_t"] * (cea_results["c_pran"])** (1/3),
             Cp = cea_results["c_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/kg/K)
             P0 = cea_results["c_p"] * 1e5, #chamber pressure (Pascals)
             mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
@@ -143,6 +143,9 @@ def main():
     for i in range(len(x_positions)):
         print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
     '''
+
+    print("Throat dynamic viscosity (Pa*s):", cea_results["t_visc"])
+    print("Chamber dynamic viscosity (Pa*s):", cea_results["c_visc"])
     
 
 def RunCEA(
@@ -182,12 +185,13 @@ def RunCEA(
         "c_p": cea_results.c_p, #chamber pressure (Bar)
         "c_star": cea_results.cstar, #characteristic exhaust velocity (m/s)
         "c_pran": cea_results.c_pran, #Prandtl number of combustion gas (no units)
-        "gamma": cea_results.gamma, #specific heat ratio of combustion gas (no units)
+        "c_gamma": cea_results.c_gamma, #specific heat ratio of combustion gas (no units)
         "c_t": cea_results.c_t, #stagnation temperature (K)
         "c_cp": cea_results.c_cp, #specific heat at constant pressure of combustion gas (kJ/kg*K)
         "c_visc": cea_results.c_visc, #dynamic viscosity of combustion gas (Pa*s)
         "c_cond": cea_results.c_cond, #conductivity of combustion gas in the chamber (W/m*K)
         "mach": cea_results.mach, #Mach number at the nozzle exit (no units)
+        "t_visc": cea_results.t_visc, #throat characteristic exhaust velocity (m/s)
     }
     
 def calculating_MachNumber(gamma, area_ratio_value, initial_guess = 0.2):
