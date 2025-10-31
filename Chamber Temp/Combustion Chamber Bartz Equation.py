@@ -1,5 +1,6 @@
 from math import exp, erfc, pi
 from scipy.optimize import fsolve
+
 import sys
 import os
 import numpy as np
@@ -8,14 +9,10 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ChamberContour", "chamber_contour_meters"))
 
-
 import constants as c
 
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
 import CEA_Wrap as CEA
-
-
-
 
 
 def main():
@@ -35,7 +32,7 @@ def main():
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
-    station_inner_radii = chamber_contour[:, 0]
+    station_inner_radii = chamber_contour[:, 1]
 
     station_areas = np.pi * (station_inner_radii**2)
     station_area_ratios = station_areas / A_star
@@ -99,20 +96,20 @@ def main():
         initial_guess = M_local
 
         h_local = heat_transfer_coefficient(
-            Dt = chamber_diameter, #diameter of chamber (m)
+            Dt = 2 * station_inner_radii[station_index],  # local diameter
             Rt = ((1.725 * IN2M) + (0.4393 * IN2M)) * 0.5,     #radius of throat curve (m)
             Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
             gamma = cea_results["gamma"], #specific heat ratio of the combustion gas (n/a)
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
             T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-            Twg = 0.8 * cea_results["c_t"] * np.exp(-0.3 * abs(A_ratio - 1)),
+            Twg = 0.6 * cea_results["c_t"] + 0.4 * cea_results["c_t"] * (1 / A_ratio**0.5),
             Cp = cea_results["c_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/kg/K)
             P0 = cea_results["c_p"] * 1e5, #chamber pressure (Pascals)
             mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
             M = Mach_total[station_index], #Mach number at the local axial point (no units)
             local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
 
-        )
+            )
         h_total[station_index] = h_local
 
         Temp_surface_total[station_index] = temperature_surface_calculation(
@@ -177,7 +174,7 @@ def RunCEA(
         pip =            pressure_ratio, # pip is "Pressure ratio of chamber pressure to exit pressure." github.com/civilwargeeky/CEA_Wrap/blob/main/README.md#rocket-problem-constructor-additional-parameters
         materials =      [CEA_fuel_name, CEA_oxidizer_name],
         o_f =            OF_Ratio,
-        pressure_units = "psi",
+        pressure_units = "psi", 
     )
 
     cea_results = rocket.run()
@@ -192,29 +189,6 @@ def RunCEA(
         "c_cond": cea_results.c_cond, #conductivity of combustion gas in the chamber (W/m*K)
         "mach": cea_results.mach, #Mach number at the nozzle exit (no units)
     }
-
-def calc_hg(CEA_outputs, nozzle, T_wg_guess, i, hg_adjust):
-    P_stag = CEA_outputs[0,0]
-    T_stag = CEA_outputs[1,0]
-    cstar = CEA_outputs[2,0]
-    gamma_arr = CEA_outputs[3,:]
-    cp_stag = CEA_outputs[4,0]
-    mach_arr = CEA_outputs[5,:]
-    Pr_stag = CEA_outputs[6,0]
-    visc_stag = CEA_outputs[7,0]
-
-    # Nozzle dimensions
-    r_arr = nozzle[:,1]
-    throat_pos = np.argmin(r_arr)
-    throat_radius = r_arr[throat_pos]
-    throat_diam = 2 * throat_radius
-    A_throat = np.pi * throat_radius**2
-    A_i = np.pi * r_arr[i] ** 2
-
-    Rt_avg = (1.5*throat_radius + 0.382*throat_radius) / 2
-    sigma = 1 / (((0.5 * (T_wg_guess/T_stag) * (1 + ((gamma_arr[i] - 1) / 2) * (mach_arr[i] ** 2)) + 0.5)**0.68) * ((1 + ((gamma_arr[i] - 1) / 2) * (mach_arr[i] ** 2))**0.12))
-    hg = (0.026/(throat_diam**0.2)) * (((visc_stag**0.2) * cp_stag)/(Pr_stag**0.6)) * (P_stag/cstar)**0.8 * (A_throat / A_i)**0.9 * (throat_diam / Rt_avg)**0.1 * sigma
-    return hg + hg * (hg_adjust / 100)
     
 def calculating_MachNumber(gamma, area_ratio_value, initial_guess = 0.2):
 
@@ -248,9 +222,9 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
 
 def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity, k):
     
-    alpha = 3.6e-6 #thermal diffusivity of the chamber wall material ((m^2)/s)
+    alpha = 3.6e-4 #thermal diffusivity of the chamber wall material ((m^2)/s)
     T_initial = 293 #room temperature (K)
-    t = 2.24 #burn time (sec)
+    t = 20 #burn time (sec)
 
     #Surface temperature equation split into different terms
     Surface_temp_term0 = (heat_transfer_coefficient_value ** 2) * alpha * t
