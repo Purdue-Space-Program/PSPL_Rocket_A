@@ -1,4 +1,4 @@
-from math import exp, erfc, pi
+from math import exp, erfc, erf, pi
 from scipy.optimize import fsolve
 
 import sys
@@ -14,7 +14,7 @@ import constants as c
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
 import CEA_Wrap as CEA
 
-
+'''
 def main():
     M2IN = 39.3701
     IN2M = 1 / 39.3701
@@ -139,13 +139,112 @@ def main():
     plt.grid(True)
     plt.show()
 
+         
+    for i in range(len(x_positions)):
+        print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
+    
+'''
+
+
+def main():
+    M2IN = 39.3701
+    IN2M = 1 / 39.3701
+
+    cea_results = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
+
+    #cylinder part of the chamber geometry parameters
+    chamber_length = 11.167 * IN2M #chamber length (m)
+    dx = 0.001 #increments of 1mm
+    D_star = 2.3094013 * IN2M #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
+    A_star = pi * (D_star / 2)**2 #throat area (m^2)
+    chamber_diameter = 6 * IN2M #chamber diameter (m)
+    chamber_area = pi * ((chamber_diameter/2)**2) #chamber area (m^2)
+
+
+    chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
+    station_depths = chamber_contour[:, 0]
+    station_inner_radii = chamber_contour[:, 1]
+
+    station_areas = np.pi * (station_inner_radii**2)
+    station_area_ratios = station_areas / A_star
+
+    #initializing new arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
+    Mach_total = np.zeros_like(station_area_ratios) #mach number at each axial position
+    h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
+    Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
+
+    initial_guess = 0.5
+
+    #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
+    for station_index, A_ratio in enumerate(station_area_ratios):
+
+        if station_index > 0:
+            initial_guess = Mach_total[station_index - 1]
+        else:
+            initial_guess = 0.5
+        
+        M_local = calculating_MachNumber(gamma = cea_results["c_gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
+        Mach_total[station_index] = M_local
+
+        #updating initial guess for next iteration
+        initial_guess = M_local
+
+        h_local = heat_transfer_coefficient(
+            Dt = 2 * station_inner_radii[station_index],  # local diameter
+            Rt = ((1.725 * IN2M) + (0.4393 * IN2M)) * 0.5,     #radius of throat curve (m)
+            Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
+            gamma = cea_results["c_gamma"], #specific heat ratio of the combustion gas (n/a)
+            c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
+            T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
+            Twg = cea_results["c_t"] * (cea_results["c_pran"])** (1/3),
+            Cp = cea_results["c_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/kg/K)
+            P0 = cea_results["c_p"] * 1e5, #chamber pressure (Pascals)
+            mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
+            M = Mach_total[station_index], #Mach number at the local axial point (no units)
+            local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
+
+            )
+        h_total[station_index] = h_local
+
+        '''
+        Temp_surface_total[station_index] = temperature_surface_calculation(
+            heat_transfer_coefficient_value = h_total[station_index],
+            T_infinity = cea_results["c_t"], #chamber temperature (K)
+            k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
+        )
+        '''
+        Temp_surface_total[station_index] = temperature_surface_calculation(
+            heat_transfer_coefficient_value = h_total[station_index],
+            axial_position = station_depths[station_index],
+            T_infinity = cea_results["c_t"], #chamber temperature (K)
+            k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
+        )
+    
+    #printing results
+
+    #printing axial positions vs surface temp plot
+    plt.figure()
+    plt.plot(station_depths * M2IN, Temp_surface_total)
+    plt.xlabel("Axial Position Relative to Throat (in) ")
+    plt.ylabel("Surface Temperature (K) ")
+    plt.title("Surface temperature vs Axial Position")
+    plt.grid(True)
+    plt.show()
+
+    #printing axial position vs heat transfer coefficient
+    plt.figure()
+    plt.plot(station_depths * M2IN, h_total)
+    plt.xlabel("Axial Position Relative to Throat (in) ")
+    plt.ylabel("Heat Transfer Coefficient (W/m^2 K) ")
+    plt.title("Heat Transfer Coefficient vs Axial Position")
+    plt.grid(True)
+    plt.show()
+
     '''     
     for i in range(len(x_positions)):
         print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
     '''
 
-    print("Throat dynamic viscosity (Pa*s):", cea_results["t_visc"])
-    print("Chamber dynamic viscosity (Pa*s):", cea_results["c_visc"])
     
 
 def RunCEA(
@@ -206,7 +305,7 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess = 0.2):
     M_solution = fsolve(f, initial_guess)
     return float(M_solution[0])
 
-
+'''
 def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M, local_Area_ratio):
 
     #The sigma term of the Bartz equation split into different terms
@@ -224,6 +323,7 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
 
     return bartz_equation
 
+
 def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity, k):
     
     alpha = 3.6e-4 #thermal diffusivity of the chamber wall material ((m^2)/s)
@@ -238,6 +338,38 @@ def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity,
     surface_temp = (Surface_temp_term1 * Surface_temp_term2 * Surface_temp_term3) + T_initial 
 
     return surface_temp        
+
+'''
+
+def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M, local_Area_ratio):
+    # sigma (Bartz correction)
+    sigma_parentheses1 = ((0.5 * (Twg / T0) * (1 + (((gamma - 1) * M**2)/2))) + 0.5) ** 0.68
+    sigma_parentheses2 = (1 + (((gamma - 1)/2) * (M**2))) ** 0.12
+    sigma = 1.0 / (sigma_parentheses1 * sigma_parentheses2)
+
+    # Bartz core terms (same as you had)
+    heat_transfer_term1 = 0.026 / (Dt ** 0.2)
+    heat_transfer_term2 = ((mu ** 0.2) * Cp) / (Pr ** 0.6)
+    heat_transfer_term3 = (P0 / (c_star)) ** 0.8
+    heat_transfer_term4 = (Dt / Rt) ** 0.1
+
+    # using inverse of local_Area_ratio so heat goes up as A goes down (throat)
+    area_factor = (1.0 / local_Area_ratio) ** 0.9
+
+    bartz_equation = heat_transfer_term1 * heat_transfer_term2 * heat_transfer_term3 * heat_transfer_term4 * area_factor * sigma
+
+    return bartz_equation
+
+def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k):
+    Ti = 294 #K, initial temperature of the chamber wall
+    alpha = 3.6e-6 #thermal diffusivity of the chamber wall material 
+    t = 2.24 #sec, burn time
+
+    temp_surface_term1 = (2 * heat_transfer_coefficient_value * ((alpha * t) ** 0.5)) / (k * (pi ** 0.5))
+
+    temp_surface = (Ti + (temp_surface_term1 * T_infinity)) / (1 + temp_surface_term1)
+
+    return temp_surface
 
 
 if __name__ == "__main__":
