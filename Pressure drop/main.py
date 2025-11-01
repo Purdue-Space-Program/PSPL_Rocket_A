@@ -1,3 +1,7 @@
+# Pressure drop calculations for Pathfinder Rocket A
+# Derived from Rocket 4 code by Keshav Narayanan and Isaiah Jarvis
+# Modified and adapted by Luke Goddard
+
 from fluids import fittings
 from fluids import core
 from CoolProp import CoolProp as CP
@@ -73,6 +77,107 @@ def straight_tube_ipa(length, outer_dia, wall_thic, abs_roughness):
     drop = drop.to(u.psi)
     return drop
 
+def bend_ox(angle, bend_radius, outer_dia, wall_thic, abs_roughness):
+    (inner_dia, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(outer_dia, wall_thic, abs_roughness)
+    
+    bend_radius = bend_radius.to(u.meter)
+    # Calculation of loss coefficient
+    K = fittings.bend_rounded(
+        Di=inner_dia.magnitude,
+        angle=angle.magnitude,
+        fd=fric_ox,
+        rc=bend_radius.magnitude,
+        Re=reynold_ox,
+        method='Crane'
+    )
+    drop = core.dP_from_K(K, rho=density_ox.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ox.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+def bend_ipa(angle, bend_radius, outer_dia, wall_thic, abs_roughness):
+    (inner_dia, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(outer_dia, wall_thic, abs_roughness)
+    
+    bend_radius = bend_radius.to(u.meter)
+    # Calculation of loss coefficient
+    K = fittings.bend_rounded(
+        Di=inner_dia.magnitude,
+        angle=angle.magnitude,
+        fd=fric_ipa,
+        rc=bend_radius.magnitude,
+        Re=reynold_ipa,
+        method='Crane'
+    )
+    drop = core.dP_from_K(K, rho=density_ipa.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ipa.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+def ball_valve_ox(cv, valve_dia, wall_thic, abs_roughness):
+    (inner_dia, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(valve_dia + (2*wall_thic), wall_thic, abs_roughness)
+    
+    valve_dia = valve_dia.to(u.meter)
+
+    # Calculation of loss coefficient
+    K = fittings.Cv_to_K(Cv=cv, D=valve_dia.magnitude)
+    drop = core.dP_from_K(K, rho=density_ox.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ox.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+def ball_valve_ipa(cv, valve_dia, wall_thic, abs_roughness):
+    (inner_dia, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(valve_dia + (2*wall_thic), wall_thic, abs_roughness)
+    
+    valve_dia = valve_dia.to(u.meter)
+
+    # Calculation of loss coefficient
+    K = fittings.Cv_to_K(Cv=cv, D=valve_dia.magnitude)
+    drop = core.dP_from_K(K, rho=density_ipa.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ipa.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+def sharp_contraction_ox(outer_dia_one, outer_dia_two, wall_thic, abs_roughness):
+    (inner_dia_one, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(outer_dia_one, wall_thic, abs_roughness)
+    
+    inner_dia_two = (outer_dia_two - 2 * wall_thic).to(u.meter)
+
+    # Calculation of loss coefficient
+    K = fittings.contraction_sharp(inner_dia_one, inner_dia_two, fric_ox, reynold_ox, rel_rough, 'Rennels')
+    drop = core.dP_from_K(K, rho=density_ox.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ox.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+def sharp_contraction_ipa(outer_dia_one, outer_dia_two, wall_thic, abs_roughness):
+    (inner_dia_one, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(outer_dia_one, wall_thic, abs_roughness)
+    
+    inner_dia_two = (outer_dia_two - 2 * wall_thic).to(u.meter)
+
+    # Calculation of loss coefficient
+    K = fittings.contraction_sharp(inner_dia_one, inner_dia_two, fric_ipa, reynold_ipa, rel_rough, 'Rennels')
+    drop = core.dP_from_K(K, rho=density_ipa.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ipa.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+def sharp_expansion_ox(outer_dia_one, outer_dia_two, wall_thic, abs_roughness):
+    (inner_dia_one, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(outer_dia_one, wall_thic, abs_roughness)
+    
+    inner_dia_two = (outer_dia_two - 2 * wall_thic).to(u.meter)
+
+    # Calculation of loss coefficient
+    K = fittings.diffuser_sharp(inner_dia_one, inner_dia_two, fric_ox, reynold_ox, rel_rough, 'Rennels')
+    drop = core.dP_from_K(K, rho=density_ox.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ox.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+def sharp_expansion_ipa(outer_dia_one, outer_dia_two, wall_thic, abs_roughness):
+    (inner_dia_one, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(outer_dia_one, wall_thic, abs_roughness)
+    
+    inner_dia_two = (outer_dia_two - 2 * wall_thic).to(u.meter)
+
+    # Calculation of loss coefficient
+    K = fittings.diffuser_sharp(inner_dia_one, inner_dia_two, fric_ipa, reynold_ipa, rel_rough, 'Rennels')
+    drop = core.dP_from_K(K, rho=density_ipa.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ipa.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+'''
 def sharp_edged_inlet():
     K = 0.5
     return K
@@ -113,7 +218,8 @@ def bend(angle, radius, diameter, friction_factor):
 def valve(flow_coefficient, diameter):
     K = (890.4 * diameter**4) / (flow_coefficient**2)
     return K
-
+'''
+    
 def main():
     # Majority of this code is by Keshav Narayanan and Isaiah Jarvis from Rocket 4
     reading_ox = False    #The excel sheet will assume it is reading Fuel until the 'Fu' keyword comes up. Then it will switch to Oxygen.
