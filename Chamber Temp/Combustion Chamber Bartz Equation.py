@@ -195,8 +195,8 @@ def main():
             Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
             gamma = cea_results["c_gamma"], #specific heat ratio of the combustion gas (n/a)
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
-            T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-            Twg = cea_results["c_t"] * (cea_results["c_pran"])** (1/3),
+            T0 = cea_results["c_t"] * (cea_results["c_pran"])** (1/3),
+            Twg = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
             Cp = cea_results["c_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/kg/K)
             P0 = cea_results["c_p"] * 1e5, #chamber pressure (Pascals)
             mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
@@ -239,11 +239,6 @@ def main():
     plt.title("Heat Transfer Coefficient vs Axial Position")
     plt.grid(True)
     plt.show()
-
-    '''     
-    for i in range(len(x_positions)):
-        print(f"Axial Position: {x_positions[i]:.3f} m, Mach Number: {Mach_array[i]:.4f}, Heat Transfer Coefficient: {h_array[i]:.2f} W/m^2K, Surface Temperature: {Temp_surface_array[i]:.2f} K")
-    '''
 
     
 
