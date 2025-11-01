@@ -14,51 +14,64 @@ ox_type = 'oxygen'
 chamber_press = 150 * u.psi  # Pressure in psi
 tank_press_ox = 250 * u.psi  # Pressure in psi
 tank_press_ipa = 250 * u.psi
-mdot_ox = 1.78 * (u.pound / u.second)  # LOx mass flow rate
-mdot_ipa = 1.78 * (u.pound / u.second)  # Isopropyl alcohol mass flow rate
+mass_flow_ox = 1.78 * (u.pound / u.second)  # LOx mass flow rate
+mass_flow_ipa = 1.78 * (u.pound / u.second)  # Isopropyl alcohol mass flow rate
 
 # Conversions into metric units
 chamber_press = chamber_press.to(u.pascal)  # Convert to pascals
 tank_press_ox = tank_press_ox.to(u.pascal)  # Convert to pascals
 tank_press_ipa = tank_press_ipa.to(u.pascal)
-mdot_ox = mdot_ox.to(u.kilogram / u.second)  # Convert to kg/s
-mdot_ipa = mdot_ipa.to(u.kilogram / u.second)  # Convert to kg/s
+mass_flow_ox = mass_flow_ox.to(u.kilogram / u.second)  # Convert to kg/s
+mass_flow_ipa = mass_flow_ipa.to(u.kilogram / u.second)  # Convert to kg/s
 
 saturation_temp_ox = CP.PropsSI('T', 'P', tank_press_ox.magnitude, 'Q', 0, ox_type) * u.kelvin
 saturation_temp_ipa = 453.01 * u.kelvin # This is sat temp for IPA at 250 psi
 
-rho_ox = CP.PropsSI("D", "P", tank_press_ox.magnitude + 10, "T", saturation_temp_ox.magnitude, ox_type) * (u.kilogram / u.meter**3)
-dynamic_mu_ox = CP.PropsSI('V', 'P', tank_press_ox.magnitude + 10, 'T', saturation_temp_ox.magnitude, 'oxygen') * (u.pascal * u.second)
-kinetic_mu_ox = dynamic_mu_ox / rho_ox
+density_ox = CP.PropsSI("D", "P", tank_press_ox.magnitude + 10, "T", saturation_temp_ox.magnitude, ox_type) * (u.kilogram / u.meter**3)
+dynamic_visc_ox = CP.PropsSI('V', 'P', tank_press_ox.magnitude + 10, 'T', saturation_temp_ox.magnitude, 'oxygen') * (u.pascal * u.second)
+kinetic_visc_ox = dynamic_visc_ox / density_ox
 
-rho_ipa = constants.DENSITY_IPA * (u.kilogram / u.meter**3)
-dynamic_mu_ipa = 0.002055 * (u.pascal * u.second) # No clue if this is right, got from here: https://www.celsius-process.com/wp-content/uploads/2020/01/isopropanol.pdf
-kinetic_mu_ipa = dynamic_mu_ipa / rho_ipa
+density_ipa = constants.DENSITY_IPA * (u.kilogram / u.meter**3)
+dynamic_visc_ipa = 0.002055 * (u.pascal * u.second) # No clue if this is right, got from here: https://www.celsius-process.com/wp-content/uploads/2020/01/isopropanol.pdf
+kinetic_visc_ipa = dynamic_visc_ipa / density_ipa
 
 # Function by Keshav Narayanan and Isaiah Jarvis from Rocket 4 
-def pipe_properties(d_outer, thic, ar):
-    d_inner = (d_outer - 2 * thic).to(u.meter)  #inner diameter
+def pipe_properties(outer_dia, wall_thic, abs_roughness):
+    inner_dia = (outer_dia - 2 * wall_thic).to(u.meter)  # inner diameter
 
-    area = math.pi * (d_inner / 2)**2   #hydraulic area
+    area = math.pi * (inner_dia / 2)**2   # hydraulic area
     area = area.to(u.meter**2)
 
-    line_vel_ox = (mdot_ox / (rho_ox * area)).to(u.meter / u.second)    #line velocity
-    line_vel_ipa = (mdot_ipa / (rho_ipa * area)).to(u.meter / u.second)
+    line_vel_ox = (mass_flow_ox / (density_ox * area)).to(u.meter / u.second)    # line velocity
+    line_vel_ipa = (mass_flow_ipa / (density_ipa * area)).to(u.meter / u.second)
 
-    rel_rough = core.relative_roughness(d_inner.magnitude, ar.to(u.meter).magnitude)   #relative roughness
+    rel_rough = core.relative_roughness(inner_dia.magnitude, abs_roughness.to(u.meter).magnitude)   # relative roughness
 
-    reynold_ox = core.Reynolds(D=d_inner.magnitude, V=line_vel_ox.magnitude, nu=kinetic_mu_ox.magnitude)    #Reynold's number
-    reynold_ipa = core.Reynolds(D=d_inner.magnitude, V=line_vel_ipa.magnitude, nu=kinetic_mu_ipa.magnitude)
+    reynold_ox = core.Reynolds(D=inner_dia.magnitude, V=line_vel_ox.magnitude, nu=kinetic_visc_ox.magnitude)    # Reynold's number
+    reynold_ipa = core.Reynolds(D=inner_dia.magnitude, V=line_vel_ipa.magnitude, nu=kinetic_visc_ipa.magnitude)
 
-    fric_ox = fittings.friction_factor(reynold_ox, eD=rel_rough)    #Darcy friction factor
+    fric_ox = fittings.friction_factor(reynold_ox, eD=rel_rough)    # Darcy friction factor
     fric_ipa = fittings.friction_factor(reynold_ipa, eD=rel_rough)
 
-    return d_inner, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough
+    return inner_dia, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough
 
-def find_drop_ox(K, type, line_velocity_ox):
-    dP = core.dP_from_K(K, rho=rho_ox.magnitude, V=line_velocity_ox.magnitude) * u.Pa
-    dP.to('psi')
-    print(f'LOX LINE: Pressure Drop at {type}: {dP:.2f}')
+def straight_tube_ox(length, outer_dia, wall_thic, abs_roughness):
+    (inner_dia, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(outer_dia, wall_thic, abs_roughness)
+
+    # Calcualation of loss coefficient
+    K = core.K_from_f(fric_ox, length.to(u.meter).magnitude, inner_dia.to(u.meter).magnitude)
+    drop = core.dP_from_K(K, rho=density_ox.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ox.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
+
+def straight_tube_ipa(length, outer_dia, wall_thic, abs_roughness):
+    (inner_dia, line_vel_ipa, line_vel_ox, reynold_ipa, reynold_ox, fric_ipa, fric_ox, rel_rough) = pipe_properties(outer_dia, wall_thic, abs_roughness)
+
+    # Calcualation of loss coefficient
+    K = core.K_from_f(fric_ipa, length.to(u.meter).magnitude, inner_dia.to(u.meter).magnitude)
+    drop = core.dP_from_K(K, rho=density_ipa.to(u.kilogram / u.meter**3).magnitude, V=line_vel_ipa.to(u.meter / u.second).magnitude) * u.pascal
+    drop = drop.to(u.psi)
+    return drop
 
 def sharp_edged_inlet():
     K = 0.5
