@@ -347,13 +347,13 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
     sigma_parentheses2 = (1 + (((gamma - 1)/2) * (M**2))) ** 0.12
     sigma = 1.0 / (sigma_parentheses1 * sigma_parentheses2)
 
-    # Bartz core terms (same as you had)
+    # Bartz core terms 
     heat_transfer_term1 = 0.026 / (Dt ** 0.2)
     heat_transfer_term2 = ((mu ** 0.2) * Cp) / (Pr ** 0.6)
     heat_transfer_term3 = (P0 / (c_star)) ** 0.8
     heat_transfer_term4 = (Dt / Rt) ** 0.1
 
-    # using inverse of local_Area_ratio so heat goes up as A goes down (throat)
+    # using inverse of local_Area_ratio so heat goes up as A goes down 
     area_factor = (1.0 / local_Area_ratio) ** 0.9
 
     bartz_equation = heat_transfer_term1 * heat_transfer_term2 * heat_transfer_term3 * heat_transfer_term4 * area_factor * sigma
