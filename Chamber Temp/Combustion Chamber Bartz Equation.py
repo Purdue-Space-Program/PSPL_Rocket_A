@@ -59,7 +59,7 @@ def main():
 
         h_local = heat_transfer_coefficient(
             Dt = 2 * station_inner_radii[station_index],  # local diameter
-            Rt = ((1.725 * IN2M) + (0.4393 * IN2M)) * 0.5,     #radius of throat curve (m)
+            Rt = ((1.5*1.15 * IN2M) + (0.382 * 1.15 * IN2M)) / 2,     #radius of throat curve (m)
             Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
             gamma = cea_results["c_gamma"], #specific heat ratio of the combustion gas (n/a)
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
@@ -113,9 +113,7 @@ def main():
     plt.grid(True)
     plt.show()
 
-    print("ratio of pressure in chamber to pressure at exit:", cea_results["pip"])
-    print("chamber pressure (Pa)", cea_results["c_p"] * 1e5)
-
+    print("Maximum Surface Temperature (K): ", max(Temp_surface_total))
     
 
 def RunCEA(
@@ -160,7 +158,6 @@ def RunCEA(
         "c_cp": cea_results.c_cp, #specific heat at constant pressure of combustion gas (kJ/kg*K)
         "c_visc": cea_results.c_visc, #dynamic viscosity of combustion gas (Pa*s)
         "c_cond": cea_results.c_cond, #conductivity of combustion gas in the chamber (W/m*K)
-        "pip": cea_results.pip, #Mach number at the nozzle exit (no units)
     }
     
 def recovery_temperature(T_c, gamma, M, Pr):
