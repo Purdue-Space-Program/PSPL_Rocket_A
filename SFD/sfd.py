@@ -255,7 +255,8 @@ def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length
     shear_array: Array of shear forces across rocket length [N]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    shear_array = (-1) * ay * np.cumsum(linear_density_array * dx) # - r * np.cumsum(linear_density_array * dx)
+    # cg_rel_lengths = np.array(-1 * length_along_rocket_linspace + cg)
+    shear_array = (-1) * ay * np.cumsum(linear_density_array * dx) # - r * np.cumsum(linear_density_array * dx) * cg_rel_lengths
     print(shear_array) # TEST
     print(f"Lateral acceleration: {ay}")
     print(f"Nose lift: {noseLift}") # TEST
