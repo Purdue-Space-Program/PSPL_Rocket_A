@@ -22,12 +22,9 @@ def main():
 
     #cylinder part of the chamber geometry parameters
     chamber_length = 11.167 * IN2M #chamber length (m)
-    dx = 0.001 #increments of 1mm
     D_star = 2.3094013 * IN2M #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
     A_star = pi * (D_star / 2)**2 #throat area (m^2)
     chamber_diameter = 6 * IN2M #chamber diameter (m)
-    chamber_area = pi * ((chamber_diameter/2)**2) #chamber area (m^2)
-
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
@@ -36,12 +33,12 @@ def main():
     station_areas = np.pi * (station_inner_radii**2)
     station_area_ratios = station_areas / A_star
 
-    #initializing new arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
+    #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
     Mach_total = np.zeros_like(station_area_ratios) #mach number at each axial position
     h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
     Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
 
-    initial_guess = 0
+    initial_guess = 0.2
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
@@ -59,7 +56,7 @@ def main():
 
         h_local = heat_transfer_coefficient(
             Dt = 2 * station_inner_radii[station_index],  # local diameter
-            Rt = ((1.5*1.15 * IN2M) + (0.382 * 1.15 * IN2M)) / 2,     #radius of throat curve (m)
+            Rt = ((1.5 * 1.15 * IN2M) + (0.382 * 1.15 * IN2M)) / 2,     #radius of throat curve (m)
             Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
             gamma = cea_results["c_gamma"], #specific heat ratio of the combustion gas (n/a)
             c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
@@ -90,7 +87,7 @@ def main():
             heat_transfer_coefficient_value = h_total[station_index],
             axial_position = station_depths[station_index],
             T_infinity = cea_results["c_t"], #chamber temperature (K)
-            k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
+            k = 50 #thermal conductivity of the chamber wall material (W/(m*K))
         )
     
     #printing results
@@ -114,6 +111,7 @@ def main():
     plt.show()
 
     print("Maximum Surface Temperature (K): ", max(Temp_surface_total))
+    print("Maximum Heat Transfer Coefficient (W/m^2 K): ", max(h_total))
     
 
 def RunCEA(
@@ -173,11 +171,11 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess):
         Mach_function_part1 = ((gamma + 1)/2)**(-(gamma + 1)/(2*(gamma-1)))
         Mach_function_part2 = (1/M) * ((1 + (((gamma - 1)/2) * M**2)) ** ((gamma + 1)/(2*(gamma-1))))
         Mach_function = (Mach_function_part1 * Mach_function_part2) - area_ratio_value
-        return Mach_function
+        return abs(Mach_function)
     
     
     M_solution = fsolve(f, initial_guess)
-    return M_solution[0]
+    return float(M_solution)
 
 '''
 def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M, local_Area_ratio):
@@ -234,16 +232,15 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
 
     return bartz_equation
 
-def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k):
+def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k = 167):
     Ti = 294 #K, initial temperature of the chamber wall
-    alpha = 6.4e-5 #thermal diffusivity of the chamber wall material 
+    alpha = 1.5e-5 #thermal diffusivity of the chamber wall material 
     t = 2.24 #sec, burn time
 
-    temp_surface_term1 = (2 * heat_transfer_coefficient_value * ((alpha * t) ** 0.5)) / (k * (pi ** 0.5))
+    term_conduction = k / ((pi * alpha * t) ** 0.5)     # conduction resistance term
+    Ts = (heat_transfer_coefficient_value * T_infinity + term_conduction * Ti) / (heat_transfer_coefficient_value + term_conduction)
 
-    temp_surface = (Ti + (temp_surface_term1 * T_infinity)) / (1 + temp_surface_term1)
-
-    return temp_surface
+    return Ts
 
 
 if __name__ == "__main__":
