@@ -2,6 +2,9 @@
 # Derived from Rocket 4 code by Keshav Narayanan and Isaiah Jarvis
 # Modified and adapted by Luke Goddard
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from fluids import fittings
 from fluids import core
 from CoolProp import CoolProp as CP
@@ -9,6 +12,8 @@ from pint import UnitRegistry
 import math
 import constants
 import pandas as pd
+
+import vehicle_parameters
 
 u = UnitRegistry()
 
