@@ -189,7 +189,7 @@ def main():
 
     reading_ox = False    #The excel sheet will assume it is reading Fuel until the 'Fu' keyword comes up. Then it will switch to Oxygen.
 
-    file = pd.read_excel('pressure_drop_components.xlsx')
+    file = pd.read_excel('cms_test_components.xlsx')
 
     print("\nFuel pressure drops:\n")
     for row in range(len(file)-1, -1, -1):
@@ -265,9 +265,9 @@ def main():
 
     print("\nTotal system pressure drops:")
     print(f"Oxygen system: {(current_press_ox - chamber_press).to(u.psi):.2f}")
-    print(f"Ethanol system: {(current_press_ipa - chamber_press).to(u.psi):.2f}")
+    print(f"IPA system: {(current_press_ipa - chamber_press).to(u.psi):.2f}")
     print(f"With a LOx chamber pressure of {chamber_press.to(u.psi):.2f}, the tank pressure will be {current_press_ox.to(u.psi):.2f}")
-    print(f"With an ethanol chamber pressure of {chamber_press.to(u.psi):.2f}, the tank pressure will be {current_press_ipa.to(u.psi):.2f}")
+    print(f"With an IPA chamber pressure of {chamber_press.to(u.psi):.2f}, the tank pressure will be {current_press_ipa.to(u.psi):.2f}")
 
 if __name__ == "__main__":
     main()
