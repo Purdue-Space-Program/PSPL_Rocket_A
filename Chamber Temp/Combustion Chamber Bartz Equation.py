@@ -44,11 +44,13 @@ def main():
         
         cea_chamber = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
         cea_throat = RunCEA(150, "ethanol", "liquid oxygen", 1.0) 
-
+        cea_results = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
+        '''
         if A_ratio <= 1.0:
             cea_results = cea_chamber
         else:
             cea_results = cea_throat
+        '''
 
         if station_index > 0:
             initial_guess = Mach_total[station_index - 1]
@@ -119,6 +121,8 @@ def main():
 
     print("Maximum Surface Temperature (K): ", max(Temp_surface_total))
     print("Maximum Heat Transfer Coefficient (W/m^2 K): ", max(h_total))
+
+    print("Prandtl Number: ", cea_results["pran"])
     
 
 def RunCEA(
