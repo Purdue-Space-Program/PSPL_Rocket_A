@@ -44,13 +44,13 @@ def main():
         
         cea_chamber = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
         cea_throat = RunCEA(150, "ethanol", "liquid oxygen", 1.0) 
-        cea_results = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
-        '''
+ 
+        
         if A_ratio <= 1.0:
             cea_results = cea_chamber
         else:
             cea_results = cea_throat
-        '''
+        
 
         if station_index > 0:
             initial_guess = Mach_total[station_index - 1]
