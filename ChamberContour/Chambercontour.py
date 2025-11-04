@@ -55,6 +55,8 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     theta_bell = np.linspace(0, 1)
     x_bell = (((1 - theta_bell)**2) * Nx) + (2 * (1 - theta_bell) * theta_bell * Qx) + ((theta_bell**2) * Ex)
     y_bell = (((1 - theta_bell)**2) * Ny) + (2 * (1 - theta_bell) * theta_bell * Qy) + ((theta_bell**2) * Ey) #bezier curve to draw parabola
+    
+    
 # Converging section
     # Converging cone
     Rconv = 1 * Rc
@@ -72,6 +74,8 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     x_con_rad = np.delete(x_con_rad, -1)
     y_con_rad = np.delete(y_con_rad, -1)
 
+
+
 # Chamber section
     # Volume calculations
     V_con = np.pi * np.trapezoid(np.concatenate([y_con_rad, y_cone, y_con])**2, x=np.concatenate([x_con_rad, x_cone, x_con])) # Volume of converging section
@@ -82,27 +86,47 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     y_c = np.zeros(np.size(x_c)) + Rc
     x_c = np.delete(x_c, -1)
     y_c = np.delete(y_c, -1)
-
+    
     x_arr = np.concatenate([x_c, x_con_rad, x_cone, x_con, x_div, x_bell])
     y_arr = np.concatenate([y_c, y_con_rad, y_cone, y_con, y_div, y_bell])
+
+
 
     first_point_depth = x_arr[0]
     last_point_depth = x_arr[-1]
     chamber_length = last_point_depth - first_point_depth
 
     print(f'Combustion chamber length: {Lc * c.M2IN:.3f} in')
-    print(f'Total chamber length: {chamber_length * c.M2IN:.3f} in')
+    print(f'Total chamber length: {chamber_length * c.M2IN:.5f} in')
     print(f'Injector-to-throat length: {-x_arr[0] * c.M2IN:.3f} in')
     print(f'Initial parabola angle: {np.rad2deg(theta_n):.2f} degrees')
     print(f'Exit parabola angle: {np.rad2deg(theta_e):.2f} degrees')
     
     z_arr = np.zeros(np.size(x_arr))
-    nozzle = np.transpose(np.array([x_arr, y_arr, z_arr]))
-    np.savetxt(filename + "_meters", nozzle, delimiter=',')
-    np.savetxt(filename + "_inches", nozzle * c.M2IN, delimiter=',')
+    
+    x_arr -= x_arr[-1]
+    # x_arr -= 1
+    
+    
+    import_point_in_NX = False
+    if import_point_in_NX:
+        nozzle = np.transpose(np.array([y_arr, z_arr, -x_arr]))
+    else:
+        nozzle = np.transpose(np.array([x_arr, y_arr, z_arr]))
+
+    np.savetxt(filename + "_meters.csv", nozzle, delimiter=',')
+    np.savetxt(filename + "_inches.csv", nozzle * c.M2IN, delimiter=',')
 
 
 # Nozzle contour plot
+    # show section divisions
+    plt.vlines((x_c[0]) * c.M2IN, -Rc * c.M2IN, Rc * c.M2IN)
+    plt.vlines((x_con_rad[0]) * c.M2IN, -Rc * c.M2IN, Rc * c.M2IN)
+    plt.vlines((x_cone[0]) * c.M2IN, -Rc * c.M2IN, Rc * c.M2IN, colors="r")
+    plt.vlines((x_con[0]) * c.M2IN, -Rc * c.M2IN, Rc * c.M2IN, colors="g")
+    plt.vlines((x_div[0]) * c.M2IN, -Rc * c.M2IN, Rc * c.M2IN)
+    plt.vlines((x_bell[0]) * c.M2IN, -Rc * c.M2IN, Rc * c.M2IN)
+    
     plt.plot(x_arr * c.M2IN, y_arr * c.M2IN, 'k', x_arr * c.M2IN, -y_arr * c.M2IN, 'k')
     
     print(f"Start of exit parabola: ({Nx * c.M2IN:.4f}, {Ny * c.M2IN:.4f})")
@@ -121,12 +145,11 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     plt.axis('equal')
     plt.grid()
     plt.show()
-    
 
 
-exp_ratio = 2.288
+expansion_ratio = 2.288 # [n/a]
 Lstar = 50 * c.IN2M # [meters]
-con_angle = 30
+con_angle = 50 # [degrees]
 filename = 'chamber_contour'
 theta_n = 20.88
 theta_e = 14.6
@@ -139,4 +162,4 @@ contract_ratio = chamber_area/throat_area
 print(f"Contraction Ratio: {contract_ratio:.4f}")
 
 
-nozzle_contour(throat_diameter, exp_ratio, Lstar, contract_ratio, con_angle, chamber_diameter, filename)
+nozzle_contour(throat_diameter, expansion_ratio, Lstar, contract_ratio, con_angle, chamber_diameter, filename)
