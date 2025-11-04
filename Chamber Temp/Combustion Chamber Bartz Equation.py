@@ -42,7 +42,13 @@ def main():
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
         
-        cea_results = RunCEA(150, "ethanol", "liquid oxygen", 1.0, sub = station_inner_radii[station_index])
+        cea_chamber = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
+        cea_throat = RunCEA(150, "ethanol", "liquid oxygen", 1.0) 
+
+        if A_ratio <= 1.0:
+            cea_results = cea_chamber
+        else:
+            cea_results = cea_throat
 
         if station_index > 0:
             initial_guess = Mach_total[station_index - 1]
