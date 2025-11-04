@@ -13,8 +13,6 @@ import math
 import constants
 import pandas as pd
 
-import vehicle_parameters
-
 u = UnitRegistry()
 
 ox_type = 'oxygen'
@@ -192,18 +190,18 @@ def main():
     current_press_ipa = injector_inlet_press    # Set to injector inlet pressure because this is the pressure right before entering injector
     current_press_ox = injector_inlet_press     # Works backwards from the chamber, so this is where we will start. All pressure drops will be added to this number
 
-    reading_ox = False    #The excel sheet will assume it is reading Fuel until the 'Fu' keyword comes up. Then it will switch to Oxygen.
+    reading_ox = True    #The excel sheet will assume it is reading Ox until the 'Fu' keyword comes up. Then it will switch to Fuel.
 
-    file = pd.read_excel('cms_test_components.xlsx')
+    file = pd.read_excel('rocketA_components.xlsx')
 
-    print("\nFuel pressure drops:\n")
+    print("\nLOx pressure drops:\n")
     for row in range(len(file)-1, -1, -1):
 
         name = file.loc[row, 'Name']
         
         if file.loc[row, 'Type'] == 'Fu':
-            reading_ox = True
-            print("\nLOx pressure drops:\n")
+            reading_ox = False
+            print("\nFuel pressure drops:\n")
 
         if file.loc[row, 'Type'] == 'Straight Tube':
             length = file.loc[row, 'Property 1'] * u.inch
@@ -257,12 +255,12 @@ def main():
             if reading_ox == True:
                 venturi_inlet_press = current_press_ox / .8    #assumes an 80% pressure recovery rate
                 venturi_pd = venturi_inlet_press - current_press_ox
-                print(f"{name}\nPart Type: Venturi\nPressure Drop: {venturi_pd:.2f}\n")
+                print(f"{name}\nPart Type: Venturi\nPressure Drop: {venturi_pd.to(u.psi):.2f}\n")
                 current_press_ox += venturi_pd
             else:
                 venturi_inlet_press = current_press_ipa / .8
                 venturi_pd = venturi_inlet_press - current_press_ipa
-                print(f"{name}\nPart Type: Venturi\nPressure Drop: {venturi_pd:.2f}\n")
+                print(f"{name}\nPart Type: Venturi\nPressure Drop: {venturi_pd.to(u.psi):.2f}\n")
                 current_press_ipa += venturi_pd
 
             
