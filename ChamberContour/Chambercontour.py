@@ -96,7 +96,7 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     last_point_depth = x_arr[-1]
     chamber_length = last_point_depth - first_point_depth
 
-    print(f'Combustion chamber length: {Lc * c.M2IN:.3f} in')
+    print(f'\nCombustion chamber length: {Lc * c.M2IN:.3f} in')
     print(f'Total chamber length: {chamber_length * c.M2IN:.5f} in')
     print(f'Injector-to-throat length: {-x_arr[0] * c.M2IN:.3f} in')
     print(f'Initial parabola angle: {np.rad2deg(theta_n):.2f} degrees')
@@ -157,9 +157,12 @@ theta_e = 14.6
 chamber_diameter = 6 * c.IN2M # [meters]
 chamber_area = np.pi * ((chamber_diameter/2)**2) # [m^2]
 throat_diameter = 2.3094013 * c.IN2M # [meters]
-throat_area = 0.027 # [m^2]
+throat_area = np.pi * ((throat_diameter/2)**2) # [m^2]
 contract_ratio = chamber_area/throat_area
-print(f"Contraction Ratio: {contract_ratio:.4f}")
+
+print(f"Chamber Diameter: {chamber_diameter * c.M2IN:.3f}")
+print(f"Throat Diameter: {throat_diameter * c.M2IN:.3f}")
+print(f"Contraction Ratio: {contract_ratio:.3f}")
 
 
 nozzle_contour(throat_diameter, expansion_ratio, Lstar, contract_ratio, con_angle, chamber_diameter, filename)
