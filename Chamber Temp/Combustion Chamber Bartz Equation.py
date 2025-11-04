@@ -42,62 +42,105 @@ def main():
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
         
-        cea_chamber = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
-        cea_throat = RunCEA(150, "ethanol", "liquid oxygen", 1.0) 
+        cea_results = RunCEA(150, "ethanol", "liquid oxygen", 1.0)
  
         
         if A_ratio <= 1.0:
-            cea_results = cea_chamber
-        else:
-            cea_results = cea_throat
-        
+            if station_index > 0:
+                initial_guess = Mach_total[station_index - 1]
+            else:
+                initial_guess = 0.5
+            
+            M_local = calculating_MachNumber(gamma = cea_results["c_gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
+            Mach_total[station_index] = M_local
 
-        if station_index > 0:
-            initial_guess = Mach_total[station_index - 1]
-        else:
-            initial_guess = 0.5
-        
-        M_local = calculating_MachNumber(gamma = cea_results["gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
-        Mach_total[station_index] = M_local
+            #updating initial guess for next iteration
+            initial_guess = M_local
 
-        #updating initial guess for next iteration
-        initial_guess = M_local
+            h_local = heat_transfer_coefficient(
+                Dt = 2 * station_inner_radii[station_index],  # local diameter
+                Rt = ((1.5 * 1.15 * IN2M) + (0.382 * 1.15 * IN2M)) / 2,     #radius of throat curve (m)
+                Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
+                gamma = cea_results["c_gamma"], #specific heat ratio of the combustion gas (n/a)
+                c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
+                T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
+                Twg = recovery_temperature( #recovery temperature at the wall
+                    T_c = cea_results["c_t"],
+                    gamma = cea_results["c_gamma"],
+                    M = M_local,
+                    Pr = cea_results["c_pran"]
+                ),
+                Cp = cea_results["c_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/(kg*K))
+                P0 = cea_results["c_p"] * 1e5, #chamber pressure (Pascals)
+                mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
+                M = Mach_total[station_index], #Mach number at the local axial point (no units)
+                local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
 
-        h_local = heat_transfer_coefficient(
-            Dt = 2 * station_inner_radii[station_index],  # local diameter
-            Rt = ((1.5 * 1.15 * IN2M) + (0.382 * 1.15 * IN2M)) / 2,     #radius of throat curve (m)
-            Pr = cea_results["pran"], #Prandtl number of the combustion gas (n/a)
-            gamma = cea_results["gamma"], #specific heat ratio of the combustion gas (n/a)
-            c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
-            T0 = cea_results["t"], #stagnation temperature of the combustion gas ((K))
-            Twg = recovery_temperature( #recovery temperature at the wall
-                T_c = cea_results["t"],
-                gamma = cea_results["gamma"],
-                M = M_local,
-                Pr = cea_results["pran"]
-            ),
-            Cp = cea_results["cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/(kg*K))
-            P0 = cea_results["p"] * 1e5, #chamber pressure (Pascals)
-            mu = cea_results["visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
-            M = Mach_total[station_index], #Mach number at the local axial point (no units)
-            local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
+                )
+            h_total[station_index] = h_local
 
+            '''
+            Temp_surface_total[station_index] = temperature_surface_calculation(
+                heat_transfer_coefficient_value = h_total[station_index],
+                T_infinity = cea_results["c_t"], #chamber temperature (K)
+                k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
             )
-        h_total[station_index] = h_local
+            '''
+            Temp_surface_total[station_index] = temperature_surface_calculation(
+                heat_transfer_coefficient_value = h_total[station_index],
+                axial_position = station_depths[station_index],
+                T_infinity = cea_results["c_t"], #chamber temperature (K)
+                k = 50 #thermal conductivity of the chamber wall material (W/(m*K))
+            )
+            
+        else:        
 
-        '''
-        Temp_surface_total[station_index] = temperature_surface_calculation(
-            heat_transfer_coefficient_value = h_total[station_index],
-            T_infinity = cea_results["c_t"], #chamber temperature (K)
-            k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
-        )
-        '''
-        Temp_surface_total[station_index] = temperature_surface_calculation(
-            heat_transfer_coefficient_value = h_total[station_index],
-            axial_position = station_depths[station_index],
-            T_infinity = cea_results["t"], #chamber temperature (K)
-            k = 50 #thermal conductivity of the chamber wall material (W/(m*K))
-        )
+            if station_index > 0:
+                initial_guess = Mach_total[station_index - 1]
+            else:
+                initial_guess = 0.5
+            
+            M_local = calculating_MachNumber(gamma = cea_results["t_gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
+            Mach_total[station_index] = M_local
+
+            #updating initial guess for next iteration
+            initial_guess = M_local
+
+            h_local = heat_transfer_coefficient(
+                Dt = 2 * station_inner_radii[station_index],  # local diameter
+                Rt = ((1.5 * 1.15 * IN2M) + (0.382 * 1.15 * IN2M)) / 2,     #radius of throat curve (m)
+                Pr = cea_results["t_pran"], #Prandtl number of the combustion gas (n/a)
+                gamma = cea_results["t_gamma"], #specific heat ratio of the combustion gas (n/a)
+                c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
+                T0 = cea_results["t_t"], #stagnation temperature of the combustion gas ((K))
+                Twg = recovery_temperature( #recovery temperature at the wall
+                    T_c = cea_results["t_t"],
+                    gamma = cea_results["t_gamma"],
+                    M = M_local,
+                    Pr = cea_results["t_pran"]
+                ),
+                Cp = cea_results["t_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/(kg*K))
+                P0 = cea_results["t_p"] * 1e5, #chamber pressure (Pascals)
+                mu = cea_results["t_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
+                M = Mach_total[station_index], #Mach number at the local axial point (no units)
+                local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
+
+                )
+            h_total[station_index] = h_local
+
+            '''
+            Temp_surface_total[station_index] = temperature_surface_calculation(
+                heat_transfer_coefficient_value = h_total[station_index],
+                T_infinity = cea_results["c_t"], #chamber temperature (K)
+                k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
+            )
+            '''
+            Temp_surface_total[station_index] = temperature_surface_calculation(
+                heat_transfer_coefficient_value = h_total[station_index],
+                axial_position = station_depths[station_index],
+                T_infinity = cea_results["t_t"], #chamber temperature (K)
+                k = 50 #thermal conductivity of the chamber wall material (W/(m*K))
+            )
             
     #printing results
 
@@ -121,8 +164,6 @@ def main():
 
     print("Maximum Surface Temperature (K): ", max(Temp_surface_total))
     print("Maximum Heat Transfer Coefficient (W/m^2 K): ", max(h_total))
-
-    print("Prandtl Number: ", cea_results["pran"])
     
 
 def RunCEA(
@@ -160,14 +201,21 @@ def RunCEA(
 
     cea_results = rocket.run()
     return{
-        "p": cea_results.p, #chamber pressure (Bar)
+        "c_p": cea_results.c_p, #chamber pressure (Bar)
+        "t_p": cea_results.t_p, #throat pressure (Bar)
         "c_star": cea_results.cstar, #characteristic exhaust velocity in (m/s)
-        "pran": cea_results.pran, #Prandtl number of combustion gas at chamber (no units)
-        "gamma": cea_results.gamma, #specific heat ratio of combustion gas at chamber (no units)
-        "t": cea_results.t, #stagnation temperature at chamber (K)
-        "cp": cea_results.cp, #specific heat at constant pressure of combustion gas (kJ/kg*K)
-        "visc": cea_results.visc, #dynamic viscosity of combustion gas in the chamber (Pascal - seconds)
-        "cond": cea_results.cond, #conductivity of combustion gas in the chamber (W/m*K)
+        "c_pran": cea_results.c_pran, #Prandtl number of combustion gas at chamber (no units)
+        "t_pran": cea_results.t_pran, #Prandtl number of combustion gas at throat (no units)
+        "c_gamma": cea_results.c_gamma, #specific heat ratio of combustion gas at chamber (no units)
+        "t_gamma": cea_results.t_gamma, #specific heat ratio of combustion gas at chamber (no units)
+        "c_t": cea_results.c_t, #stagnation temperature at chamber (K)
+        "t_t": cea_results.t_t, #stagnation temperature at throat (K)
+        "c_cp": cea_results.c_cp, #specific heat at constant pressure of combustion gas (kJ/kg*K)
+        "t_cp": cea_results.t_cp, #specific heat at constant pressure of combustion gas (kJ/kg*K)
+        "c_visc": cea_results.c_visc, #dynamic viscosity of combustion gas in the chamber (Pascal - seconds)
+        "t_visc": cea_results.t_visc, #dynamic viscosity of combustion gas at the throat (Pascal - seconds)
+        "c_cond": cea_results.c_cond, #conductivity of combustion gas in the chamber (W/m*K)
+        "t_cond": cea_results.t_cond, #conductivity of combustion gas at the throat (W/m*K)
     }
     
 def recovery_temperature(T_c, gamma, M, Pr):
