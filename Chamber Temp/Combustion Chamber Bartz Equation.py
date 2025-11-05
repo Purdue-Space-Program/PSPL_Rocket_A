@@ -164,6 +164,8 @@ def main():
 
     print("Maximum Surface Temperature (K): ", max(Temp_surface_total))
     print("Maximum Heat Transfer Coefficient (W/m^2 K): ", max(h_total))
+
+    print("throat temperature:", cea_results["t_t"])
     
 
 def RunCEA(
