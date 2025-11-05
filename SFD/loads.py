@@ -88,3 +88,4 @@ plt.show()
 '''
 print(finSD)
 print(noseSD)
+print(AOA)
