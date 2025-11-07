@@ -23,11 +23,12 @@ class VehicleParameters:
     contraction_ratio: float = 3.0                # The target ratio of chamber area to throat area [dimensionless]
     exit_pressure: float = 15.0 * c.PSI2PA        # The target exit pressure of the exhaust gas [Pascals]
     # combustion_temperature: float = 2170          # The estimated combustion temperature [Kelvin]
+    chamber_throat_diameter: float = 2.3094013 * c.IN2M # The design throat diameter [meters]
     
-    tank_pressure: float = 250.0 * c.PSI2PA       # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
     
     # FYI the sizing of the tanks accounted for ullage and residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
 
+    tank_pressure: float = 250.0 * c.PSI2PA       # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
     fuel_tank_length: float = 0.5 * c.FT2M        # The length of the fuel tank that needs to be filled with fuel (the actual tank may be longer) [meters]
     fuel_tank_volume: float = 2.55 * c.L2M3       # The required loaded volume of fuel needed for the burn time [meter^3]
     fuel_total_mass: float = 4.42 * c.LB2KG       # The required loaded mass of fuel needed for the burn time [kilograms]
@@ -76,7 +77,7 @@ def CalcTubeVolume(OD, ID, length):
     return volume
     
 engine_length = 1 * c.FT2M
-injector_length = 4 * c.IN2M
+injector_length = 2 * c.IN2M
 lower_length = 1 * c.FT2M
 
 bulkhead_length = 3 * c.IN2M
@@ -94,11 +95,12 @@ propellant_tank_outer_diameter = parameters.tube_outer_diameter
 propellant_tank_inner_diameter = parameters.tube_inner_diameter
 panels_outer_diameter = parameters.tube_outer_diameter
 panels_inner_diameter = parameters.tube_inner_diameter
-engine_wall_thickness = 0.5 * c.IN2M
-engine_ID = propellant_tank_outer_diameter - (2 * engine_wall_thickness)
 
-# engine_mass = c.DENSITY_SS316 * CalcTubeVolume(propellant_tank_outer_diameter, engine_ID, engine_length)
-engine_mass = c.DENSITY_SS316 * CalcTubeVolume(propellant_tank_outer_diameter, engine_ID, engine_length)
+engine_wall_thickness = 0.25 * c.IN2M
+# engine_ID = propellant_tank_outer_diameter - (2 * engine_wall_thickness)
+engine_OD = 7 * c.IN2M
+engine_ID = engine_OD - (2 * engine_wall_thickness)
+engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_length)
 
 injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
 
@@ -308,16 +310,19 @@ for component in mass_distribution.components:
 
 
 
-print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LB} lbm")
-print(f"engine mass: {engine.mass * c.KG2LB} lbm")
 
-panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
-print(f"panels mass: {panels_mass * c.KG2LB} lbm")
+if __name__ == "__main__":
+    print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LB} lbm")
+    print(f"engine mass: {engine.mass * c.KG2LB:.2f} lbm")
+    print(f"injector mass: {injector.mass * c.KG2LB:.2f} lbm")
 
-# plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
-# plt.xlabel("length [feet]")
-# plt.ylabel("mass density [lbs/feet]")
-# plt.show()
+    panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
+    print(f"panels mass: {panels_mass * c.KG2LB:.2f} lbm")
+
+    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
+    plt.xlabel("length [feet]")
+    plt.ylabel("mass density [lbs/feet]")
+    plt.show()
 
 
-
+    
