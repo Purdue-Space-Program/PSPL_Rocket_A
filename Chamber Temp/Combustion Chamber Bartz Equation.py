@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ChamberContour", "chamber_contour_meters.csv"))
+vehicle_parameters_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..",  "vehicle_parameters.py"))
 
 import constants as c
 
