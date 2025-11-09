@@ -86,6 +86,44 @@ plt.ylabel(ylabel)
 plt.show()
 
 '''
-print(finSD)
-print(noseSD)
-print(AOA)
+
+print("Parameters")
+print(f"Air density: {air_density}")
+print(f"Velocity: {velocity}")
+print(f"Wind gust: {wind_gust}")
+print(f"Diameter: {diameter}")
+
+print(f"Root chord: {root_chord}")
+print(f"Tip chord: {tip_chord}")
+print(f"Sweep length: {sweep_length}")
+print(f"Fin height: {fin_height}")
+print(f"Number of fins: {numFins}")
+
+print(f"Mach number: {mach}")
+
+print(f"Burn time: {burn_time}")
+print(f"Total time: {total_time}")
+
+print(f"Nosecone to fin: {noseconeToFin}")
+print(f"Total mass: {total_mass}")
+print(f"Total length: {total_length}")
+print(f"Thrust: {thrust}")
+print(f"Max acceleration: {ax}")
+
+
+print("Calculated values")
+print(f"Dynamic pressure: {Q}")
+print(f"Angle of attack: {AOA}")
+print(f"Cross sectional area: {S}")
+
+print(f"Fin stability derivative: {finSD}")
+print(f"Mach coefficient: {machCoeff}")
+print(f"Nose stability derivative: {noseSD}")
+print(f"Nose lift: {noseLift}")
+print(f"Fin lift: {finLift}")
+print(f"Center of gravity: {cg}")
+print(f"Inertia: {inertia}")
+print(f"Lateral acceleration: {ay}")
+print(f"Fin center of pressure: {finCP}")
+print(f"Nose center of pressure: {noseCP}")
+print(f"Angular acceleration: {r}")
