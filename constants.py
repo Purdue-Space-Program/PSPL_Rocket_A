@@ -62,6 +62,11 @@ FT32M3 = 1 / M32FT3  # [m^3/ft^3] Conversion factor from ft^3 to m^3
 N2LBF = 0.224809  # [lbf/N] Conversion factor from N to lbf
 LBF2N = 1 / N2LBF  # [N/lbf] Conversion factor from lbf to N
 
+## Torque
+
+NM2LBI = 8.8507457676 # Conversion factor from N to in-lbf
+LBI2NM = 1 / NM2LBI # Conversion factor from in-lbf to N
+
 # Speed
 
 RPM2RADS = (2 * np.pi) / 60
