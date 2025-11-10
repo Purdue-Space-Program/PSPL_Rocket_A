@@ -23,7 +23,7 @@ sweep_length = 0.2 # [m] NEED
 fin_height = 0.3 # [m] NEED
 numFins = 3 # [m] NEED
 
-mach = vehicle.parameters.max_mach
+mach = vehicle.parameters.max_mach # [Mach number]
 
 linear_density_array = vehicle.linear_density_array # [kg / m]
 length_along_rocket_linspace = vehicle.length_along_rocket_linspace # [m]
@@ -36,8 +36,8 @@ noseconeToFin = 2 # [m] NEED
 total_mass = np.sum(component.mass for component in vehicle.mass_distribution) # [kg]
 total_length = length_along_rocket_linspace[-1] # [m]
 
-thrust = vehicle.parameters.jet_thrust
-ax = vehicle.parameters.max_acceleration
+thrust = vehicle.parameters.jet_thrust # [N]
+ax = vehicle.parameters.max_acceleration * 9.81 # [m / s]
 
 
 Q = sfd.calcQ(air_density, velocity)
@@ -62,7 +62,7 @@ bending_array = np.array(sfd.calcBending(shear_array, length_along_rocket_linspa
 axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace))
 
 
-variable = "shear_array"
+variable = "axial_array"
 N2LBS = 0.224809
 M2FT = 3.28084
 
@@ -78,14 +78,12 @@ if variable == "axial_array":
     plot = axial_array * N2LBS
     ylabel = "Axial Force [lbs]"
     title = "Axial Forces"
-'''
 plt.plot(length_along_rocket_linspace * M2FT, plot)
 plt.title(title)
 plt.xlabel("Length from aft [ft]")
 plt.ylabel(ylabel)
+plt.grid()
 plt.show()
-
-'''
 
 print("Parameters")
 print(f"Air density: {air_density}")
