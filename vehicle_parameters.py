@@ -23,8 +23,8 @@ class VehicleParameters:
     contraction_ratio: float = 3.0                # The target ratio of chamber area to throat area [dimensionless]
     exit_pressure: float = 15.0 * c.PSI2PA        # The target exit pressure of the exhaust gas [Pascals]
     # combustion_temperature: float = 2170          # The estimated combustion temperature [Kelvin]
-    chamber_throat_diameter: float = 2.3094013 * c.IN2M # The design throat diameter [meters]
-    
+    chamber_throat_diameter: float = 1.9276189 * c.IN2M # The design throat diameter [meters]
+    chamber_diameter = float = 5.1 * c.IN2M       # The design combustion chamber diameter [meters]
     
     # FYI the sizing of the tanks accounted for ullage and residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
 
