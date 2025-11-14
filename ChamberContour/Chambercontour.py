@@ -5,7 +5,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters
+import vehicle_parameters as vehicle
 
 def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename):
     
@@ -112,7 +112,7 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     
     
     
-    import_point_in_NX = False
+    import_point_in_NX = True
     if import_point_in_NX:
         x_arr -= x_arr[-1]
         nozzle = np.transpose(np.array([y_arr, z_arr, -x_arr]))
@@ -159,16 +159,18 @@ filename = 'chamber_contour'
 theta_n = 20.88
 theta_e = 14.6
 
-chamber_diameter = 5.1 * c.IN2M # [meters]
-chamber_area = np.pi * ((chamber_diameter/2)**2) # [m^2]
-throat_diameter = 1.9276189 * c.IN2M # [meters]
-# throat_diameter = 1.8 * c.IN2M # [meters]
+
+chamber_inner_diameter = vehicle.parameters.chamber_inner_diameter # [meters]
+chamber_area = np.pi * ((chamber_inner_diameter/2)**2) # [m^2]
+
+throat_diameter = vehicle.parameters.chamber_throat_diameter # [meters]
 throat_area = np.pi * ((throat_diameter/2)**2) # [m^2]
+
 contract_ratio = chamber_area/throat_area
 
-print(f"Chamber Diameter: {chamber_diameter * c.M2IN:.3f}")
+print(f"Chamber Inner Diameter: {chamber_inner_diameter * c.M2IN:.3f}")
 print(f"Throat Diameter: {throat_diameter * c.M2IN:.3f}")
 print(f"Contraction Ratio: {contract_ratio:.3f}")
 
 
-nozzle_contour(throat_diameter, expansion_ratio, Lstar, contract_ratio, con_angle, chamber_diameter, filename)
+nozzle_contour(throat_diameter, expansion_ratio, Lstar, contract_ratio, con_angle, chamber_inner_diameter, filename)
