@@ -27,15 +27,15 @@ class VehicleParameters:
     chamber_inner_diameter: float = 4.9 * c.IN2M      # The design combustion chamber diameter [meters]
     chamber_throat_diameter: float = 1.852 * c.IN2M   # The design throat diameter [meters]
     
-    # FYI the sizing of the tanks accounted for ullage and residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
+    # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
 
     tank_pressure: float = 416.67 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
     fuel_tank_length: float = 6 * c.IN2M      # The length of the fuel tank that needs to be filled with fuel (the actual tank may be longer) [meters]
     fuel_tank_volume: float = 2.55 * c.L2M3     # The required loaded volume of fuel needed for the burn time [meter^3]
     fuel_total_mass: float = 4.42 * c.LB2KG     # The required loaded mass of fuel needed for the burn time [kilograms]
 
-    oxidizer_tank_length: float = 4.57 * c.IN2M   # The length of the oxidizer tank that needs to be filled with oxidizer (the actual tank may be longer) [meters]
-    oxidizer_tank_volume: float = 1.95 * c.L2M3   # The required loaded volume of oxidizer needed for the burn time [meter^3]
+    oxidizer_tank_length: float = 4.56 * c.IN2M   # The length of the oxidizer tank that needs to be filled with oxidizer (the actual tank may be longer) [meters]
+    oxidizer_tank_volume: float = 1.94 * c.L2M3   # The required loaded volume of oxidizer needed for the burn time [meter^3]
     oxidizer_total_mass: float = 4.42 * c.LB2KG   # The required loaded mass of oxidizer needed for the burn time [kilograms]
 
     total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # (4.42 + 4.42) * c.LB2KG # The total mass of propellant needed for the burn time [kilograms]
