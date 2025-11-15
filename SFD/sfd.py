@@ -289,14 +289,17 @@ def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace):
     axial: Array of axial forces across rocket length [N]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    masses = np.cumsum(linear_density_array) * dx
-    masses1 = masses[::-1]
+    masses = np.array(linear_density_array) * dx # aft to nose
+    masses1 = masses[::-1] # nose to aft
+    masses2 = np.cumsum(masses1) # nose to aft
+    masses3 = masses2[::-1] # aft to nose
 
     axial_tb = []
-    for mass in masses1:
-        axial_p = thrust - (ax * mass)
+    for mass in masses3:
+        axial_p = (ax * mass) + mass * 9.81
         axial_tb.append(axial_p)
-    axial = axial_tb[::-1]
+    
+    axial = axial_tb # aft to nose
     # to_strut = floor(32.2 * IN2M / dx)
     # print(to_strut)
     # print(axial[to_strut])
