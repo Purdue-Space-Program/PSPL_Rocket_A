@@ -59,7 +59,7 @@ noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length)
 r = sfd.calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg)
 shear_array = np.array(sfd.calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg))
 bending_array = np.array(sfd.calcBending(shear_array, length_along_rocket_linspace))
-axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace))
+axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, air_density, 0.65, S, velocity)) # For medium size fins, Cd ~ 0.65 (UW Madison)
 
 
 variable = "axial_array"

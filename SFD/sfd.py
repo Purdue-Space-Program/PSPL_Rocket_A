@@ -280,7 +280,7 @@ def calcBending(shear_array, length_along_rocket_linspace):
     return bending_array
 
 # Calculate axial forces across rocket length and output an array of bending forces
-def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace):
+def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, rho, cd, S, velocity):
     '''
     thrust: Rocket thrust [N]
     ax: Acceleration [m / s^2]
@@ -298,7 +298,8 @@ def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace):
     for mass in masses3:
         axial_p = (ax * mass) + mass * 9.81
         axial_tb.append(axial_p)
-    
+    fin_drag = 0.5 * rho * cd * S * velocity**2 # Fin drag [N]
+    axial_tb = np.array(axial_tb) + fin_drag # aft to nose
     axial = axial_tb # aft to nose
     # to_strut = floor(32.2 * IN2M / dx)
     # print(to_strut)
