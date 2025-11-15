@@ -8,13 +8,14 @@ from constants import *
 
 standard_bits_inch = {
     # Fractional drill sizes (partial list)
-    "1/64": 1/64, "1/32": 1/32, "3/64": 3/64, "1/16": 1/16, "5/64": 5/64,
+    "1/64": 1/64, "1/32": 1/32, "3/64": 3/64, 
+    "1/16": 1/16, "5/64": 5/64,
     "3/32": 3/32, "7/64": 7/64, "1/8": 1/8, "9/64": 9/64, "5/32": 5/32,
     "11/64": 11/64, "3/16": 3/16, "13/64": 13/64, "7/32": 7/32, "15/64": 15/64,
 
     # Number drill sizes (#80–#1, partial list)
-    "#80": 0.0135, "#70": 0.0280, "#60": 0.0400, "#50": 0.0700,
-    "#40": 0.0980, "#30": 0.1285, "#20": 0.1610, "#10": 0.1935, "#1": 0.2280,
+    "#80": 0.0135, "#70": 0.0280,"#60": 0.0400, 
+    "#50": 0.0700, "#40": 0.0980, "#30": 0.1285, "#20": 0.1610, "#10": 0.1935, "#1": 0.2280,
 }
 
 for key, value in standard_bits_inch.items():
@@ -56,17 +57,17 @@ def CalculateIdealHoleDiameter(area, number_holes):
 C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
 C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
 N_bottom_max = 50 # Max amount of orifices in bottom row allowed, to be changed (we will have 2 rows where the bottom row will have holes with smaller diameter)
-N_bottom_min = 48 # Min amount of orifices in bottom row allowed, to be changed
+N_bottom_min = 10 # Min amount of orifices in bottom row allowed, to be changed
 of_ratio = 1 # from Vehicle Parameters page
-D_c = 6 * IN2M # Diameter of chamber (might be changed)
-m_dot = 3.56 * LB2KG # [Kg/s]
+D_c = 5.75 * IN2M # Diameter of chamber (might be changed)
+m_dot = 3.82 * LB2KG # [Kg/s]
 temp_lox = 90 # [K]
-pressure_lox = 250 * PSI2PA # [Pa]
+pressure_lox = 417 * PSI2PA # [Pa]
 temp_ipa = 290 # [K]
-pressure_ipa = 250 * PSI2PA # [Pa]
+pressure_ipa = 417 * PSI2PA # [Pa]
 rho_lox = PropsSI('D', 'T', temp_lox, 'P', pressure_lox, 'Oxygen')
 rho_ipa = DENSITY_IPA # [kg/m^3] CoolProp doesn't have IPA, assuming constant
-pressure_chamber = 150 * PSI2PA # [Pa]
+pressure_chamber = 250 * PSI2PA # [Pa]
 pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
 desired_pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
@@ -94,7 +95,7 @@ minerr = np.inf
 
 for N_bottom in range(N_bottom_min, N_bottom_max + 1):
     N_lox_array.append(N_bottom)
-    N_top = 16
+    N_top = 10
     D_real_lox_orifice_top = 1/16 * IN2M 
     N_lox = N_top + N_bottom
     total_area_real_top_orifice_lox = CalculateAreaFromHoles(D_real_lox_orifice_top, N_top)
@@ -177,7 +178,7 @@ plt.xlabel("Number of Bottom LOx holes")
 # plt.ylabel("LMR")
 plt.show()
 
-
+"""
 ########### Film cooling orifices sizing ##########
 
 C_D_film = 0.6
@@ -217,3 +218,4 @@ plt.ylabel("Percentage error in mass flow rate")
 plt.title("[Film Cooling] Number of holes vs m_dot error comparision")
 plt.axhline(allowable_percent_error_m_dot_film, color='g', linestyle='--', label='Chosen number of holes')
 plt.show()
+"""
