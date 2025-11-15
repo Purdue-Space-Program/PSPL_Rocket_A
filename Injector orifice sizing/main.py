@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
+import vehicle_parameters as vehicle
 
 standard_bits_inch = {
     # Fractional drill sizes (partial list)
@@ -18,13 +19,22 @@ standard_bits_inch = {
     "#50": 0.0700, "#40": 0.0980, "#30": 0.1285, "#20": 0.1610, "#10": 0.1935, "#1": 0.2280,
 }
 
+remove_list = ["1/64", "1/32", "#80", "#70", "#60"]
+
+standard_bits_metric = {}
+
 for key, value in standard_bits_inch.items():
-        standard_bits_inch[key] = value * IN2M 
+    if key not in remove_list:
+        standard_bits_metric[key] = value * IN2M 
 
-def closest_bit_size(target_diameter):
+
+def closest_bit_size(target_diameter, already_used_bit_size):
     lowest_absolute_error_bit_size = None
+    
+    fuck = standard_bits_metric.copy()
+    fuck.pop(already_used_bit_size)
 
-    for key, value in standard_bits_inch.items():
+    for key, value in fuck.items():
         absolute_error_bit_size = abs(value - target_diameter)
         if (lowest_absolute_error_bit_size is None) or (absolute_error_bit_size < lowest_absolute_error_bit_size):
             lowest_absolute_error_bit_size = absolute_error_bit_size
@@ -57,17 +67,17 @@ def CalculateIdealHoleDiameter(area, number_holes):
 C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
 C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
 N_bottom_max = 50 # Max amount of orifices in bottom row allowed, to be changed (we will have 2 rows where the bottom row will have holes with smaller diameter)
-N_bottom_min = 10 # Min amount of orifices in bottom row allowed, to be changed
-of_ratio = 1 # from Vehicle Parameters page
-D_c = 5.75 * IN2M # Diameter of chamber (might be changed)
-m_dot = 3.82 * LB2KG # [Kg/s]
+N_bottom_min = 8 # Min amount of orifices in bottom row allowed, to be changed
+of_ratio = vehicle.parameters.OF_ratio # from Vehicle Parameters page
+D_c = vehicle.parameters.chamber_inner_diameter # Diameter of chamber (might be changed)
+m_dot = vehicle.parameters.mass_flow_rate # [Kg/s]
 temp_lox = 90 # [K]
-pressure_lox = 417 * PSI2PA # [Pa]
+pressure_lox = vehicle.parameters.tank_pressure # [Pa]
 temp_ipa = 290 # [K]
-pressure_ipa = 417 * PSI2PA # [Pa]
+pressure_ipa = vehicle.parameters.tank_pressure # [Pa]
 rho_lox = PropsSI('D', 'T', temp_lox, 'P', pressure_lox, 'Oxygen')
 rho_ipa = DENSITY_IPA # [kg/m^3] CoolProp doesn't have IPA, assuming constant
-pressure_chamber = 250 * PSI2PA # [Pa]
+pressure_chamber = vehicle.parameters.chamber_pressure # [Pa]
 pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
 desired_pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
@@ -92,64 +102,64 @@ N_lox_array = []
 value_1_array = []
 value_2_array = []
 minerr = np.inf
-
-for N_bottom in range(N_bottom_min, N_bottom_max + 1):
-    N_lox_array.append(N_bottom)
-    N_top = 10
-    D_real_lox_orifice_top = 1/16 * IN2M 
-    N_lox = N_top + N_bottom
-    total_area_real_top_orifice_lox = CalculateAreaFromHoles(D_real_lox_orifice_top, N_top)
-    total_target_area_bottom_orifice_lox = total_target_area_orifice_lox - total_area_real_top_orifice_lox
-    D_ideal_lox_orifice_bottom = CalculateIdealHoleDiameter(total_target_area_bottom_orifice_lox, N_bottom) 
-    D_real_lox_orifice_bottom, lowest_absolute_error_bit_size_bottom, closest_bit_name_bottom = closest_bit_size(D_ideal_lox_orifice_bottom)
-    percent_error_bit_size_bottom = (abs(lowest_absolute_error_bit_size_bottom) / D_ideal_lox_orifice_bottom) * 100
-    total_area_real_bottom_orifice_lox = CalculateAreaFromHoles(D_real_lox_orifice_bottom, N_bottom)
-    total_area_real_orifice_lox = total_area_real_bottom_orifice_lox + total_area_real_top_orifice_lox
-    err = (abs(total_area_real_orifice_lox - total_target_area_orifice_lox) / total_target_area_orifice_lox) * 100
-    m_dot_real_lox = CalculateMassFlowRate(total_area_real_orifice_lox, C_D_lox, rho_lox, desired_pressure_drop)
-    percent_error_m_dot_lox = (abs(m_dot_real_lox - m_dot_ideal_lox) / m_dot_ideal_lox) * 100
-    velocity_lox = m_dot_real_lox / (rho_lox * total_area_real_orifice_lox)
-    tmr_real = (m_dot_real_lox * velocity_lox) / (m_dot_ipa * velocity_ipa)
-    bf = (N_top * D_real_lox_orifice_top + N_bottom * D_real_lox_orifice_bottom) / (np.pi * D_s)
-    lmr = tmr_real/bf
-    half_angle = 0.7 * np.degrees(np.arctan(2 * lmr)) # from: 
-                                                                # Blakely, J., Freeberg, J., and Hogge, J., “Spray Cone Formation from
-                                                                # Pintle-Type Injector Systems in Liquid Rocket Engines,” AIAA SciTech
-                                                                # 2019 Forum, AIAA Paper 2019-0152, 2019.
-                                                                # https://doi.org/10.2514/6.2019-0152
-    tmr_percent_error = (abs(tmr_real - tmr_ideal) / tmr_ideal) * 100
-    value_1_array.append(tmr_percent_error)
-    value_2_array.append(percent_error_m_dot_lox)
-    # only update orifice sizes if a good enough one has not been found
-    if (tmr_percent_error <= tmr_allowable_percent_error) and (percent_error_m_dot_lox <= allowable_percent_error_m_dot_lox) and (good_enough_found == 0):
-        good_enough_found = 1
-        best_values = {
-            "Number of holes": N_bottom + N_top,
-            "Number of holes in top row": N_top,
-            "Number of holes in bottom row": N_bottom,
-            "Skip distance [m]": skip_dist,
-            "Annular Thickness [in]": annular_thickness * M2IN,
-            "Real diameter of top LOx orifice holes [in]": D_real_lox_orifice_top * M2IN,
-            "Ideal diameter of bottom LOx orifice holes [in]": D_ideal_lox_orifice_bottom * M2IN,
-            "Real diameter of bottom LOx orifice holes [in]": D_real_lox_orifice_bottom * M2IN,
-            "Closest Bit Name (bottom orifices)": closest_bit_name_bottom,
-            "Bit size error of bottom orifice holes [%]": percent_error_bit_size_bottom,
-            
-            "Ideal LOx mass flow rate [kg/s]" : m_dot_ideal_lox,
-            "Real LOx mass flow rate [kg/s]" : m_dot_real_lox,
-            "LOx mass flow rate error [%]": percent_error_m_dot_lox,
-            
-            "Blockage Factor": bf,
-            "TMR": tmr_real,
-            "Optimal TMR": tmr_ideal,
-            "TMR Error from optimal [%]": tmr_percent_error,
-            "LMR": lmr,
-            "half_angle": half_angle,
-            "velocity_lox [m/s]": velocity_lox,
-            "velocity_ipa [m/s]": velocity_ipa,
-            "area_orifice_ipa [in^2]": total_area_orifice_ipa * M22IN2,
-            "area_orifice_lox [in^2]": total_area_real_orifice_lox * M22IN2,
-            "error in area [%]": err
+D_real_lox_orifice_top = "1/8"
+#N_top = 10
+for N_top in range(4, 20):
+    for N_bottom in range(N_top*2, N_bottom_max + 1, N_top):
+        N_lox_array.append(N_bottom)
+        N_lox = N_top + N_bottom
+        total_area_real_top_orifice_lox = CalculateAreaFromHoles(standard_bits_metric[D_real_lox_orifice_top], N_top)
+        total_target_area_bottom_orifice_lox = total_target_area_orifice_lox - total_area_real_top_orifice_lox
+        D_ideal_lox_orifice_bottom = CalculateIdealHoleDiameter(total_target_area_bottom_orifice_lox, N_bottom) 
+        D_real_lox_orifice_bottom, lowest_absolute_error_bit_size_bottom, closest_bit_name_bottom = closest_bit_size(D_ideal_lox_orifice_bottom, D_real_lox_orifice_top)
+        percent_error_bit_size_bottom = (abs(lowest_absolute_error_bit_size_bottom) / D_ideal_lox_orifice_bottom) * 100
+        total_area_real_bottom_orifice_lox = CalculateAreaFromHoles(D_real_lox_orifice_bottom, N_bottom)
+        total_area_real_orifice_lox = total_area_real_bottom_orifice_lox + total_area_real_top_orifice_lox
+        err = (abs(total_area_real_orifice_lox - total_target_area_orifice_lox) / total_target_area_orifice_lox) * 100
+        m_dot_real_lox = CalculateMassFlowRate(total_area_real_orifice_lox, C_D_lox, rho_lox, desired_pressure_drop)
+        percent_error_m_dot_lox = (abs(m_dot_real_lox - m_dot_ideal_lox) / m_dot_ideal_lox) * 100
+        velocity_lox = m_dot_real_lox / (rho_lox * total_area_real_orifice_lox)
+        tmr_real = (m_dot_real_lox * velocity_lox) / (m_dot_ipa * velocity_ipa)
+        bf = (N_top * standard_bits_metric[D_real_lox_orifice_top] + N_bottom * D_real_lox_orifice_bottom) / (np.pi * D_s)
+        lmr = tmr_real/bf
+        half_angle = 0.7 * np.degrees(np.arctan(2 * lmr)) # from: 
+                                                                    # Blakely, J., Freeberg, J., and Hogge, J., “Spray Cone Formation from
+                                                                    # Pintle-Type Injector Systems in Liquid Rocket Engines,” AIAA SciTech
+                                                                    # 2019 Forum, AIAA Paper 2019-0152, 2019.
+                                                                    # https://doi.org/10.2514/6.2019-0152
+        tmr_percent_error = (abs(tmr_real - tmr_ideal) / tmr_ideal) * 100
+        value_1_array.append(tmr_percent_error)
+        value_2_array.append(percent_error_m_dot_lox)
+        # only update orifice sizes if a good enough one has not been found
+        if (tmr_percent_error <= tmr_allowable_percent_error) and (percent_error_m_dot_lox <= allowable_percent_error_m_dot_lox) and (good_enough_found == 0):
+            good_enough_found = 1
+            best_values = {
+                "Number of holes": N_bottom + N_top,
+                "Number of holes in top row": N_top,
+                "Number of holes in bottom row": N_bottom,
+                "Skip distance [m]": skip_dist,
+                "Annular Thickness [in]": annular_thickness * M2IN,
+                "Real diameter of top LOx orifice holes [in]": standard_bits_metric[D_real_lox_orifice_top] * M2IN,
+                "Ideal diameter of bottom LOx orifice holes [in]": D_ideal_lox_orifice_bottom * M2IN,
+                "Real diameter of bottom LOx orifice holes [in]": D_real_lox_orifice_bottom * M2IN,
+                "Closest Bit Name (bottom orifices)": closest_bit_name_bottom,
+                "Bit size error of bottom orifice holes [%]": percent_error_bit_size_bottom,
+                
+                "Ideal LOx mass flow rate [kg/s]" : m_dot_ideal_lox,
+                "Real LOx mass flow rate [kg/s]" : m_dot_real_lox,
+                "LOx mass flow rate error [%]": percent_error_m_dot_lox,
+                
+                "Blockage Factor": bf,
+                "TMR": tmr_real,
+                "Optimal TMR": tmr_ideal,
+                "TMR Error from optimal [%]": tmr_percent_error,
+                "LMR": lmr,
+                "half_angle": half_angle,
+                "velocity_lox [m/s]": velocity_lox,
+                "velocity_ipa [m/s]": velocity_ipa,
+                "area_orifice_ipa [in^2]": total_area_orifice_ipa * M22IN2,
+                "area_orifice_lox [in^2]": total_area_real_orifice_lox * M22IN2,
+                "error in area [%]": err
             }
 
 
