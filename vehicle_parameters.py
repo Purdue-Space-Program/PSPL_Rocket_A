@@ -41,8 +41,8 @@ class VehicleParameters:
     total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # (4.42 + 4.42) * c.LB2KG # The total mass of propellant needed for the burn time [kilograms]
 
     total_length: float = 7.5 * c.FT2M            # The estimated length of the rocket [meter]
-    wet_mass: float = 87.2 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
-    dry_mass: float = 96.0 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
+    wet_mass: float = 96.0 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
+    dry_mass: float = 87.2 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
     estimated_apogee: float = 3300 * c.FT2M       # The estimated 1-DOF altitude [meters]
     off_the_rail_TWR: float = 7.97                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     off_the_rail_acceleration: float = 6.97       # The target acceleration of the rocket off the launch rail [standard gravity]
