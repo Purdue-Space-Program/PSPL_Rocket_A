@@ -18,7 +18,7 @@ def actuation_time(armlength, braking_torque, torque, piston_mass):
     net_torque = torque - braking_torque
     F_net = net_torque * np.sqrt(2) / armlength
     time = 0
-    time_step = 0.01
+    time_step = 0.0001
     piston_velocity = 0
     dist_travelled = 0
     valve_angle = 0
@@ -38,8 +38,7 @@ def actuation_time(armlength, braking_torque, torque, piston_mass):
         dist_travelled = piston_velocity * time + 0.5 * (F_net / piston_mass) * time**2
         #print(dist_travelled)
         #piston_velocity = piston_velocity_new
-        valve_angle = np.degrees(np.arctan(1 / (((armlength / dist_travelled) + (1/np.sqrt(2))) * np.sqrt(2))))
-        print(valve_angle)
+        valve_angle = np.degrees((np.pi / 2) - np.arctan((((armlength / dist_travelled) - (1/np.sqrt(2))) * np.sqrt(2))))
         time += time_step
         time_history.append(time)
         angle_history.append(valve_angle)
@@ -47,9 +46,12 @@ def actuation_time(armlength, braking_torque, torque, piston_mass):
     plt.plot(time_history, angle_history)
     plt.xlabel("Actuation Time")
     plt.ylabel("Valve Angle")
-    plt.title("Actuation Time vs Valve Angle")
+    plt.title("Actuation Time vs Valve Angle Overtime")
+    plt.ylim(0, 90)
+    plt.xlim(0, time)
     plt.show()
 
+    print(f"Actuation time: {time}")
     return None
 # Shortlisted Piston: https://www.mcmaster.com/6498K297/
 braking_torque = 240
@@ -57,5 +59,5 @@ safety_factor = 3
 piston_force_at_200psi = 620
 piston_stroke_length = 2.5
 required_torque, armlength, torque = calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length)
-piston_mass = 0.286 * 25.9 # [lb]
+piston_mass = 5 # # [lb]
 actuation_time(armlength, braking_torque, torque, piston_mass)
