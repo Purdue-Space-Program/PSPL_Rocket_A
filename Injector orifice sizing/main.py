@@ -29,7 +29,7 @@ standard_bits_metric = {
     "2.2 mm": 0.0022, "2.3 mm": 0.0023, "2.4 mm": 0.0024, "2.5 mm": 0.0025,
 }
 
-remove_list = ["1/64", "1/32", "3/64" "#80", "#70"]
+remove_list = ["1/64", "1/32", "3/64", "#80", "#70"]
 
 for key, value in standard_bits_inch.items():
     if key not in remove_list:
@@ -74,7 +74,7 @@ def CalculateIdealHoleDiameter(area, number_holes):
 # Inputs
 C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice 
 C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
-N_bottom_max = 50 # Max amount of orifices in bottom row allowed, to be changed (we will have 2 rows where the bottom row will have holes with smaller diameter)
+N_bottom_max = 40 # Max amount of orifices in bottom row allowed, to be changed (we will have 2 rows where the bottom row will have holes with smaller diameter)
 N_bottom_min = 8 # Min amount of orifices in bottom row allowed, to be changed
 of_ratio = vehicle.parameters.OF_ratio # from Vehicle Parameters page
 D_c = vehicle.parameters.chamber_inner_diameter # Diameter of chamber (might be changed)
@@ -110,9 +110,9 @@ N_lox_array = []
 value_1_array = []
 value_2_array = []
 minerr = np.inf
-D_real_lox_orifice_top = "1/8"
+D_real_lox_orifice_top = "1/16"
 #N_top = 10
-for N_top in range(4, 20):
+for N_top in range(13, 20):
     for N_bottom in range(N_top*2, N_bottom_max + 1, N_top):
         N_lox_array.append(N_bottom)
         N_lox = N_top + N_bottom
@@ -148,6 +148,7 @@ for N_top in range(4, 20):
                 "Skip distance [m]": skip_dist,
                 "Annular Thickness [in]": annular_thickness * M2IN,
                 "Real diameter of top LOx orifice holes [in]": standard_bits_metric[D_real_lox_orifice_top] * M2IN,
+                "Bit name (top orifices)": D_real_lox_orifice_top,
                 "Ideal diameter of bottom LOx orifice holes [in]": D_ideal_lox_orifice_bottom * M2IN,
                 "Real diameter of bottom LOx orifice holes [in]": D_real_lox_orifice_bottom * M2IN,
                 "Closest Bit Name (bottom orifices)": closest_bit_name_bottom,
@@ -167,6 +168,7 @@ for N_top in range(4, 20):
                 "velocity_ipa [m/s]": velocity_ipa,
                 "area_orifice_ipa [in^2]": total_area_orifice_ipa * M22IN2,
                 "area_orifice_lox [in^2]": total_area_real_orifice_lox * M22IN2,
+                "top area ratio": total_area_real_top_orifice_lox / total_area_real_orifice_lox,
                 "error in area [%]": err
             }
 
