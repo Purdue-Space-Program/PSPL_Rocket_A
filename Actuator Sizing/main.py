@@ -24,6 +24,7 @@ def actuation_time(armlength, braking_torque, torque, piston_mass):
     valve_angle = 0
     time_history = []
     angle_history = []
+    velocity_history = []
     """while valve_angle <= 90:
         piston_velocity_new = piston_velocity + (F_net * time_step) / (piston_mass)
         dist_travelled += ((piston_velocity_new + piston_velocity) / 2) * time_step
@@ -34,21 +35,28 @@ def actuation_time(armlength, braking_torque, torque, piston_mass):
         angle_history.append(valve_angle)"""
     
     while valve_angle <= 90:
-        #piston_velocity_new = piston_velocity + (F_net * time_step) / (piston_mass)
         dist_travelled = piston_velocity * time + 0.5 * (F_net / piston_mass) * time**2
-        #print(dist_travelled)
-        #piston_velocity = piston_velocity_new
+        piston_velocity_new = piston_velocity + (F_net * time_step) / (piston_mass)
+        piston_velocity = piston_velocity_new
         valve_angle = np.degrees((np.pi / 2) - np.arctan((((armlength / dist_travelled) - (1/np.sqrt(2))) * np.sqrt(2))))
         time += time_step
         time_history.append(time)
         angle_history.append(valve_angle)
+        velocity_history.append(piston_velocity)
 
+    plt.subplot(2, 2, 1)
     plt.plot(time_history, angle_history)
     plt.xlabel("Actuation Time")
     plt.ylabel("Valve Angle")
-    plt.title("Actuation Time vs Valve Angle Overtime")
+    plt.title("Valve Angle Over Time")
     plt.ylim(0, 90)
     plt.xlim(0, time)
+
+    plt.subplot(2, 2, 2)
+    plt.plot(time_history, velocity_history)
+    plt.xlabel("Time")
+    plt.ylabel("Velocity")
+    plt.title("Time vs Velocity")
     plt.show()
 
     print(f"Actuation time: {time}")
