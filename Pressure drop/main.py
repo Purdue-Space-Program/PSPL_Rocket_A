@@ -18,9 +18,9 @@ u = UnitRegistry()
 ox_type = 'oxygen'
 
 # Fluid Properties and other initial parameters
-chamber_press = 150 * u.psi  # Pressure in psi
-tank_press_ox = 250 * u.psi  # Pressure in psi
-tank_press_ipa = 250 * u.psi
+chamber_press = 250 * u.psi  # Pressure in psi
+tank_press_ox = 416.67 * u.psi  # Pressure in psi
+tank_press_ipa = 416.67 * u.psi
 mass_flow_ox = 1.78 * (u.pound / u.second)  # LOx mass flow rate
 mass_flow_ipa = 1.78 * (u.pound / u.second)  # Isopropyl alcohol mass flow rate
 
@@ -182,8 +182,6 @@ def sharp_expansion_ipa(outer_dia_one, outer_dia_two, wall_thic, abs_roughness):
     
 def main():
     # Majority of this code is by Keshav Narayanan and Isaiah Jarvis from Rocket 4
-    chamber_press = 150 * u.psi  # Pressure in psi
-    chamber_press = chamber_press.to(u.pascal)  # Convert to pascals
 
     injector_inlet_press = chamber_press * 1.2  # Assumes the injector inlet pressure is 20% higher than the chamber pressure
 
