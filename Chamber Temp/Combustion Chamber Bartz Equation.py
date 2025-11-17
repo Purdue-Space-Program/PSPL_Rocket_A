@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 constants_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "constants.py"))
 chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ChamberContour", "chamber_contour_meters.csv"))
-vehicle_parameters_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..",  "vehicle_parameters.py"))
+#vehicle_parameters_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..",  "vehicle_parameters.py"))
 
-import vehicle_parameters as vp
+#import vehicle_parameters as vp
 
 
 import constants as c
@@ -25,14 +25,14 @@ def main():
 
 
     #cylinder part of the chamber geometry parameters
-    chamber_length = 11.167 * c.IN2M #chamber length (m)
-    D_star = vp.chamber_throat_diameter #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
+    chamber_length = 11.167 * IN2M #chamber length (m)
+    D_star = 1.852 * IN2M #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
     A_star = pi * (D_star / 2)**2 #throat area (m^2)
     chamber_diameter = 6 * IN2M #chamber diameter (m)
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
-    station_inner_radii = chamber_contour[:, 1]
+    station_inner_radii = chamber_contour[:, 0]
 
     station_areas = np.pi * (station_inner_radii**2)
     station_area_ratios = station_areas / A_star
@@ -151,7 +151,7 @@ def main():
 
     #printing axial positions vs surface temp plot
     plt.figure()
-    plt.plot(station_depths * c.M2IN, Temp_surface_total)
+    plt.plot(station_depths * M2IN, Temp_surface_total)
     plt.xlabel("Axial Position Relative to Throat (in) ")
     plt.ylabel("Surface Temperature (K) ")
     plt.title("Surface temperature vs Axial Position")
@@ -160,7 +160,7 @@ def main():
 
     #printing axial position vs heat transfer coefficient
     plt.figure()
-    plt.plot(station_depths * c.M2IN, h_total)
+    plt.plot(station_depths * M2IN, h_total)
     plt.xlabel("Axial Position Relative to Throat (in) ")
     plt.ylabel("Heat Transfer Coefficient (W/m^2 K) ")
     plt.title("Heat Transfer Coefficient vs Axial Position")
