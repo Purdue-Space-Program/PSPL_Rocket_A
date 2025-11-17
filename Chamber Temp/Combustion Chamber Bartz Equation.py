@@ -32,7 +32,7 @@ def main():
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
-    station_inner_radii = chamber_contour[:, 0]
+    station_inner_radii = chamber_contour[:, 1]
 
     station_areas = np.pi * (station_inner_radii**2)
     station_area_ratios = station_areas / A_star
@@ -84,13 +84,7 @@ def main():
                 )
             h_total[station_index] = h_local
 
-            '''
-            Temp_surface_total[station_index] = temperature_surface_calculation(
-                heat_transfer_coefficient_value = h_total[station_index],
-                T_infinity = cea_results["c_t"], #chamber temperature (K)
-                k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
-            )
-            '''
+
             Temp_surface_total[station_index] = temperature_surface_calculation(
                 heat_transfer_coefficient_value = h_total[station_index],
                 axial_position = station_depths[station_index],
@@ -133,13 +127,6 @@ def main():
                 )
             h_total[station_index] = h_local
 
-            '''
-            Temp_surface_total[station_index] = temperature_surface_calculation(
-                heat_transfer_coefficient_value = h_total[station_index],
-                T_infinity = cea_results["c_t"], #chamber temperature (K)
-                k = cea_results["c_cond"] #conductivity of the combustion gas in the chamber (W/(m*K))
-            )
-            '''
             Temp_surface_total[station_index] = temperature_surface_calculation(
                 heat_transfer_coefficient_value = h_total[station_index],
                 axial_position = station_depths[station_index],
@@ -169,8 +156,6 @@ def main():
 
     print("Maximum Surface Temperature (K): ", max(Temp_surface_total))
     print("Maximum Heat Transfer Coefficient (W/m^2 K): ", max(h_total))
-
-    print("throat temperature:", cea_results["t_t"])
     
 
 def RunCEA(
@@ -214,7 +199,7 @@ def RunCEA(
         "c_pran": cea_results.c_pran, #Prandtl number of combustion gas at chamber (no units)
         "t_pran": cea_results.t_pran, #Prandtl number of combustion gas at throat (no units)
         "c_gamma": cea_results.c_gamma, #specific heat ratio of combustion gas at chamber (no units)
-        "t_gamma": cea_results.t_gamma, #specific heat ratio of combustion gas at chamber (no units)
+        "t_gamma": cea_results.t_gamma, #specific heat ralstio of combustion gas at chamber (no units)
         "c_t": cea_results.c_t, #stagnation temperature at chamber (K)
         "t_t": cea_results.t_t, #stagnation temperature at throat (K)
         "c_cp": cea_results.c_cp, #specific heat at constant pressure of combustion gas (kJ/kg*K)
@@ -244,41 +229,6 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess):
     M_solution = fsolve(f, initial_guess)
     return float(M_solution)
 
-'''
-def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M, local_Area_ratio):
-
-    #The sigma term of the Bartz equation split into different terms
-    sigma_parentheses1 = ((0.5 * (Twg / T0) * (1 + (((gamma - 1) * M**2)/2))) + 0.5) ** 0.68
-    sigma_parentheses2 = (1 + (((gamma - 1)/2) * (M**2))) ** 0.12
-    sigma = 1 / (sigma_parentheses1 * sigma_parentheses2)
-
-    #Bartz equations split into different terms
-    heat_transfer_term1 = 0.026 / (Dt ** 0.2)
-    heat_transfer_term2 = ((mu ** 0.2) * Cp) / (Pr ** 0.6)
-    heat_transfer_term3 = (P0 / (c_star)) ** 0.8
-    heat_transfer_term4 = (Dt / Rt) ** 0.1
-
-    bartz_equation = heat_transfer_term1 * heat_transfer_term2 * heat_transfer_term3 * heat_transfer_term4 * (local_Area_ratio ** 0.9) * sigma
-
-    return bartz_equation
-
-
-def temperature_surface_calculation(heat_transfer_coefficient_value, T_infinity, k):
-    
-    alpha = 3.6e-4 #thermal diffusivity of the chamber wall material ((m^2)/s)
-    T_initial = 293 #room temperature (K)
-    t = 20 #burn time (sec)
-
-    #Surface temperature equation split into different terms
-    Surface_temp_term0 = (heat_transfer_coefficient_value ** 2) * alpha * t
-    Surface_temp_term1 = exp(-(Surface_temp_term0) / (k**2))
-    Surface_temp_term2 = erfc((heat_transfer_coefficient_value * ((alpha * t) ** 0.5)) / k)
-    Surface_temp_term3 = T_infinity - T_initial 
-    surface_temp = (Surface_temp_term1 * Surface_temp_term2 * Surface_temp_term3) + T_initial 
-
-    return surface_temp        
-
-'''
 
 def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M, local_Area_ratio):
     # sigma (Bartz correction)
