@@ -23,7 +23,7 @@ sweep_length = 0.2 # [m] NEED
 fin_height = 0.3 # [m] NEED
 numFins = 3 # [m] NEED
 
-mach = vehicle.parameters.max_mach
+mach = vehicle.parameters.max_mach # [Mach number]
 
 linear_density_array = vehicle.linear_density_array # [kg / m]
 length_along_rocket_linspace = vehicle.length_along_rocket_linspace # [m]
@@ -36,8 +36,8 @@ noseconeToFin = 2 # [m] NEED
 total_mass = np.sum(component.mass for component in vehicle.mass_distribution) # [kg]
 total_length = length_along_rocket_linspace[-1] # [m]
 
-thrust = vehicle.parameters.jet_thrust
-ax = vehicle.parameters.max_acceleration
+thrust = vehicle.parameters.jet_thrust # [N]
+ax = vehicle.parameters.max_acceleration * 9.81 # [m / s]
 
 
 Q = sfd.calcQ(air_density, velocity)
@@ -59,10 +59,10 @@ noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length)
 r = sfd.calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg)
 shear_array = np.array(sfd.calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg))
 bending_array = np.array(sfd.calcBending(shear_array, length_along_rocket_linspace))
-axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace))
+axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, air_density, 0.65, S, velocity)) # For medium size fins, Cd ~ 0.65 (UW Madison)
 
 
-variable = "shear_array"
+variable = "axial_array"
 N2LBS = 0.224809
 M2FT = 3.28084
 
@@ -78,9 +78,50 @@ if variable == "axial_array":
     plot = axial_array * N2LBS
     ylabel = "Axial Force [lbs]"
     title = "Axial Forces"
-
 plt.plot(length_along_rocket_linspace * M2FT, plot)
 plt.title(title)
 plt.xlabel("Length from aft [ft]")
 plt.ylabel(ylabel)
+plt.grid()
 plt.show()
+
+print("Parameters")
+print(f"Air density: {air_density}")
+print(f"Velocity: {velocity}")
+print(f"Wind gust: {wind_gust}")
+print(f"Diameter: {diameter}")
+
+print(f"Root chord: {root_chord}")
+print(f"Tip chord: {tip_chord}")
+print(f"Sweep length: {sweep_length}")
+print(f"Fin height: {fin_height}")
+print(f"Number of fins: {numFins}")
+
+print(f"Mach number: {mach}")
+
+print(f"Burn time: {burn_time}")
+print(f"Total time: {total_time}")
+
+print(f"Nosecone to fin: {noseconeToFin}")
+print(f"Total mass: {total_mass}")
+print(f"Total length: {total_length}")
+print(f"Thrust: {thrust}")
+print(f"Max acceleration: {ax}")
+
+
+print("Calculated values")
+print(f"Dynamic pressure: {Q}")
+print(f"Angle of attack: {AOA}")
+print(f"Cross sectional area: {S}")
+
+print(f"Fin stability derivative: {finSD}")
+print(f"Mach coefficient: {machCoeff}")
+print(f"Nose stability derivative: {noseSD}")
+print(f"Nose lift: {noseLift}")
+print(f"Fin lift: {finLift}")
+print(f"Center of gravity: {cg}")
+print(f"Inertia: {inertia}")
+print(f"Lateral acceleration: {ay}")
+print(f"Fin center of pressure: {finCP}")
+print(f"Nose center of pressure: {noseCP}")
+print(f"Angular acceleration: {r}")

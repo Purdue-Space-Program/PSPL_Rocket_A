@@ -1,5 +1,5 @@
 import pandas as pd
-from math import ceil, sqrt, atan, pi, degrees
+from math import ceil, sqrt, atan, pi, degrees, floor
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -78,8 +78,9 @@ def calcFinSD(root_chord, tip_chord, sweep_length, fin_height, numFins, diameter
     finSD: Stability derivative [unitless]
     '''
     mid_chord = sqrt(fin_height**2 + ((tip_chord - root_chord) / 2 + sweep_length)**2) # [m] Length of fin mid-chord line, Rocket Fin Design equation 1
+    print(f"Fin mid-chord: {mid_chord}") # TEST
     Kfb = 1 + (diameter / 2) / (fin_height + diameter / 2) # Coefficient, Cambridge equation 32
-    
+    print(f"Fin Kfb: {Kfb}") # TEST
     stability_derivative = Kfb * (4 * numFins * (fin_height / diameter)**2) / (1 + sqrt(1 + (2 * mid_chord / (root_chord + tip_chord))**2)) # Fin stability derivative, Cambrdige Aerodynamic Equations equation 31
     return stability_derivative
 
@@ -242,6 +243,9 @@ def calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg):
     r = ((-1) * noseLift * (abs(noseCP - cg)) + finLift * (abs(finCP - cg))) / inertia
     return r
 
+def shearCalc(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_array, r,):
+    
+
 # Calculate shear forces across the rocket length and output an array of shear forces
 def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg):
     '''
@@ -257,10 +261,11 @@ def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
     # cg_rel_lengths = np.array(-1 * length_along_rocket_linspace + cg)
     shear_array = (-1) * ay * np.cumsum(linear_density_array * dx) # - r * np.cumsum(linear_density_array * dx) * cg_rel_lengths
-    print(shear_array) # TEST
-    print(f"Lateral acceleration: {ay}")
-    print(f"Nose lift: {noseLift}") # TEST
-    print(f"Fin lift: {finLift}") # TEST
+    #print(np.cumsum(linear_density_array * dx))
+    # print(shear_array) # TEST
+    #print(f"Lateral acceleration: {ay}")
+    #print(f"Nose lift: {noseLift}") # TEST
+    #print(f"Fin lift: {finLift}") # TEST
     shear_array[int(noseCP / dx):] += noseLift
     shear_array[int(finCP / dx):] += finLift
 
@@ -278,7 +283,7 @@ def calcBending(shear_array, length_along_rocket_linspace):
     return bending_array
 
 # Calculate axial forces across rocket length and output an array of bending forces
-def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace):
+def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, rho, cd, S, velocity):
     '''
     thrust: Rocket thrust [N]
     ax: Acceleration [m / s^2]
@@ -287,14 +292,21 @@ def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace):
     axial: Array of axial forces across rocket length [N]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    masses = np.cumsum(linear_density_array) * dx
-    masses1 = masses[::-1]
+    masses = np.array(linear_density_array) * dx # aft to nose
+    masses1 = masses[::-1] # nose to aft
+    masses2 = np.cumsum(masses1) # nose to aft
+    masses3 = masses2[::-1] # aft to nose
 
     axial_tb = []
-    for mass in masses1:
-        axial_p = thrust - (ax * mass)
+    for mass in masses3:
+        axial_p = (ax * mass) + mass * 9.81
         axial_tb.append(axial_p)
-    axial = axial_tb[::-1]
+    fin_drag = 0.5 * rho * cd * S * velocity**2 # Fin drag [N]
+    axial_tb = np.array(axial_tb) + fin_drag # aft to nose
+    axial = axial_tb # aft to nose
+    # to_strut = floor(32.2 * IN2M / dx)
+    # print(to_strut)
+    # print(axial[to_strut])
     return axial
 
 '''

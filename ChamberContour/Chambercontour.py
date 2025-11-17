@@ -5,7 +5,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters
+import vehicle_parameters as vehicle
 
 def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename):
     
@@ -80,9 +80,12 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     # Volume calculations
     V_con = np.pi * np.trapezoid(np.concatenate([y_con_rad, y_cone, y_con])**2, x=np.concatenate([x_con_rad, x_cone, x_con])) # Volume of converging section
     Vc = (Lstar * At) - V_con # Volume of cylindrical section 
-    Lc = Vc / Ac # Length of chamber
+    pintle_length = 1 * c.IN2M # account for the mixing starting further down in the chamber due to pintle injector
+    Lc = (Vc / Ac) + pintle_length # Length of chamber
+    
+    
     # Chamber
-    x_c = np.linspace(-Lc+x_con_rad[0], x_con_rad[0], num=3) 
+    x_c = np.linspace(-Lc+x_con_rad[0], x_con_rad[0], num=4) 
     y_c = np.zeros(np.size(x_c)) + Rc
     x_c = np.delete(x_c, -1)
     y_c = np.delete(y_c, -1)
@@ -91,25 +94,27 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     y_arr = np.concatenate([y_c, y_con_rad, y_cone, y_con, y_div, y_bell])
 
 
+    print(f"Lc: {Lc * c.M2IN:.6f} inches")
+    print(f"V_con_len: {(V_con/Ac) * c.M2IN:.6f} inches")
+    print(f"Injector-to-throat length - straight wall length: {((-x_arr[0]) - Lc) * c.M2IN:.4f} inches")
 
     first_point_depth = x_arr[0]
     last_point_depth = x_arr[-1]
     chamber_length = last_point_depth - first_point_depth
 
-    print(f'Combustion chamber length: {Lc * c.M2IN:.3f} in')
+    print(f'\nCombustion chamber length: {Lc * c.M2IN:.4f} in')
     print(f'Total chamber length: {chamber_length * c.M2IN:.5f} in')
-    print(f'Injector-to-throat length: {-x_arr[0] * c.M2IN:.3f} in')
+    print(f'Injector-to-throat length: {-x_arr[0] * c.M2IN:.4f} in')
     print(f'Initial parabola angle: {np.rad2deg(theta_n):.2f} degrees')
     print(f'Exit parabola angle: {np.rad2deg(theta_e):.2f} degrees')
     
     z_arr = np.zeros(np.size(x_arr))
     
-    x_arr -= x_arr[-1]
-    # x_arr -= 1
     
     
-    import_point_in_NX = False
+    import_point_in_NX = True
     if import_point_in_NX:
+        x_arr -= x_arr[-1]
         nozzle = np.transpose(np.array([y_arr, z_arr, -x_arr]))
     else:
         nozzle = np.transpose(np.array([x_arr, y_arr, z_arr]))
@@ -129,9 +134,9 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     
     plt.plot(x_arr * c.M2IN, y_arr * c.M2IN, 'k', x_arr * c.M2IN, -y_arr * c.M2IN, 'k')
     
-    print(f"Start of exit parabola: ({Nx * c.M2IN:.4f}, {Ny * c.M2IN:.4f})")
-    print(f"Middle of exit parabola: ({Qx * c.M2IN:.4f}, {Qy * c.M2IN:.4f})")
-    print(f"End of exit parabola: ({Ex * c.M2IN:.4f}, {Ey * c.M2IN:.4f})")
+    # print(f"Start of exit parabola: ({Nx * c.M2IN:.4f}, {Ny * c.M2IN:.4f})")
+    # print(f"Middle of exit parabola: ({Qx * c.M2IN:.4f}, {Qy * c.M2IN:.4f})")
+    # print(f"End of exit parabola: ({Ex * c.M2IN:.4f}, {Ey * c.M2IN:.4f})")
     
     # debugging stuff
     # plt.plot(x_c, y_c, x_con_rad, y_con_rad, x_cone, y_cone, x_con, y_con, x_div, y_div, x_bell, y_bell)
@@ -148,18 +153,24 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
 
 
 expansion_ratio = 2.288 # [n/a]
-Lstar = 50 * c.IN2M # [meters]
-con_angle = 50 # [degrees]
+Lstar = 45 * c.IN2M # [meters]
+con_angle = 45 # [degrees]
 filename = 'chamber_contour'
 theta_n = 20.88
 theta_e = 14.6
 
-chamber_diameter = 6 * c.IN2M # [meters]
-chamber_area = np.pi * ((chamber_diameter/2)**2) # [m^2]
-throat_diameter = 2.3094013 * c.IN2M # [meters]
-throat_area = 0.027 # [m^2]
+
+chamber_inner_diameter = vehicle.parameters.chamber_inner_diameter # [meters]
+chamber_area = np.pi * ((chamber_inner_diameter/2)**2) # [m^2]
+
+throat_diameter = vehicle.parameters.chamber_throat_diameter # [meters]
+throat_area = np.pi * ((throat_diameter/2)**2) # [m^2]
+
 contract_ratio = chamber_area/throat_area
-print(f"Contraction Ratio: {contract_ratio:.4f}")
+
+print(f"Chamber Inner Diameter: {chamber_inner_diameter * c.M2IN:.3f}")
+print(f"Throat Diameter: {throat_diameter * c.M2IN:.3f}")
+print(f"Contraction Ratio: {contract_ratio:.3f}")
 
 
-nozzle_contour(throat_diameter, expansion_ratio, Lstar, contract_ratio, con_angle, chamber_diameter, filename)
+nozzle_contour(throat_diameter, expansion_ratio, Lstar, contract_ratio, con_angle, chamber_inner_diameter, filename)

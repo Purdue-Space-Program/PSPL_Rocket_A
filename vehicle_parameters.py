@@ -11,44 +11,46 @@ class VehicleParameters:
 
     fuel_name: str = "isopropyl alcohol" 
     oxidizer_name: str = "liquid oxygen"
-    tube_outer_diameter: float = 6.0 * c.IN2M     # Outer diameter of all sections of the rocket
-    tube_inner_diameter: float = 5.75 * c.IN2M    # Inner diameter of some sections of the rocket
+    tube_outer_diameter: float = 6.0 * c.IN2M         # Outer diameter of all sections of the rocket
+    tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of some sections of the rocket
     
-    chamber_pressure: float = 150 * c.PSI2PA      # The target combustion pressure in the engine [Pascals]
-    jet_thrust: float = 577.52 * c.LBF2N          # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
-    ISP: float = 162.21                           # The estimated ISP of the engine [seconds]
-    mass_flow_rate: float = 3.56 * c.LB2KG        # The targeted mass flow rate through the engine [kilograms/second]
-    OF_ratio: float = 1.0                         # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
-    burn_time: float = 2.24                       # The estimated burn time of the engine [seconds]
-    contraction_ratio: float = 3.0                # The target ratio of chamber area to throat area [dimensionless]
-    exit_pressure: float = 15.0 * c.PSI2PA        # The target exit pressure of the exhaust gas [Pascals]
-    # combustion_temperature: float = 2170          # The estimated combustion temperature [Kelvin]
+    chamber_pressure: float = 250 * c.PSI2PA          # The target combustion pressure in the engine [Pascals]
+    jet_thrust: float = 668.0 * c.LBF2N               # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
+    ISP: float = 175.0                                # The estimated ISP of the engine [seconds]
+    mass_flow_rate: float = 3.82 * c.LB2KG            # The targeted mass flow rate through the engine [kilograms/second]
+    OF_ratio: float = 1.0                             # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
+    burn_time: float = 2.09                           # The estimated burn time of the engine [seconds]
+    contraction_ratio: float = 7.0                    # The target ratio of chamber area to throat area [dimensionless]
+    exit_pressure: float = 15.0 * c.PSI2PA            # The target exit pressure of the exhaust gas [Pascals]
+    # combustion_temperature: float = 2170            # The estimated combustion temperature [Kelvin]
+    chamber_outer_diameter: float = 6.0 * c.IN2M      # The design combustion chamber diameter [meters]
+    chamber_inner_diameter: float = 4.9 * c.IN2M      # The design combustion chamber diameter [meters]
+    chamber_throat_diameter: float = 1.852 * c.IN2M   # The design throat diameter [meters]
     
-    tank_pressure: float = 250.0 * c.PSI2PA       # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
-    
-    # FYI the sizing of the tanks accounted for ullage and residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
+    # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
 
-    fuel_tank_length: float = 0.5 * c.FT2M        # The length of the fuel tank that needs to be filled with fuel (the actual tank may be longer) [meters]
-    fuel_tank_volume: float = 2.55 * c.L2M3       # The required loaded volume of fuel needed for the burn time [meter^3]
-    fuel_total_mass: float = 4.42 * c.LB2KG       # The required loaded mass of fuel needed for the burn time [kilograms]
+    tank_pressure: float = 416.67 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
+    fuel_tank_length: float = 6 * c.IN2M      # The length of the fuel tank that needs to be filled with fuel (the actual tank may be longer) [meters]
+    fuel_tank_volume: float = 2.55 * c.L2M3     # The required loaded volume of fuel needed for the burn time [meter^3]
+    fuel_total_mass: float = 4.42 * c.LB2KG     # The required loaded mass of fuel needed for the burn time [kilograms]
 
-    oxidizer_tank_length: float = 4.57 * c.IN2M   # The length of the oxidizer tank that needs to be filled with oxidizer (the actual tank may be longer) [meters]
-    oxidizer_tank_volume: float = 1.95 * c.L2M3   # The required loaded volume of oxidizer needed for the burn time [meter^3]
+    oxidizer_tank_length: float = 4.56 * c.IN2M   # The length of the oxidizer tank that needs to be filled with oxidizer (the actual tank may be longer) [meters]
+    oxidizer_tank_volume: float = 1.94 * c.L2M3   # The required loaded volume of oxidizer needed for the burn time [meter^3]
     oxidizer_total_mass: float = 4.42 * c.LB2KG   # The required loaded mass of oxidizer needed for the burn time [kilograms]
 
     total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # (4.42 + 4.42) * c.LB2KG # The total mass of propellant needed for the burn time [kilograms]
 
-    total_length: float = 8.80 * c.FT2M           # The estimated length of the rocket [meter]
-    wet_mass: float = 77.29 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
-    dry_mass: float = 69.32 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
-    estimated_apogee: float = 3300 * c.FT2M       # The estimated 1-DOF altitude [meters]
-    off_the_rail_TWR: float = 7.81                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    off_the_rail_acceleration: float = 6.81       # The target acceleration of the rocket off the launch rail [standard gravity]
-    off_the_rail_velocity: float = 29.72          # The target velocity of the rocket off the launch rail [meters/second]
-    max_acceleration: float = 7.47 # (upwards)    # The maximum acceleration of the rocket during flight [standard gravity]
-    max_mach: float = 0.454                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    max_velocity: float = 155.722                 # The maximum speed of the rocket during flight [meters/second]
-    total_impulse: float = 5934                   # The total impulse of the rocket over the duration of flight [newton seconds]
+    total_length: float = 7.5 * c.FT2M            # The estimated length of the rocket [meter]
+    wet_mass: float = 96.0 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
+    dry_mass: float = 87.2 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
+    estimated_apogee: float = 2587 * c.FT2M       # The estimated 1-DOF altitude [meters]
+    off_the_rail_TWR: float = 7.22                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
+    off_the_rail_acceleration: float = 6.22       # The target acceleration of the rocket off the launch rail [standard gravity]
+    off_the_rail_velocity: float = 27.21          # The target velocity of the rocket off the launch rail [meters/second]
+    max_acceleration: float = 6.72 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
+    max_mach: float = 0.385                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    max_velocity: float = 0.385 * 343                  # The maximum speed of the rocket during flight [meters/second]
+    total_impulse: float = 6380                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
 parameters = VehicleParameters()
 
@@ -76,7 +78,7 @@ def CalcTubeVolume(OD, ID, length):
     return volume
     
 engine_length = 1 * c.FT2M
-injector_length = 4 * c.IN2M
+injector_length = 2 * c.IN2M
 lower_length = 1 * c.FT2M
 
 bulkhead_length = 3 * c.IN2M
@@ -94,11 +96,12 @@ propellant_tank_outer_diameter = parameters.tube_outer_diameter
 propellant_tank_inner_diameter = parameters.tube_inner_diameter
 panels_outer_diameter = parameters.tube_outer_diameter
 panels_inner_diameter = parameters.tube_inner_diameter
-engine_wall_thickness = 0.5 * c.IN2M
-engine_ID = propellant_tank_outer_diameter - (2 * engine_wall_thickness)
 
-# engine_mass = c.DENSITY_SS316 * CalcTubeVolume(propellant_tank_outer_diameter, engine_ID, engine_length)
-engine_mass = c.DENSITY_SS316 * CalcTubeVolume(propellant_tank_outer_diameter, engine_ID, engine_length)
+engine_wall_thickness = 0.25 * c.IN2M
+# engine_ID = propellant_tank_outer_diameter - (2 * engine_wall_thickness)
+engine_OD = 7 * c.IN2M
+engine_ID = engine_OD - (2 * engine_wall_thickness)
+engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_length)
 
 injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
 
@@ -308,16 +311,19 @@ for component in mass_distribution.components:
 
 
 
-print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LB} lbm")
-print(f"engine mass: {engine.mass * c.KG2LB} lbm")
 
-panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
-print(f"panels mass: {panels_mass * c.KG2LB} lbm")
+if __name__ == "__main__":
+    print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LB} lbm")
+    print(f"engine mass: {engine.mass * c.KG2LB:.2f} lbm")
+    print(f"injector mass: {injector.mass * c.KG2LB:.2f} lbm")
 
-# plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
-# plt.xlabel("length [feet]")
-# plt.ylabel("mass density [lbs/feet]")
-# plt.show()
+    panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
+    print(f"panels mass: {panels_mass * c.KG2LB:.2f} lbm")
+
+    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
+    plt.xlabel("length [feet]")
+    plt.ylabel("mass density [lbs/feet]")
+    plt.show()
 
 
-
+    
