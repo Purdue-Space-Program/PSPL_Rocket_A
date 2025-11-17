@@ -110,10 +110,10 @@ N_lox_array = []
 value_1_array = []
 value_2_array = []
 minerr = np.inf
-D_real_lox_orifice_top = "1/16"
+D_real_lox_orifice_top = "#55"
 #N_top = 10
-for N_top in range(13, 20):
-    for N_bottom in range(N_top*2, N_bottom_max + 1, N_top):
+for N_top in range(20, 30, 2):
+    for N_bottom in range(N_top, N_bottom_max + 1, 2):
         N_lox_array.append(N_bottom)
         N_lox = N_top + N_bottom
         total_area_real_top_orifice_lox = CalculateAreaFromHoles(standard_bits_metric[D_real_lox_orifice_top], N_top)
