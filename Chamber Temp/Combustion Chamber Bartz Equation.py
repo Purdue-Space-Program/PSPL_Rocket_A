@@ -156,6 +156,7 @@ def main():
 
     print("Maximum Surface Temperature (K): ", max(Temp_surface_total))
     print("Maximum Heat Transfer Coefficient (W/m^2 K): ", max(h_total))
+    print("chamber temperature (K): ", cea_results["c_gamma"])
     
 
 def RunCEA(
