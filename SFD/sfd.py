@@ -243,8 +243,11 @@ def calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg):
     r = ((-1) * noseLift * (abs(noseCP - cg)) + finLift * (abs(finCP - cg))) / inertia
     return r
 
-def shearCalc(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_array, r,):
+def shearCalc(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg):
+    dy = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    mass_model = linear_density_array * dy
     
+
 
 # Calculate shear forces across the rocket length and output an array of shear forces
 def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg):
