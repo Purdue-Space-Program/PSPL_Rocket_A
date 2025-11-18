@@ -62,7 +62,7 @@ bending_array = np.array(sfd.calcBending(shear_array, length_along_rocket_linspa
 axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, air_density, 0.65, S, velocity)) # For medium size fins, Cd ~ 0.65 (UW Madison)
 
 
-variable = "axial_array"
+variable = "shear_array"
 N2LBS = 0.224809
 M2FT = 3.28084
 
