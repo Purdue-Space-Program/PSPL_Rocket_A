@@ -4,8 +4,6 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-from pint import UnitRegistry
-u = UnitRegistry()
 
 def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length):
     required_torque = braking_torque * safety_factor
