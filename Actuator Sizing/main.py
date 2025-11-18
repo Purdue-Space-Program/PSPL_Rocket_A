@@ -19,11 +19,11 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, pi
 def actuation_time(armlength, braking_torque, torque, piston_mass):
     net_torque = torque - braking_torque
     F_net = net_torque * np.sqrt(2) / armlength
-    time = 0 * u.second
-    time_step = 0.0001 * u.second
-    piston_velocity = 0 * u.meter / u.second
-    dist_travelled = 0 * u.meter
-    valve_angle = 0 * u.degree
+    time = 0 
+    time_step = 0.0001 
+    piston_velocity = 0 
+    dist_travelled = 0
+    valve_angle = 0 
     time_history = []
     angle_history = []
     velocity_history = []
@@ -32,7 +32,10 @@ def actuation_time(armlength, braking_torque, torque, piston_mass):
         dist_travelled = piston_velocity * time + 0.5 * (F_net / piston_mass) * time**2
         piston_velocity_new = piston_velocity + (F_net * time_step) / (piston_mass)
         piston_velocity = piston_velocity_new
-        valve_angle = np.degrees((np.pi / 2) - np.arctan((((armlength / dist_travelled) - (1/np.sqrt(2))) * np.sqrt(2))))
+        if dist_travelled ==0:
+            valve_angle = 0
+        else:
+            valve_angle = np.degrees((np.pi / 2) - np.arctan((((armlength / dist_travelled) - (1/np.sqrt(2))) * np.sqrt(2))))
         time += time_step
         time_history.append(time)
         angle_history.append(valve_angle)
@@ -57,10 +60,10 @@ def actuation_time(armlength, braking_torque, torque, piston_mass):
     return None
 # Shortlisted Piston: https://www.mcmaster.com/6498K297/
 
-breaking_torque = 240 * LBI2NM * u.newton * u.meter
+breaking_torque = 240 * LBI2NM 
 safety_factor = 3
-piston_force_at_200psi = 620 * LBF2N * u.newton
-piston_stroke_length = 2.5 * IN2M * u.meter
+piston_force_at_200psi = 620 * LBF2N 
+piston_stroke_length = 2.5 * IN2M 
 required_torque, armlength, torque = calc_torque_piston(breaking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length)
-piston_mass = 5 * LB2KG * u.kg
+piston_mass = 5 * LB2KG 
 actuation_time(armlength, breaking_torque, torque, piston_mass)
