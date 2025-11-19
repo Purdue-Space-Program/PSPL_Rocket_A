@@ -6,6 +6,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import vehicle_parameters as vehicle
+from scipy.io import savemat
 
 LB2KG = 0.453592
 FT2M = 0.3048
@@ -13,14 +14,14 @@ IN2M = 0.0254
 
 air_density = 1.225 # [kg / m^3] NEED
 velocity = vehicle.parameters.max_velocity # [m / s]
-wind_gust = 30 # [m / s] about 69 mph NEED
+wind_gust = 9 # [m / s] about 69 mph NEED
 diameter = vehicle.parameters.tube_outer_diameter # [m]
 
 # Fins
-root_chord = 0.3 # [m] NEED
-tip_chord = 0.1 # [m] NEED
-sweep_length = 0.2 # [m] NEED
-fin_height = 0.3 # [m] NEED
+root_chord = 0.29 # [m] NEED
+tip_chord = 0.066 # [m] NEED
+sweep_length = 0.224 # [m] NEED
+fin_height = 0.136 # [m] NEED
 numFins = 3 # [m] NEED
 
 mach = vehicle.parameters.max_mach # [Mach number]
@@ -40,7 +41,7 @@ thrust = vehicle.parameters.jet_thrust # [N]
 ax = vehicle.parameters.max_acceleration * 9.81 # [m / s]
 
 
-Q = sfd.calcQ(air_density, velocity)
+Q = sfd.calcQ(air_density, velocity, wind_gust)
 AOA = sfd.calcAOA(wind_gust, velocity)
 S = sfd.calcS(diameter)
 
@@ -60,7 +61,8 @@ r = sfd.calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg)
 shear_array = np.array(sfd.calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg))
 bending_array = np.array(sfd.calcBending(shear_array, length_along_rocket_linspace))
 axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, air_density, 0.65, S, velocity)) # For medium size fins, Cd ~ 0.65 (UW Madison)
-
+matlab_dict = {"axial_array": axial_array, "shear_array": shear_array, "bending_array": bending_array, "length_along_rocket_linspace": length_along_rocket_linspace}
+savemat("sfd_outputs.mat", matlab_dict)
 
 variable = "shear_array"
 N2LBS = 0.224809

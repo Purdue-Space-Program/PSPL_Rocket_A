@@ -1,4 +1,3 @@
-import pandas as pd
 from math import ceil, sqrt, atan, pi, degrees, floor
 import numpy as np
 import matplotlib.pyplot as plt
@@ -41,20 +40,20 @@ MPH2MPS = 0.44704
 # Need rho, velocity, wind gust, diameter, fin dimensions, mach, linear density, total mass, total length, 
 
 # Calculate dynamic pressure
-def calcQ(rho, velocity):
+def calcQ(rho, velocity, wind_gust):
     '''
     rho: air density [kg / m^3]
     velocity: air velocity = rocket velocity [m/s]
     Q: Dynamic pressure [Pa]
     '''
-    return rho * velocity**2 / 2
+    return rho * (sqrt(velocity**2 + wind_gust**2))**2 / 2
 
 # Calculate angle of attack
 def calcAOA(wind_gust, velocity):
     '''
     wind_gust: wind gust velocity [m/s]
     velocity: rocket velocity [m/s]
-    AOA: Angle of attack [degrees]
+    AOA: Angle of attack [radians]
     '''
     return atan(wind_gust / velocity)
 
@@ -105,7 +104,7 @@ def calcLift(Q, S, AOA, SD):
     '''
     Q: Dynamic pressure [Pa]
     S: Cross sectional area [m^2]
-    AOA: Angle of attack [degrees ]
+    AOA: Angle of attack [radians]
     SD: Stability derivative
     Lift: Lift [N]
     '''
@@ -185,9 +184,10 @@ def calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg
     cg: Location of center of gravity [m]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    mass_model = linear_density_array * dx
     inertia = 0
     for x in range(len(length_along_rocket_linspace)):
-        inertia += linear_density_array[x] * dx * (length_along_rocket_linspace[x] - cg)**2
+        inertia += mass_model[x] * (length_along_rocket_linspace[x] - cg)**2
     return inertia
 
 # Calculate lateral acceleration, need a way to update total_mass
@@ -243,12 +243,6 @@ def calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg):
     r = ((-1) * noseLift * (abs(noseCP - cg)) + finLift * (abs(finCP - cg))) / inertia
     return r
 
-def shearCalc(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg):
-    dy = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    mass_model = linear_density_array * dy
-    
-
-
 # Calculate shear forces across the rocket length and output an array of shear forces
 def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg):
     '''
@@ -262,8 +256,10 @@ def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length
     shear_array: Array of shear forces across rocket length [N]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    # cg_rel_lengths = np.array(-1 * length_along_rocket_linspace + cg)
-    shear_array = (-1) * ay * np.cumsum(linear_density_array * dx) # - r * np.cumsum(linear_density_array * dx) * cg_rel_lengths
+    cg_rel_lengths = np.array(-1 * length_along_rocket_linspace + cg)
+    mass_model = np.cumsum(linear_density_array * dx) # aft to nose
+    cumulative_moment_about_cg = np.cumsum(linear_density_array * dx * cg_rel_lengths) # aft to nose
+    shear_array = (-1) * ay * mass_model - r * cumulative_moment_about_cg
     #print(np.cumsum(linear_density_array * dx))
     # print(shear_array) # TEST
     #print(f"Lateral acceleration: {ay}")
