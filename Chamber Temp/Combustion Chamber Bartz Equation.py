@@ -12,8 +12,6 @@ chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__
 vehicle_parameters_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..",  "vehicle_parameters.py"))
 
 import vehicle_parameters as vp
-
-
 import constants as c
 
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
@@ -23,9 +21,8 @@ def main():
 
     #cylinder part of the chamber geometry parameters
     chamber_length = 11.167 * c.IN2M #chamber length (m)
-    D_star = 1.852 * c.IN2M #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
+    D_star = vp.chamber_throat_diameter #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
     A_star = pi * (D_star / 2)**2 #throat area (m^2)
-    chamber_diameter = 6 * c.IN2M #chamber diameter (m)
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
@@ -41,12 +38,10 @@ def main():
 
     initial_guess = 0.2
 
-    chamber_pressure = 150 #psi
-
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
         
-        cea_results = RunCEA(chamber_pressure, "ethanol", "liquid oxygen", 1.0)
+        cea_results = RunCEA(vp.chamber_pressure, "ethanol", "liquid oxygen", 1.0)
  
         '''
         if A_ratio <= 1.0: #chamber and converging section
@@ -202,7 +197,8 @@ def main():
             heat_transfer_coefficient_value = h_total[station_index],
             axial_position = station_depths[station_index],
             T_infinity = t_loc, #chamber temperature (K)
-            k = 50 #thermal conductivity of the chamber wall material (W/(m*K))
+            k = 50, #thermal conductivity of the chamber wall material (W/(m*K))
+            t = vp.burn_time #s, burn time
         )
 
         #plots
@@ -307,10 +303,9 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
 
     return bartz_equation
 
-def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k = 167):
+def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k = 167, t = vp.burn_time):
     Ti = 294 #K, initial temperature of the chamber wall
-    alpha = 1.5e-5 #thermal diffusivity of the chamber wall material 
-    t = 2.24 #sec, burn time
+    alpha = 1.5e-5 #thermal diffusivity of the chamber wall material (m^2/s)
 
     term_conduction = k / ((pi * alpha * t) ** 0.5)     # conduction resistance term
     Ts = (heat_transfer_coefficient_value * T_infinity + term_conduction * Ti) / (heat_transfer_coefficient_value + term_conduction)
