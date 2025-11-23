@@ -77,9 +77,9 @@ def calcFinSD(root_chord, tip_chord, sweep_length, fin_height, numFins, diameter
     finSD: Stability derivative [unitless]
     '''
     mid_chord = sqrt(fin_height**2 + ((tip_chord - root_chord) / 2 + sweep_length)**2) # [m] Length of fin mid-chord line, Rocket Fin Design equation 1
-    print(f"Fin mid-chord: {mid_chord}") # TEST
+    # print(f"Fin mid-chord: {mid_chord}") # TEST
     Kfb = 1 + (diameter / 2) / (fin_height + diameter / 2) # Coefficient, Cambridge equation 32
-    print(f"Fin Kfb: {Kfb}") # TEST
+    # print(f"Fin Kfb: {Kfb}") # TEST
     stability_derivative = Kfb * (4 * numFins * (fin_height / diameter)**2) / (1 + sqrt(1 + (2 * mid_chord / (root_chord + tip_chord))**2)) # Fin stability derivative, Cambrdige Aerodynamic Equations equation 31
     return stability_derivative
 
@@ -164,7 +164,9 @@ def updateCG(vehicle, burn_time, total_time):
                     if (above_component_bottom and below_component_top):
                         linear_density_array[index] += linear_density
             cg.append(calcCG(linear_density_array, length_along_rocket_linspace))
-    return cg
+    cg_max_q = cg[-1]
+    cg_off_the_rail = cg[0]
+    return cg, cg_max_q, cg_off_the_rail
 
 '''
 TEST
