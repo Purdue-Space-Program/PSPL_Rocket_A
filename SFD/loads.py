@@ -86,7 +86,7 @@ plt.xlabel("Length from aft [ft]")
 plt.ylabel(ylabel)
 plt.grid()
 plt.show()
-
+'''
 print("Parameters")
 print(f"Air density: {air_density}")
 print(f"Velocity: {velocity}")
@@ -127,3 +127,5 @@ print(f"Lateral acceleration: {ay}")
 print(f"Fin center of pressure: {finCP}")
 print(f"Nose center of pressure: {noseCP}")
 print(f"Angular acceleration: {r}")
+
+'''
