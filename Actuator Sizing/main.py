@@ -96,7 +96,7 @@ safety_factor = 3
 piston_force_at_200psi = 620 * LBF2N 
 piston_stroke_length = 2.5 * IN2M 
 required_torque, armlength, torque = calc_torque_piston(breaking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length)
-piston_mass = 5 * LB2KG 
+piston_mass = 5 * LBM2KG 
 piston_diameter = 2 * IN2M
 volume_swept_history, time_history = actuation_time(armlength, breaking_torque, torque, piston_mass, piston_diameter)
 calc_volumetric_flow(volume_swept_history, time_history)

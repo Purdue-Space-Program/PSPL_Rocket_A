@@ -27,8 +27,8 @@ T_AMBIENT = 290  # [K] Ambient temperature (62 F)
 
 ## Mass
 
-LB2KG = 0.453592  # [kg/lbm] Conversion factor from lbm to kg
-KG2LB = 1 / LB2KG  # [lbm/kg] Conversion factor from kg to lbm
+LBM2KG = 0.453592  # [kg/lbm] Conversion factor from lbm to kg
+KG2LBM = 1 / LBM2KG  # [lbm/kg] Conversion factor from kg to lbm
 
 G2KG = 0.001  # [kg/g] Conversion factor from g to kg
 KG2G = 1 / G2KG  # [g/kg] Conversion factor from kg to g

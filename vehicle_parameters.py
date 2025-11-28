@@ -11,38 +11,45 @@ class VehicleParameters:
 
     fuel_name: str = "isopropyl alcohol" 
     oxidizer_name: str = "liquid oxygen"
-    tube_outer_diameter: float = 6.0 * c.IN2M         # Outer diameter of all sections of the rocket
-    tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of some sections of the rocket
+    tube_outer_diameter: float = 6.0 * c.IN2M         # Outer diameter of tube used in some sections of the rocket
+    tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of tube used in some sections of the rocket
     
-    chamber_pressure: float = 250 * c.PSI2PA          # The target combustion pressure in the engine [Pascals]
-    jet_thrust: float = 668.0 * c.LBF2N               # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
-    ISP: float = 175.0                                # The estimated ISP of the engine [seconds]
-    mass_flow_rate: float = 3.82 * c.LB2KG            # The targeted mass flow rate through the engine [kilograms/second]
-    OF_ratio: float = 1.0                             # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
-    burn_time: float = 2.09                           # The estimated burn time of the engine [seconds]
-    contraction_ratio: float = 7.0                    # The target ratio of chamber area to throat area [dimensionless]
-    exit_pressure: float = 15.0 * c.PSI2PA            # The target exit pressure of the exhaust gas [Pascals]
-    # combustion_temperature: float = 2170            # The estimated combustion temperature [Kelvin]
-    chamber_outer_diameter: float = 6.0 * c.IN2M      # The design combustion chamber diameter [meters]
-    chamber_inner_diameter: float = 4.9 * c.IN2M      # The design combustion chamber diameter [meters]
-    chamber_throat_diameter: float = 1.852 * c.IN2M   # The design throat diameter [meters]
+    
+    chamber_pressure: float = 250 * c.PSI2PA                                    # The target combustion pressure in the engine [Pascals]
+    jet_thrust: float = 668.0 * c.LBF2N                                         # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
+    ISP: float = 175.0                                                          # The estimated ISP of the engine [seconds]
+    OF_ratio: float = 1.0                                                       # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
+    total_mass_flow_rate: float = 3.82 * c.LBM2KG                               # The targeted mass flow rate through the engine [kilograms/second]
+    oxidizer_mass_flow_rate: float = total_mass_flow_rate/(1 + (1/OF_ratio))     # The targeted mass flow rate for oxidizer through the engine [kilograms/second]
+    fuel_mass_flow_rate: float = total_mass_flow_rate/(OF_ratio + 1)            # The targeted mass flow rate for fuel through the engine [kilograms/second]
+    burn_time: float = 2.09                                                     # The estimated burn time of the engine [seconds]
+    contraction_ratio: float = 7.0                                              # The target ratio of chamber area to throat area [dimensionless]
+    exit_pressure: float = 15.0 * c.PSI2PA                                      # The target exit pressure of the exhaust gas [Pascals]
+    # combustion_temperature: float = 2170                                      # The estimated combustion temperature [Kelvin]
+    chamber_outer_diameter: float = 6.0 * c.IN2M                                # The design combustion chamber diameter [meters]
+    chamber_inner_diameter: float = 4.9 * c.IN2M                                # The design combustion chamber diameter [meters]
+    chamber_throat_diameter: float = 1.852 * c.IN2M                             # The design throat diameter [meters]
     
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
 
+    tank_outer_diameter: float = tube_outer_diameter  # Outer diameter of both tanks of the rocket
+    tank_inner_diameter: float = tube_inner_diameter  # Inner diameter of both tanks of the rocket
+    tank_wall_thickness: float = (tube_outer_diameter - tube_inner_diameter)/2  # Inner diameter of both tanks of the rocket
     tank_pressure: float = 416.67 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
+    
     fuel_tank_length: float = 6 * c.IN2M      # The length of the fuel tank that needs to be filled with fuel (the actual tank may be longer) [meters]
-    fuel_tank_volume: float = 2.55 * c.L2M3     # The required loaded volume of fuel needed for the burn time [meter^3]
-    fuel_total_mass: float = 4.42 * c.LB2KG     # The required loaded mass of fuel needed for the burn time [kilograms]
+    fuel_tank_usable_volume: float = 2.55 * c.L2M3     # The required loaded volume of fuel needed for the burn time [meter^3]
+    fuel_total_mass: float = 4.42 * c.LBM2KG     # The required loaded mass of fuel needed for the burn time [kilograms]
 
     oxidizer_tank_length: float = 4.56 * c.IN2M   # The length of the oxidizer tank that needs to be filled with oxidizer (the actual tank may be longer) [meters]
-    oxidizer_tank_volume: float = 1.94 * c.L2M3   # The required loaded volume of oxidizer needed for the burn time [meter^3]
-    oxidizer_total_mass: float = 4.42 * c.LB2KG   # The required loaded mass of oxidizer needed for the burn time [kilograms]
+    oxidizer_tank_usable_volume: float = 1.94 * c.L2M3   # The required loaded volume of oxidizer needed for the burn time [meter^3]
+    oxidizer_total_mass: float = 4.42 * c.LBM2KG   # The required loaded mass of oxidizer needed for the burn time [kilograms]
 
     total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # (4.42 + 4.42) * c.LB2KG # The total mass of propellant needed for the burn time [kilograms]
 
     total_length: float = 7.5 * c.FT2M            # The estimated length of the rocket [meter]
-    wet_mass: float = 96.0 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
-    dry_mass: float = 87.2 * c.LB2KG             # The estimated dry mass of the rocket [kilograms]
+    wet_mass: float = 96.0 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
+    dry_mass: float = 87.2 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
     estimated_apogee: float = 2587 * c.FT2M       # The estimated 1-DOF altitude [meters]
     off_the_rail_TWR: float = 7.22                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     off_the_rail_acceleration: float = 6.22       # The target acceleration of the rocket off the launch rail [standard gravity]
@@ -55,8 +62,14 @@ class VehicleParameters:
 parameters = VehicleParameters()
 
 
+# vehicle parameters that did not come from the Rocket A sizing code
+@dataclass(frozen=True)
+class CalculatedVehicleParameters:
+    COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
+    COPV_starting_pressure: float =  4300 * c.PSI2PA # [Pa]
+    
 
-
+calculated_parameters = CalculatedVehicleParameters()
 
 # Center of mass !
 # - 5:53 AM, 10/25/2025
@@ -105,7 +118,7 @@ engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_leng
 
 injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
 
-valves_mass = 2 * 3.26 * c.LB2KG # fuel and ox 3/4 inch valve https://habonim.com/wp-content/uploads/2020/08/C47-BD_C47__2023_VO4_28-06-23.pdf
+valves_mass = 2 * 3.26 * c.LBM2KG # fuel and ox 3/4 inch valve https://habonim.com/wp-content/uploads/2020/08/C47-BD_C47__2023_VO4_28-06-23.pdf
 lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, lower_length)
 lower_mass = valves_mass + lower_panels_mass
 
@@ -131,17 +144,17 @@ helium_bay_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, pa
 helium_bay_mass = copv_mass + helium_bay_panels_mass
 
 avionics_bay_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, avionics_bay_length)
-avionics_bay_mass = avionics_bay_panels_mass + (1 * c.LB2KG) # avionics doesn't weigh anything...
+avionics_bay_mass = avionics_bay_panels_mass + (1 * c.LBM2KG) # avionics doesn't weigh anything...
 
 recovery_bay_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, recovery_bay_length)
-parachute_mass = 8 * c.LB2KG  # [kg] 1/3 cuz 1/3 of dry mass compared to --> https://github.com/Purdue-Space-Program/PSPL_Rocket_4_Sizing/blob/2b15e1dc508a56731056ff594a3c6b5afb639b4c/scripts/structures.py#L75
+parachute_mass = 8 * c.LBM2KG  # [kg] 1/3 cuz 1/3 of dry mass compared to --> https://github.com/Purdue-Space-Program/PSPL_Rocket_4_Sizing/blob/2b15e1dc508a56731056ff594a3c6b5afb639b4c/scripts/structures.py#L75
 recovery_bay_mass = recovery_bay_panels_mass + parachute_mass
 
 nose_cone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) # guess
 
 
 
-structures = 15 * c.LB2KG # structures !
+structures = 15 * c.LBM2KG # structures !
 structures
 structures
 structures
@@ -313,14 +326,14 @@ for component in mass_distribution.components:
 
 
 if __name__ == "__main__":
-    print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LB} lbm")
-    print(f"engine mass: {engine.mass * c.KG2LB:.2f} lbm")
-    print(f"injector mass: {injector.mass * c.KG2LB:.2f} lbm")
+    print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM} lbm")
+    print(f"engine mass: {engine.mass * c.KG2LBM:.2f} lbm")
+    print(f"injector mass: {injector.mass * c.KG2LBM:.2f} lbm")
 
     panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
-    print(f"panels mass: {panels_mass * c.KG2LB:.2f} lbm")
+    print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
 
-    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LB / c.M2FT))
+    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LBM / c.M2FT))
     plt.xlabel("length [feet]")
     plt.ylabel("mass density [lbs/feet]")
     plt.show()

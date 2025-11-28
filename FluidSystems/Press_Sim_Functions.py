@@ -81,7 +81,7 @@ def isothermal_press(P1, T1, V_COPV, P_tank1, V_tank1, T_tank1, P_tank2, V_tank2
     rho1 = PropsSI('D', 'P', P1, 'T', T1, gas) # [kg/m^3] The starting COPV density
     m1 = rho1 * V_COPV # [kg] The starting COPV mass
 
-     # The final tank mass is the sum of tank density * tank volume
+    # The final tank mass is the sum of tank density * tank volume
     rho_tank1 = PropsSI('D', 'P', P_tank1, 'T', T_tank1, gas)
     rho_tank2 = PropsSI('D', 'P', P_tank2, 'T', T_tank2, gas)
     m_tank1 = V_tank1 * rho_tank1
