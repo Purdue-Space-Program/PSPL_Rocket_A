@@ -206,7 +206,7 @@ def dZ_dT(P, T, gas):
 
     return dZ_dT
 
-def equivalent_SCFM(mdots, Ts, gas):
+def equivalent_SCFM(m_dots, Ts, gas):
     # Determines equivalent N2 SCFM for regulator sizing
 
     # Conversion factors
@@ -221,7 +221,7 @@ def equivalent_SCFM(mdots, Ts, gas):
     Ft = -0.00212133*Ts + 1.61586 # [] temperature correction factor based on linear regression from Swagelok data
 
     rho_ambient = PropsSI('D', 'P', 101325, 'T', 293, gas)
-    scfm = mdots / rho_ambient * M32FT3 * SEC2MIN
+    scfm = m_dots / rho_ambient * M32FT3 * SEC2MIN
 
     corrected_scfm = scfm / (Fg * Ft)
 

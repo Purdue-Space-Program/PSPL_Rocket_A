@@ -8,7 +8,7 @@ from CoolProp.CoolProp import PropsSI
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from press_sim_functions import *
+from FluidSystems.heat_transfer_functions import *
 
 import sys
 import os
