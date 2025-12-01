@@ -5,6 +5,9 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
 
+def calc_net_force():
+    return None
+
 def calc_volumetric_flow(volume_swept_history, time_history):
     volumetric_flow_history = []
     for volume, time in zip(volume_swept_history, time_history):
@@ -24,9 +27,9 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, pi
     required_torque = braking_torque * safety_factor
     armlength = piston_stroke_length / np.sqrt(2)
     torque = armlength * piston_force_at_200psi / np.sqrt(2)
-    print(f"The piston will produce ~{torque} torque at 200 psi.")
-    print(f"The required torque with a safety factor of 3 is {required_torque}")
-    print(f"Length of valve arm would be {armlength}")
+    print(f"The piston will produce ~{torque * NM2LBI} torque at 200 psi.")
+    print(f"The required torque with a safety factor of 3 is {required_torque * NM2LBI}")
+    print(f"Length of valve arm would be {armlength * M2IN}")
     return required_torque, armlength, torque
 
 def actuation_time(armlength, braking_torque, torque, piston_mass, piston_diameter):
@@ -89,6 +92,7 @@ def actuation_time(armlength, braking_torque, torque, piston_mass, piston_diamet
 
     print(f"Actuation time: {time}")
     return volume_swept_history, time_history
+
 # Shortlisted Piston: https://www.mcmaster.com/6498K297/
 
 breaking_torque = 240 * LBI2NM 
