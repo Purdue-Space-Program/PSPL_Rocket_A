@@ -5,7 +5,12 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
 
-def calc_net_force():
+def calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length, braking_torque, armlength):
+    friction_piston = (2.4 * piston_seal_length * M2IN) * LBF2N # assuming 2.4 for now
+    friction_shaft = (2.4 * shaft_seal_length * M2IN) * LBF2N
+    force_valve = braking_torque * np.sqrt(2) / armlength
+    f_net = piston_force_at_200psi - force_valve - friction_piston - friction_shaft
+    print(f"F_net: {f_net * N2LBF} LBF")
     return None
 
 def calc_volumetric_flow(volume_swept_history, time_history):
@@ -95,12 +100,16 @@ def actuation_time(armlength, braking_torque, torque, piston_mass, piston_diamet
 
 # Shortlisted Piston: https://www.mcmaster.com/6498K297/
 
-breaking_torque = 240 * LBI2NM 
+braking_torque = 240 * LBI2NM 
 safety_factor = 3
 piston_force_at_200psi = 620 * LBF2N 
 piston_stroke_length = 2.5 * IN2M 
-required_torque, armlength, torque = calc_torque_piston(breaking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length)
+required_torque, armlength, torque = calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length)
 piston_mass = 5 * LBM2KG 
 piston_diameter = 2 * IN2M
-volume_swept_history, time_history = actuation_time(armlength, breaking_torque, torque, piston_mass, piston_diameter)
+shaft_diameter = 0.625 * IN2M
+volume_swept_history, time_history = actuation_time(armlength, braking_torque, torque, piston_mass, piston_diameter)
 calc_volumetric_flow(volume_swept_history, time_history)
+piston_seal_length = np.pi * piston_diameter
+shaft_seal_length = np.pi * shaft_diameter
+calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length, braking_torque, armlength)
