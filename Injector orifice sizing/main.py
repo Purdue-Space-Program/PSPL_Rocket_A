@@ -213,22 +213,23 @@ y_err = []
 
 for N_film in range(N_film_min, N_film_max + 1):
     D_ideal_orifice_film = CalculateIdealHoleDiameter(total_target_area_orifice_film, N_film)
-    closest_bit_diameter, absolute_error_bit_size, closest_bit_name = closest_bit_size(D_ideal_orifice_film, "film exception")
+    closest_bit_diameter, absolute_error_bit_size_film, closest_bit_name = closest_bit_size(D_ideal_orifice_film, "film exception")
     D_real_orifice_film = closest_bit_diameter
     
     total_area_real_orifice_film = CalculateAreaFromHoles(D_real_orifice_film, N_film)
     m_dot_real_film = CalculateMassFlowRate(total_area_real_orifice_film, C_D_film, rho_ipa, desired_pressure_drop)
     
+    percent_error_bit_size_film = (abs(absolute_error_bit_size_film) / D_ideal_orifice_film) * 100
     percent_error_m_dot_film = (abs(m_dot_real_film - m_dot_ideal_film) / m_dot_ideal_film) * 100
     
     if percent_error_m_dot_film <= allowable_percent_error_m_dot_film:
         print(f"\n------------ FILM ------------")
         print(f"Number of film orifices: {N_film}")
-        print(f"Diameter of target film hole [in]: {D_ideal_orifice_film:.6f}")
+        print(f"Diameter of target film hole [in]: {D_ideal_orifice_film * M2IN:.6f}")
         print(f"Diameter of film hole [m]: {D_real_orifice_film:.6f}")
         print(f"Diameter of film hole [in]: {D_real_orifice_film * M2IN:.6f}")
         print(f"Bit size(in): {closest_bit_name}")
-        print(f"Absolute Error Bit Size [m]: {absolute_error_bit_size}")
+        print(f"% Error Bit Size: {percent_error_bit_size_film}")
         print(f"Error percent of mass flow rate: {percent_error_m_dot_film}")
     x_num.append(N_film)
     y_err.append(percent_error_m_dot_film)
