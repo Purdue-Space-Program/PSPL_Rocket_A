@@ -27,6 +27,7 @@ standard_bits_metric = {
     "1.4 mm": 0.0014, "1.5 mm": 0.0015, "1.6 mm": 0.0016, "1.7 mm": 0.0017,
     "1.8 mm": 0.0018, "1.9 mm": 0.0019, "2 mm":   0.0020, "2.1 mm": 0.0021,
     "2.2 mm": 0.0022, "2.3 mm": 0.0023, "2.4 mm": 0.0024, "2.5 mm": 0.0025,
+    "film exception": 10000000000000000000000000000000000000000000,
 }
 
 remove_list = ["1/64", "1/32", "3/64", "#80", "#70"]
@@ -198,11 +199,10 @@ plt.xlabel("Number of Bottom LOx holes")
 # plt.ylabel("LMR")
 plt.show()
 
-"""
 ########### Film cooling orifices sizing ##########
 
 C_D_film = 0.6
-m_dot_ideal_film = 0.2 * m_dot_ipa / 0.8
+m_dot_ideal_film = 0.25 * m_dot_ipa / 0.75
 #print(m_dot_ideal_film)
 total_target_area_orifice_film = CalculateAreaFromMassFlowRate(m_dot_ideal_film, C_D_film, rho_ipa, desired_pressure_drop)
 N_film_max = 100
@@ -210,9 +210,10 @@ N_film_min = 1
 allowable_percent_error_m_dot_film = 3 # percent error allowed in Film mass flow rate
 x_num = []
 y_err = []
+
 for N_film in range(N_film_min, N_film_max + 1):
     D_ideal_orifice_film = CalculateIdealHoleDiameter(total_target_area_orifice_film, N_film)
-    closest_bit_diameter, absolute_error_bit_size, closest_bit_name = closest_bit_size(D_ideal_orifice_film)
+    closest_bit_diameter, absolute_error_bit_size, closest_bit_name = closest_bit_size(D_ideal_orifice_film, "film exception")
     D_real_orifice_film = closest_bit_diameter
     
     total_area_real_orifice_film = CalculateAreaFromHoles(D_real_orifice_film, N_film)
@@ -238,4 +239,3 @@ plt.ylabel("Percentage error in mass flow rate")
 plt.title("[Film Cooling] Number of holes vs m_dot error comparision")
 plt.axhline(allowable_percent_error_m_dot_film, color='g', linestyle='--', label='Chosen number of holes')
 plt.show()
-"""
