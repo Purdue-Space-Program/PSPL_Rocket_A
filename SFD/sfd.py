@@ -138,10 +138,10 @@ def updateCG(vehicle, burn_time, total_time):
     cg = []
     dt = 0.005
     times = np.arange(0.0, total_time, dt)
-    mass_flow_rate = vehicle.parameters.mass_flow_rate
-    OF_ratio = vehicle.parameters.OF_ratio
-    ox_flow_rate = mass_flow_rate * OF_ratio / (1 + OF_ratio)
-    fuel_flow_rate = mass_flow_rate * 1 / (1 + OF_ratio)
+    #mass_flow_rate = vehicle.parameters.mass_flow_rate
+    #OF_ratio = vehicle.parameters.OF_ratio
+    ox_flow_rate = vehicle.parameters.oxidizer_mass_flow_rate #mass_flow_rate * OF_ratio / (1 + OF_ratio)
+    fuel_flow_rate = vehicle.parameters.fuel_mass_flow_rate #mass_flow_rate * 1 / (1 + OF_ratio)
     ox_location, ox_length = vehicle.oxidizer_tank.bottom_distance_from_aft, vehicle.oxidizer_tank.length
     fuel_location, fuel_length = vehicle.fuel_tank.bottom_distance_from_aft, vehicle.fuel_tank.length
     # print(times) # TEST
@@ -165,7 +165,8 @@ def updateCG(vehicle, burn_time, total_time):
                         linear_density_array[index] += linear_density
             cg.append(calcCG(linear_density_array, length_along_rocket_linspace))
     cg_max_q = cg[-1]
-    cg_off_the_rail = cg[0]
+    x = int(0.4 / dt)
+    cg_off_the_rail = cg[x]
     return cg, cg_max_q, cg_off_the_rail
 
 '''
