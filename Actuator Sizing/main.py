@@ -8,11 +8,15 @@ from constants import *
 def calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength):
     fc_piston = (2.4 * piston_seal_length * M2IN) * LBF2N # assuming 2.4 for now
     fc_shaft = (2.4 * shaft_seal_length * M2IN) * LBF2N
-    fh_piston = 16
-    fh_shaft = 16
+    fh_piston = 16 * piston_seal_area # from handbook figure 5-10
+    fh_shaft = 16 * shaft_seal_area
     friction_piston = fc_piston + fh_piston
     friction_shaft = fc_shaft + fh_shaft
     force_valve = braking_torque * np.sqrt(2) / armlength
+    print(f"fc_piston: {fc_piston}")
+    print(f"fc_shaft: {fc_shaft}")
+    print(f"fh_piston: {fh_piston}")
+    print(f"fh_shaft: {fh_shaft}")
     f_net = piston_force_at_200psi - force_valve - friction_piston - friction_shaft
     print(f"F_net: {f_net * N2LBF} LBF")
     return None
