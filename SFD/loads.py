@@ -20,7 +20,7 @@ cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_tim
 max_q_inputs = {"velocity": vehicle.parameters.max_velocity, "ax": vehicle.parameters.max_acceleration, "total_mass": vehicle.parameters.dry_mass}
 off_the_rail_inputs = {"velocity": vehicle.parameters.off_the_rail_velocity, "ax": vehicle.parameters.off_the_rail_acceleration, "total_mass": vehicle.parameters.wet_mass}
 
-location = "max_q" # Change to "max_q" or "off_the_rail"
+location = "off_the_rail" # Change to "max_q" or "off_the_rail"
 
 if location == "max_q":
     velocity = max_q_inputs["velocity"]
@@ -38,7 +38,7 @@ elif location == "off_the_rail":
 # Inputs
 air_density = 1.225 # [kg / m^3] NEED
 max_q_wind_gust = 9 # [m / s] about 69 mph NEED
-off_the_rail_wind_gust = 5 # [m / s] about 45 mph NEED
+off_the_rail_rail_whip = 5 # [m / s] about 45 mph NEED
 diameter = vehicle.parameters.tube_outer_diameter # [m]
 
 # Fins
@@ -60,9 +60,12 @@ total_length = length_along_rocket_linspace[-1] # [m]
 thrust = vehicle.parameters.jet_thrust # [N]
 ax = vehicle.parameters.max_acceleration * 9.81 # [m / s]
 
-
-Q = sfd.calcQ(air_density, velocity, max_q_wind_gust)
-AOA = sfd.calcAOA(max_q_wind_gust, velocity)
+if location == "max_q":
+    wind_gust = max_q_wind_gust
+elif location == "off_the_rail":
+    wind_gust = off_the_rail_rail_whip
+Q = sfd.calcQ(air_density, velocity, wind_gust)
+AOA = sfd.calcAOA(wind_gust, velocity)
 S = sfd.calcS(diameter)
 
 # Calculated values
