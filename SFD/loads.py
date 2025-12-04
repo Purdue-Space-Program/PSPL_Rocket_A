@@ -75,9 +75,6 @@ machCoeff = sfd.calcMachCoeff(1, mach) # Mach coefficient
 noseSD = sfd.calcNoseSD(machCoeff) # Nose stability derivative
 noseLift = sfd.calcLift(Q, S, AOA, noseSD) # Nose lift
 finLift = sfd.calcLift(Q, S, AOA, finSD) # Fin lift
-cg = sfd.calcCG(linear_density_array, length_along_rocket_linspace) # Center of gravity
-cg_array = sfd.updateCG(vehicle, burn_time, total_time) # Center of gravity over time
-cg = cg_array[-1] # Final center of gravity
 inertia = sfd.calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg) # Rotational inertia
 ay = sfd.calcLateralAcceleration(noseLift, finLift, total_mass) # Lateral acceleration
 finCP = sfd.calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin) # Fin center of pressure
@@ -121,6 +118,10 @@ for variable in ["shear_array", "bending_array", "axial_array"]:
     plt.grid()
     plot_num += 1
 plt.show()
+
+print(cg)
+print(finCP)
+print(total_length)
 '''
 print("Parameters")
 print(f"Air density: {air_density}")
