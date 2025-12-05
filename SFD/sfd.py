@@ -243,7 +243,7 @@ def calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg):
     cg: Location of center of gravity of rocket [m]
     r: Angular acceleration [1 / s^2]
     '''
-    r = ((-1) * noseLift * (abs(noseCP - cg)) + finLift * (abs(finCP - cg))) / inertia #  WHY THE NEGATIVE SIGN???
+    r = ((-1) * noseLift * (abs(noseCP - cg)) + finLift * (abs(finCP - cg))) / inertia
     return r
 
 # Calculate shear forces across the rocket length and output an array of shear forces
