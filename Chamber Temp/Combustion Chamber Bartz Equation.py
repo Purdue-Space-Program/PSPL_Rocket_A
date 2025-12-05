@@ -1,5 +1,6 @@
 from math import exp, erfc, erf, pi
 from scipy.optimize import fsolve
+from dataclasses import dataclass
 
 import sys
 import os
@@ -16,16 +17,16 @@ import constants as c
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
 import CEA_Wrap as CEA
 
+
 def main():
 
     #cylinder part of the chamber geometry parameters
-    chamber_length = 11.167 * c.IN2M #chamber length (m)
-    D_star = vp.chamber_throat_diameter #throat diameter (m) # UPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATEUPDATE
+    D_star = vp.parameters.chamber_throat_diameter #throat diameter (m) 
     A_star = pi * (D_star / 2)**2 #throat area (m^2)
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
-    station_inner_radii = chamber_contour[:, 1]
+    station_inner_radii = chamber_contour[:, 0]
 
     station_areas = np.pi * (station_inner_radii**2)
     station_area_ratios = station_areas / A_star
@@ -40,7 +41,7 @@ def main():
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
         
-        cea_results = RunCEA(vp.chamber_pressure, "ethanol", "liquid oxygen", 1.0)
+        cea_results = RunCEA(vp.parameters.chamber_pressure, "ethanol", "liquid oxygen", 1.0)
  
         '''
         if A_ratio <= 1.0: #chamber and converging section
@@ -197,7 +198,7 @@ def main():
             axial_position = station_depths[station_index],
             T_infinity = t_loc, #chamber temperature (K)
             k = 50, #thermal conductivity of the chamber wall material (W/(m*K))
-            t = vp.burn_time #s, burn time
+            t = vp.parameters.burn_time #s, burn time
         )
 
         #plots
@@ -249,17 +250,19 @@ def RunCEA(
         o_f =            OF_Ratio,
         pressure_units = "psi",
         analysis_type= "frozen",
-        frozen_at_throat = True,
     )
 
     cea_results = rocket.run()
+
+    #print ("CEA result keys:", list(cea_results.keys()))
+
     return{
         "gamma": cea_results.gamma,
         "t":     cea_results.t,
         "visc":  cea_results.visc,
         "cp":    cea_results.cp,
         "pran":  cea_results.pran,
-        "c_star": cea_results.c_star,
+        "c_star": cea_results.cstar,
         "p":     cea_results.p,
     }
     
@@ -280,7 +283,7 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess):
     
     
     M_solution = fsolve(f, initial_guess)
-    return float(M_solution)
+    return float(M_solution[0])
 
 
 def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M, local_Area_ratio):
@@ -296,13 +299,13 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
     heat_transfer_term4 = (Dt / Rt) ** 0.1
 
     # using inverse of local_Area_ratio so heat goes up as A goes down 
-    area_factor = (1.0 / local_Area_ratio) ** 0.9
+    area_factor = (1/local_Area_ratio) ** 0.9
 
     bartz_equation = heat_transfer_term1 * heat_transfer_term2 * heat_transfer_term3 * heat_transfer_term4 * area_factor * sigma
 
     return bartz_equation
 
-def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k = 167, t = vp.burn_time):
+def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k = 167, t = vp.parameters.burn_time):
     Ti = 294 #K, initial temperature of the chamber wall
     alpha = 1.5e-5 #thermal diffusivity of the chamber wall material (m^2/s)
 
