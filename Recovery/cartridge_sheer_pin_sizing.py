@@ -5,13 +5,16 @@ def calculateUpwardPressureForce(mass_g, volume2_L):
     temperature_K = 298
     pressure1_atm_volume1_L = ((moles)*(R)*(temperature_K))
     pressure2_atm = pressure1_atm_volume1_L/volume2_L
-    return pressure2_atm*(3.14159*2.875*2.875)
+    return (pressure2_atm*14.6959)*(3.14159*2.875*2.875)
 
 def calculateFrictionForce(force, coefficient):
     return coefficient*force
 
 def calculateNetForce(positiveForce, negativeForce):
     return positiveForce - negativeForce
+
+#def sizeSheerPins():
+    #return
 
 def main():
 
@@ -22,8 +25,9 @@ def main():
     coefficientOfFriction = 0.6
     frictionForce = calculateFrictionForce(upwardPressureForce, coefficientOfFriction)
     
-    calculateNetForce(upwardPressureForce, frictionForce)
-    
-    sizeSheerPins()
+    netForce = calculateNetForce(upwardPressureForce, frictionForce)
+    print(netForce)
+
+    #sizeSheerPins()
 
 main()
