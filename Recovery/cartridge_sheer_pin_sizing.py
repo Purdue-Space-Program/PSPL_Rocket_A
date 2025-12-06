@@ -5,7 +5,6 @@ def calculateUpwardPressureForce(mass_g, volume2_L):
     temperature_K = 298
     pressure1_atm_volume1_L = ((moles)*(R)*(temperature_K))
     pressure2_atm = pressure1_atm_volume1_L/volume2_L
-    print(pressure2_atm)
     return (pressure2_atm*14.6959)*(3.14159*2.875*2.875)
 
 def calculateFrictionForce(force, coefficient):
