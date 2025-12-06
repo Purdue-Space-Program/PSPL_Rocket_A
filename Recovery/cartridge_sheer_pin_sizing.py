@@ -7,7 +7,11 @@ def calculateUpwardPressureForce(mass_g, volume2_L):
     pressure2_atm = pressure1_atm_volume1_L/volume2_L
     return pressure2_atm*(3.14159*2.875*2.875)
 
+def calculateFrictionForce(force, coefficient):
+    return coefficient*force
 
+def calculateNetForce(positiveForce, negativeForce):
+    return positiveForce - negativeForce
 
 def main():
 
@@ -15,9 +19,10 @@ def main():
     recoveryVolume = 4.2
     upwardPressureForce = calculateUpwardPressureForce(cartridgeMass_g, recoveryVolume)
     
-    calculateFrictionForce(recoveryVolume)
+    coefficientOfFriction = 0.6
+    frictionForce = calculateFrictionForce(upwardPressureForce, coefficientOfFriction)
     
-    calculateNetForce()
+    calculateNetForce(upwardPressureForce, frictionForce)
     
     sizeSheerPins()
 
