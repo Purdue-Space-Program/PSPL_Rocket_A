@@ -1,5 +1,5 @@
 def calculateUpwardPressureForce(mass_g, volume2_L):
-    molesMassN2_g = 28.02
+    molesMassN2_g = 44.01
     moles = mass_g/molesMassN2_g
     R = 0.0821
     temperature_K = 298
@@ -18,7 +18,7 @@ def calculateNetForce(positiveForce, negativeForce):
 
 def main():
 
-    cartridgeMass_g = 40
+    cartridgeMass_g = 26
     recoveryVolume_L = 4.2
     upwardPressureForce_lbs = calculateUpwardPressureForce(cartridgeMass_g, recoveryVolume_L)
     
