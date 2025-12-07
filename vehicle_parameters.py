@@ -4,7 +4,12 @@
 
 from dataclasses import dataclass, fields
 from typing import Iterator
+import matplotlib.pyplot as plt
+import numpy as np
+
 import constants as c
+
+
 
 @dataclass(frozen=True)
 class VehicleParameters:
@@ -264,8 +269,24 @@ mass_distribution = MassDistribution(components=
 
 
 
-import matplotlib.pyplot as plt
-import numpy as np
+
+def calcCG(linear_density_array, length_along_rocket_linspace):
+    '''
+    linear_density_array: Array of linear density as a function of length [kg / m]
+    length_along_rocket_linspace: Array of length along rocket [m]
+    cg: Location of center of gravity of rocket from aft [m]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    totalMass = np.sum(linear_density_array * dx)
+    # print(totalMass / LB2KG)
+    lengths = np.array(length_along_rocket_linspace)
+    masses = np.array(linear_density_array * dx)
+    moments = np.sum(lengths * masses)
+    cg = moments / totalMass
+    return cg
+
+
+
 
 
 num_points = 500
@@ -333,7 +354,14 @@ if __name__ == "__main__":
     panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
     print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
 
-    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LBM / c.M2FT))
+    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * (c.KG2LBM / c.M2FT))    )
+    
+    COG_location = calcCG(linear_density_array, length_along_rocket_linspace)
+    print(f"COG_location distance from bottom: {COG_location * c.M2FT} ft")
+    
+    plt.vlines(COG_location * c.M2FT, min(linear_density_array * (c.KG2LBM / c.M2FT)), max(linear_density_array * (c.KG2LBM / c.M2FT)), color="red", linestyles="dotted", label="Center of Gravity")
+    plt.legend()
+    
     plt.xlabel("length [feet]")
     plt.ylabel("mass density [lbs/feet]")
     plt.show()
