@@ -36,7 +36,7 @@ elif location == "off_the_rail":
     cg = cg_off_the_rail
 
 # Inputs
-air_density = 1.225 # [kg / m^3] NEED
+air_density = 1.81 # [kg / m^3] NEED
 max_q_wind_gust = 9 # [m / s] about 69 mph NEED
 off_the_rail_rail_whip = 5 # [m / s] about 45 mph NEED
 diameter = vehicle.parameters.tube_outer_diameter # [m]
