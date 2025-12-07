@@ -36,7 +36,7 @@ elif location == "off_the_rail":
     cg = cg_off_the_rail
 
 # Inputs
-air_density = 1.225 # [kg / m^3] NEED
+air_density = 1.81 # [kg / m^3] NEED
 max_q_wind_gust = 9 # [m / s] about 69 mph NEED
 off_the_rail_rail_whip = 5 # [m / s] about 45 mph NEED
 diameter = vehicle.parameters.tube_outer_diameter # [m]
@@ -119,9 +119,9 @@ for variable in ["shear_array", "bending_array", "axial_array"]:
     plot_num += 1
 plt.show()
 
-print(cg)
-print(finCP)
-print(total_length)
+print(f"cg {cg:.2f} m")
+print(f"finCP {finCP:.2f} m")
+print(f"total_length {total_length:.2f} m")
 '''
 print("Parameters")
 print(f"Air density: {air_density}")

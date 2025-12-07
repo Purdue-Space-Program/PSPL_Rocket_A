@@ -4,7 +4,12 @@
 
 from dataclasses import dataclass, fields
 from typing import Iterator
+import matplotlib.pyplot as plt
+import numpy as np
+
 import constants as c
+
+
 
 @dataclass(frozen=True)
 class VehicleParameters:
@@ -90,20 +95,20 @@ def CalcTubeVolume(OD, ID, length):
     volume = CalcCylinderVolume(OD, length) - CalcCylinderVolume(ID, length)
     return volume
     
-engine_length = 1 * c.FT2M
-injector_length = 2 * c.IN2M
-lower_length = 1 * c.FT2M
+engine_length =         10.179 * c.IN2M
+injector_length =       0.475 * c.IN2M
+lower_length =          12 * c.IN2M
+bulkhead_length =       2 * c.IN2M
+fuel_tank_length =      parameters.fuel_tank_length
+mid_length =            5 * c.IN2M
+oxidizer_tank_length =  parameters.oxidizer_tank_length
 
-bulkhead_length = 3 * c.IN2M
-fuel_tank_length = parameters.fuel_tank_length
-oxidizer_tank_length = parameters.oxidizer_tank_length
+upper_length =          12 * c.IN2M
+helium_bay_length =     16 * c.IN2M
 
-upper_length = 0.5 * c.FT2M
-helium_bay_length = 20 * c.IN2M
-
-avionics_bay_length = 0.25 * c.FT2M
-recovery_bay_length = 0.5 * c.FT2M
-nosecone_length = 1 * c.FT2M
+avionics_bay_length =   3 * c.IN2M
+recovery_bay_length =   6 * c.IN2M
+nosecone_length =       12 * c.IN2M
 
 propellant_tank_outer_diameter = parameters.tube_outer_diameter
 propellant_tank_inner_diameter = parameters.tube_inner_diameter
@@ -112,7 +117,7 @@ panels_inner_diameter = parameters.tube_inner_diameter
 
 engine_wall_thickness = 0.25 * c.IN2M
 # engine_ID = propellant_tank_outer_diameter - (2 * engine_wall_thickness)
-engine_OD = 7 * c.IN2M
+engine_OD = 6 * c.IN2M
 engine_ID = engine_OD - (2 * engine_wall_thickness)
 engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_length)
 
@@ -132,6 +137,11 @@ bulkhead_mass =  c.DENSITY_AL * (
 
 fuel_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, fuel_tank_length)
 fuel_tank_wet_mass = fuel_tank_wall_mass + parameters.fuel_total_mass
+
+
+mid_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, mid_length)
+mid_mass = mid_panels_mass
+
 oxidizer_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, oxidizer_tank_length)
 oxidizer_tank_wet_mass = oxidizer_tank_wall_mass + parameters.oxidizer_total_mass
 
@@ -227,7 +237,9 @@ lower_fuel_bulkhead =     MassComponent(name = 'lower_fuel_bulkhead',         ma
 fuel_tank =               MassComponent(name = 'fuel_tank',                   mass = fuel_tank_wet_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.StartAfter(),                 length = parameters.fuel_tank_length)
 upper_fuel_bulkhead =     MassComponent(name = 'upper_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = fuel_tank.StartAfter() - (bulkhead_length),       length = bulkhead_length)
 
-lower_oxidizer_bulkhead = MassComponent(name = 'lower_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = upper_fuel_bulkhead.StartAfter(),                 length = bulkhead_length)
+mid =                     MassComponent(name = 'mid',                         mass = mid_mass,               bottom_distance_from_aft = upper_fuel_bulkhead.StartAfter(),                 length = mid_length)
+
+lower_oxidizer_bulkhead = MassComponent(name = 'lower_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = mid.StartAfter(),                                 length = bulkhead_length)
 oxidizer_tank =           MassComponent(name = 'oxidizer_tank',               mass = oxidizer_tank_wet_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.StartAfter(),             length = parameters.oxidizer_tank_length)
 upper_oxidizer_bulkhead = MassComponent(name = 'upper_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = oxidizer_tank.StartAfter() - (bulkhead_length),   length = bulkhead_length)
 
@@ -264,8 +276,24 @@ mass_distribution = MassDistribution(components=
 
 
 
-import matplotlib.pyplot as plt
-import numpy as np
+
+def calcCG(linear_density_array, length_along_rocket_linspace):
+    '''
+    linear_density_array: Array of linear density as a function of length [kg / m]
+    length_along_rocket_linspace: Array of length along rocket [m]
+    cg: Location of center of gravity of rocket from aft [m]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    totalMass = np.sum(linear_density_array * dx)
+    # print(totalMass / LB2KG)
+    lengths = np.array(length_along_rocket_linspace)
+    masses = np.array(linear_density_array * dx)
+    moments = np.sum(lengths * masses)
+    cg = moments / totalMass
+    return cg
+
+
+
 
 
 num_points = 500
@@ -333,7 +361,18 @@ if __name__ == "__main__":
     panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
     print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
 
-    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * c.KG2LBM / c.M2FT))
+    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * (c.KG2LBM / c.M2FT))    )
+    
+    rocket_length = max(length_along_rocket_linspace)
+    print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
+    
+    COG_location = calcCG(linear_density_array, length_along_rocket_linspace)
+    print(f"COM location distance from bottom: {COG_location * c.M2IN:.2f} in")
+    print(f"COM location distance from top: {(rocket_length - COG_location) * c.M2IN:.2f} in")
+    
+    plt.vlines(COG_location * c.M2FT, min(linear_density_array * (c.KG2LBM / c.M2FT)), max(linear_density_array * (c.KG2LBM / c.M2FT)), color="red", linestyles="dotted", label="Center of Gravity")
+    plt.legend()
+    
     plt.xlabel("length [feet]")
     plt.ylabel("mass density [lbs/feet]")
     plt.show()
