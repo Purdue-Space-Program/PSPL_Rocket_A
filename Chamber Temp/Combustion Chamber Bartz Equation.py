@@ -26,154 +26,69 @@ def main():
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
-    station_inner_radii = chamber_contour[:, 0]
+    station_inner_radii = chamber_contour[:, 2]
+
+    #aligning axial positions to the throat
+    throat_index = np.argmin(station_inner_radii)
+    x_relative = station_depths - station_depths[throat_index]
 
     station_areas = np.pi * (station_inner_radii**2)
     station_area_ratios = station_areas / A_star
 
     #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
-    Mach_total = np.zeros_like(station_area_ratios) #mach number at each axial position
-    h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
-    Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
+    #Mach_total = np.zeros_like(station_area_ratios) #mach number at each axial position
+    Mach_total = np.full_like(station_area_ratios, np.nan, dtype = float)
+    #h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
+    h_total = np.full_like(station_area_ratios, np.nan, dtype = float)
+    #Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
+    Temp_surface_total = np.full_like(station_area_ratios, np.nan, dtype = float)
 
-    initial_guess = 0.2
+
+    cea_results = RunCEA(vp.parameters.chamber_pressure, "ethanol", "liquid oxygen", 1.0)
+    gamma_loc = cea_results["gamma"]
+    Pr_loc = cea_results["pran"]
+    cp_loc = cea_results["cp"]
+    #idk what units chamber pressure is in
+    if cp_loc < 100:
+        cp_loc *= 1000 #avoiding unrealistically low cp values from CEA
+    visc_loc = cea_results["visc"]
+    t_loc = cea_results["t"]
+    P_loc = cea_results["p"] * 1e5
+    if P_loc < 5000:
+        p_loc *= 6894.76
+
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
+
+        #new stuff
+        branch = "subsonic" if x_relative[station_index] <= 0 else "supersonic"
+        initial_guess = Mach_total[station_index -1] if station_index > 0 else (0.5 if branch == "subsonic" else 2.0) 
+        M_local = calculating_MachNumber(gamma = gamma_loc, area_ratio_value = A_ratio, initial_guess = initial_guess, branch = branch)
+        Mach_total[station_index] = M_local 
+
         
-        cea_results = RunCEA(vp.parameters.chamber_pressure, "ethanol", "liquid oxygen", 1.0)
- 
         '''
-        if A_ratio <= 1.0: #chamber and converging section
-            if station_index > 0:
-                initial_guess = Mach_total[station_index - 1]
-            else:
-                initial_guess = 0.5
-            
-            M_local = calculating_MachNumber(gamma = cea_results["c_gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
-            Mach_total[station_index] = M_local
-
-            #updating initial guess for next iteration
-            initial_guess = M_local
-
-            h_local = heat_transfer_coefficient(
-                Dt = 2 * station_inner_radii[station_index],  # local diameter
-                Rt = ((1.5 * 1.15 * c.IN2M) + (0.382 * 1.15 * c.IN2M)) / 2,     #radius of throat curve (m)
-                Pr = cea_results["c_pran"], #Prandtl number of the combustion gas (n/a)
-                gamma = cea_results["c_gamma"], #specific heat ratio of the combustion gas (n/a)
-                c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
-                T0 = cea_results["c_t"], #stagnation temperature of the combustion gas ((K))
-                Twg = recovery_temperature( #recovery temperature at the wall
-                    T_c = cea_results["c_t"],
-                    gamma = cea_results["c_gamma"],
-                    M = M_local,
-                    Pr = cea_results["c_pran"]
-                ),
-                Cp = cea_results["c_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/(kg*K))
-                P0 = cea_results["c_p"] * 1e5, #chamber pressure (Pascals)
-                mu = cea_results["c_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
-                M = Mach_total[station_index], #Mach number at the local axial point (no units)
-                local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
-
-                )
-            h_total[station_index] = h_local
-
-
-            Temp_surface_total[station_index] = temperature_surface_calculation(
-                heat_transfer_coefficient_value = h_total[station_index],
-                axial_position = station_depths[station_index],
-                T_infinity = cea_results["c_t"], #chamber temperature (K)
-                k = 50 #thermal conductivity of the chamber wall material (W/(m*K))
-            )
-            
-        else:        
-
-            if station_index > 0:
-                initial_guess = Mach_total[station_index - 1]
-            else:
-                initial_guess = 0.5
-            
-            M_local = calculating_MachNumber(gamma = cea_results["t_gamma"], area_ratio_value = A_ratio, initial_guess = initial_guess)
-            Mach_total[station_index] = M_local
-
-            #updating initial guess for next iteration
-            initial_guess = M_local
-
-            h_local = heat_transfer_coefficient(
-                Dt = 2 * station_inner_radii[station_index],  # local diameter
-                Rt = ((1.5 * 1.15 * c.IN2M) + (0.382 * 1.15 * c.IN2M)) / 2,     #radius of throat curve (m)
-                Pr = cea_results["t_pran"], #Prandtl number of the combustion gas (n/a)
-                gamma = cea_results["t_gamma"], #specific heat ratio of the combustion gas (n/a)
-                c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
-                T0 = cea_results["t_t"], #stagnation temperature of the combustion gas ((K))
-                Twg = recovery_temperature( #recovery temperature at the wall
-                    T_c = cea_results["t_t"],
-                    gamma = cea_results["t_gamma"],
-                    M = M_local,
-                    Pr = cea_results["t_pran"]
-                ),
-                Cp = cea_results["t_cp"] * 1000, #specific heat at constant pressure of the combustion gas (J/(kg*K))
-                P0 = cea_results["t_p"] * 1e5, #chamber pressure (Pascals)
-                mu = cea_results["t_visc"], #dynamic viscosity of the combustion gas (Pascal - seconds)
-                M = Mach_total[station_index], #Mach number at the local axial point (no units)
-                local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
-
-                )
-            h_total[station_index] = h_local
-
-            Temp_surface_total[station_index] = temperature_surface_calculation(
-                heat_transfer_coefficient_value = h_total[station_index],
-                axial_position = station_depths[station_index],
-                T_infinity = cea_results["t_t"], #chamber temperature (K)
-                k = 50 #thermal conductivity of the chamber wall material (W/(m*K))
-            )
-        
-                
-    #printing results
-
-    #printing axial positions vs surface temp plot
-    plt.figure()
-    plt.plot(station_depths * c.M2IN, Temp_surface_total)
-    plt.xlabel("Axial Position Relative to Throat (in) ")
-    plt.ylabel("Surface Temperature (K) ")
-    plt.title("Surface temperature vs Axial Position")
-    plt.grid(True)
-    plt.show()
-
-    #printing axial position vs heat transfer coefficient
-    plt.figure()
-    plt.plot(station_depths * c.M2IN, h_total)
-    plt.xlabel("Axial Position Relative to Throat (in) ")
-    plt.ylabel("Heat Transfer Coefficient (W/m^2 K) ")
-    plt.title("Heat Transfer Coefficient vs Axial Position")
-    plt.grid(True)
-    plt.show()
-
-    print("Maximum Surface Temperature (K): ", max(Temp_surface_total))
-    print("Maximum Heat Transfer Coefficient (W/m^2 K): ", max(h_total))
-    print("chamber temperature (K): ", cea_results["c_gamma"])
-            
-    '''
-        
-        gamma_loc = cea_results["gamma"]
-        Pr_loc = cea_results["pran"]
-        cp_loc = cea_results["cp"]
-        visc_loc = cea_results["visc"]
-        t_loc = cea_results["t"]
-        P_loc = cea_results["p"] * 1e5
-
         if station_index > 0:
             initial_guess = Mach_total[station_index - 1]
         else:
             initial_guess = 0.5
         M_local = calculating_MachNumber(gamma = gamma_loc, area_ratio_value = A_ratio, initial_guess = initial_guess)
         Mach_total[station_index] = M_local 
+        '''
+        Dt = 2 * station_inner_radii[station_index]  # local diameter
 
+        if Dt == 0:
+            Mach_total[station_index] = 0
+            h_total[station_index] = 0
+            Temp_surface_total[station_index] = 294 #K, initial temperature of the chamber wall
+            continue
+                
         #updating initial guess for next iteration
-        initial_guess = M_local         
+        initial_guess = M_local  
 
         h_local = heat_transfer_coefficient(
-            Dt = 2 * station_inner_radii[station_index],  # local diameter
+            Dt = Dt,  # local diameter
             Rt = ((1.5 * 1.15 * c.IN2M) + (0.382 * 1.15 * c.IN2M)) / 2,     #radius of throat curve (m)
             Pr = Pr_loc, #Prandtl number of the combustion gas (n/a)
             gamma = gamma_loc, #specific heat ratio of the combustion gas (n/a)
@@ -273,15 +188,21 @@ def recovery_temperature(T_c, gamma, M, Pr):
     return T_r
 
 
-def calculating_MachNumber(gamma, area_ratio_value, initial_guess):
+def calculating_MachNumber(gamma, area_ratio_value, initial_guess, branch):
 
     def f(M):
         Mach_function_part1 = ((gamma + 1)/2)**(-(gamma + 1)/(2*(gamma-1)))
         Mach_function_part2 = (1/M) * ((1 + (((gamma - 1)/2) * M**2)) ** ((gamma + 1)/(2*(gamma-1))))
         Mach_function = (Mach_function_part1 * Mach_function_part2) - area_ratio_value
-        return abs(Mach_function)
-    
-    
+        return Mach_function
+
+        guess = initial_guess
+        if branch == "subsonic:":
+            guess = min(0.8, max(0.05, guess))
+
+        else:
+            guess = max(1.1, guess)
+
     M_solution = fsolve(f, initial_guess)
     return float(M_solution[0])
 
