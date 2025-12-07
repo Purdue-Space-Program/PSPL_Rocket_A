@@ -196,12 +196,12 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess, branch):
         Mach_function = (Mach_function_part1 * Mach_function_part2) - area_ratio_value
         return Mach_function
 
-        guess = initial_guess
-        if branch == "subsonic:":
-            guess = min(0.8, max(0.05, guess))
+    guess = initial_guess
+    if branch == "subsonic:":
+        guess = min(0.8, max(0.05, guess))
 
-        else:
-            guess = max(1.1, guess)
+    else:
+        guess = max(1.1, guess)
 
     M_solution = fsolve(f, initial_guess)
     return float(M_solution[0])
