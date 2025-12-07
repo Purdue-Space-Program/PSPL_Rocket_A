@@ -1,6 +1,6 @@
 def calculateUpwardPressureForce(mass_g, volume2_L):
-    molesMassN2_g = 44.01
-    moles = mass_g/molesMassN2_g
+    molesMassCO2_g = 44.01
+    moles = mass_g/molesMassCO2_g
     R = 0.0821
     temperature_K = 298
     pressure1_atm_volume1_L = ((moles)*(R)*(temperature_K))
