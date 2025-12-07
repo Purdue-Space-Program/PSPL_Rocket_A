@@ -119,9 +119,9 @@ for variable in ["shear_array", "bending_array", "axial_array"]:
     plot_num += 1
 plt.show()
 
-print(cg)
-print(finCP)
-print(total_length)
+print(f"cg {cg:.2f} m")
+print(f"finCP {finCP:.2f} m")
+print(f"total_length {total_length:.2f} m")
 '''
 print("Parameters")
 print(f"Air density: {air_density}")

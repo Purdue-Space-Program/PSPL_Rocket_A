@@ -95,20 +95,20 @@ def CalcTubeVolume(OD, ID, length):
     volume = CalcCylinderVolume(OD, length) - CalcCylinderVolume(ID, length)
     return volume
     
-engine_length = 1 * c.FT2M
-injector_length = 2 * c.IN2M
-lower_length = 1 * c.FT2M
+engine_length = 10.17854035 * c.IN2M
+injector_length = 0.475 * c.IN2M
+lower_length = 12 * c.IN2M
 
-bulkhead_length = 3 * c.IN2M
+bulkhead_length = 2 * c.IN2M
 fuel_tank_length = parameters.fuel_tank_length
 oxidizer_tank_length = parameters.oxidizer_tank_length
 
-upper_length = 0.5 * c.FT2M
-helium_bay_length = 20 * c.IN2M
+upper_length = 12 * c.IN2M
+helium_bay_length = 16 * c.IN2M
 
-avionics_bay_length = 0.25 * c.FT2M
-recovery_bay_length = 0.5 * c.FT2M
-nosecone_length = 1 * c.FT2M
+avionics_bay_length = 3 * c.IN2M
+recovery_bay_length = 6 * c.IN2M
+nosecone_length = 12 * c.IN2M
 
 propellant_tank_outer_diameter = parameters.tube_outer_diameter
 propellant_tank_inner_diameter = parameters.tube_inner_diameter
@@ -356,8 +356,12 @@ if __name__ == "__main__":
 
     plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * (c.KG2LBM / c.M2FT))    )
     
+    rocket_length = max(length_along_rocket_linspace)
+    print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
+    
     COG_location = calcCG(linear_density_array, length_along_rocket_linspace)
-    print(f"COG_location distance from bottom: {COG_location * c.M2FT} ft")
+    print(f"COM location distance from bottom: {COG_location * c.M2IN:.2f} in")
+    print(f"COM location distance from top: {(rocket_length - COG_location) * c.M2IN:.2f} in")
     
     plt.vlines(COG_location * c.M2FT, min(linear_density_array * (c.KG2LBM / c.M2FT)), max(linear_density_array * (c.KG2LBM / c.M2FT)), color="red", linestyles="dotted", label="Center of Gravity")
     plt.legend()
