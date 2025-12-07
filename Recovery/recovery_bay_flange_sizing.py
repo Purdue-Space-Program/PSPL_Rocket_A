@@ -10,12 +10,13 @@ def main():
     boltSheerStrength = sheerStrength(fSU_SS_316_U, boltHoleDiameter)
     print(boltSheerStrength)
 
-    fBRU_A_6061_Y = 58000.0
     fBRU_A_6061_U = 88000.0
+    fBRU_A_6061_Y = 58000.0
     plateThickness = 0.125
-    boltBearingStrengthYield = bearingStrength(fBRU_A_6061_Y, boltHoleDiameter, plateThickness)
     boltBearingStrengthUltimate = bearingStrength(fBRU_A_6061_U, boltHoleDiameter, plateThickness)
-    print(f"boltBearingStrengthYield: {boltBearingStrengthYield}")
+    boltBearingStrengthYield = bearingStrength(fBRU_A_6061_Y, boltHoleDiameter, plateThickness)
+    #print(f"boltBearingStrengthYield: {boltBearingStrengthYield}")
     print(boltBearingStrengthUltimate)
+    print(boltBearingStrengthYield)
 
 main()
