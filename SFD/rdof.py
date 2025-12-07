@@ -9,10 +9,9 @@ import vehicle_parameters as vehicle
 import sfd as sfd
 import loads as loads
 
-linear_density_array = vehicle.linear_density_array # [kg / m]
-length_along_rocket_linspace = vehicle.length_along_rocket_linspace # [m]
+linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle.rocket_dict_recovery)
 
-rocket_mass = vehicle.parameters.dry_mass  # kg
+total_mass = np.sum(linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0])) # [kg]
 gravity = 9.81
 air_density = 1.81
 drag_coefficent = 2.2
@@ -35,23 +34,9 @@ print('Terminal Velocity: ', terminal_velocity1, 'm/s')
 print('Decent Time: ',decent_time1, 'seconds')
 '''
 
-recovery_bay_start = vehicle.recovery_bay.bottom_distance_from_aft  # m
+recovery_bay_start = vehicle.rocket_dict_recovery["recovery_bay"]["bottom_distance_from_aft"]  # m
 cg = loads.cg_max_q
 inertia = loads.inertia
-
-def editRocketModel(linear_density_array, length_along_rocket_linspace, recovery_bay_start):
-    '''
-    linear_density_array: Array of linear density across rocket length [kg / m]
-    length_along_rocket_linspace: Array of rocket lengths [m]
-    recovery_bay_start: Location of start of recovery bay [m]
-    modified_linear_density_array: Modified array of linear density across rocket length [kg / m]
-    modified_length_along_rocket_linspace: Modified array of rocket lengths [m]
-    '''
-    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    index_recovery_bay_start = int(recovery_bay_start / dx)
-    modified_linear_density_array = linear_density_array[:index_recovery_bay_start]
-    modified_length_along_rocket_linspace = length_along_rocket_linspace[:index_recovery_bay_start]
-    return modified_linear_density_array, modified_length_along_rocket_linspace
 
 def calcDragForce(cd, rho, velocity, area):
     '''
@@ -129,21 +114,19 @@ def calcBending(shear_array, length_along_rocket_linspace):
     bending_array = np.cumsum(shear_array) * dy
     return bending_array
 
-terminal_velocity = calcTerminalVelocity(rocket_mass, gravity, drag_coefficent, air_density, canopy_area) # solving for velocity setting weight and Drag equal
+terminal_velocity = calcTerminalVelocity(total_mass, gravity, drag_coefficent, air_density, canopy_area) # solving for velocity setting weight and Drag equal
 drag_force = calcDragForce(drag_coefficent, air_density, 5, canopy_area) # Formula from NASA website
 descent_time = max_height/terminal_velocity
-
-modified_linear_density_array, modified_length_along_rocket_linspace = editRocketModel(linear_density_array, length_along_rocket_linspace, recovery_bay_start)
 
 print ('Terminal Velocity: ', terminal_velocity, 'm/s')
 print ("Descent Time: ", descent_time, 'seconds')
 print ('Drag Force: ', drag_force, 'N')
 
-ay = calcLateralAcceleration(drag_force, gravity, rocket_mass) # Lateral acceleration
+ay = calcLateralAcceleration(drag_force, gravity, total_mass) # Lateral acceleration
 r = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg) # Angular acceleration
-shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, modified_linear_density_array, modified_length_along_rocket_linspace, r, cg)) # Shear force array
-bending_array = np.array(calcBending(shear_array, modified_length_along_rocket_linspace)) # Bending moment array
-plt.plot(modified_length_along_rocket_linspace, shear_array)
+shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r, cg)) # Shear force array
+bending_array = np.array(calcBending(shear_array, length_along_rocket_linspace)) # Bending moment array
+plt.plot(length_along_rocket_linspace, shear_array)
 plt.title("Shear Force vs Length Along Rocket")
 plt.xlabel("Length Along Rocket [m]")
 plt.ylabel("Shear Force [N]")
