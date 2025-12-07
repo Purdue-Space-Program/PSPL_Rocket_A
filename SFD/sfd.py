@@ -115,7 +115,7 @@ def calcNoseSD(machCoeff):
     machCoeff: Mach coefficient
     why don't I include the mach coefficient for fins?
     '''
-    return 2 * machCoeff # Cambridge equation 25
+    return 2 * machCoeff # Cambridge equation 25 # NEED because elliptical nosecone
 
 # Calculate lift
 def calcLift(Q, S, AOA, SD):
@@ -248,7 +248,7 @@ def calcNoseCP(nosecone_length, total_length):
     total_length [m]
     noseCP: Location of center of pressure of the nose
     '''
-    noseCP = 0.5 * nosecone_length # [m] Nosecone CP, Cambridge equation 28
+    noseCP = 0.5 * nosecone_length # [m] Nosecone CP, Cambridge equation 28 # NEED because elliptical nosecone
     return total_length - noseCP # [m] Nose CP from aft
 
 # Calculate angular acceleration across rocket length

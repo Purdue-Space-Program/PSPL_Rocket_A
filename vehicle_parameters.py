@@ -278,12 +278,28 @@ for item in rocket_dict_wet:
         }
     else:
         rocket_dict_dry[item] = rocket_dict_wet[item]
+
+rocket_dict_recovery = {}
+for item in rocket_dict_dry:
+    if item == "recovery_bay":
+        rocket_dict_recovery[item] = {
+            "mass": rocket_dict_dry[item]["mass"] - parachute_mass,
+            "bottom_distance_from_aft": rocket_dict_dry[item]["bottom_distance_from_aft"],
+            "length": rocket_dict_dry[item]["length"]
+        }
+    elif item == "nosecone":
+        break
+    else:
+        rocket_dict_recovery[item] = rocket_dict_dry[item]
 '''
 print(rocket_dict_wet)
 print(f"Mass of rocket dict wet: {sum(component['mass'] for component in rocket_dict_wet.values())} kg")
 print(" ")
 print(rocket_dict_dry)
 print(f"Mass of rocket dict dry: {sum(component['mass'] for component in rocket_dict_dry.values())} kg")
+print(" ")
+print(rocket_dict_recovery)
+print(f"Mass of rocket dict recovery: {sum(component['mass'] for component in rocket_dict_recovery.values())} kg")
 '''
 num_points = 500
 length_along_rocket_linspace = np.linspace(mass_distribution.components[0].bottom_distance_from_aft, mass_distribution.components[-1].StartAfter(), num_points)
