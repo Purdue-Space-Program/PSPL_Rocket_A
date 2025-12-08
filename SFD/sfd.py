@@ -39,6 +39,24 @@ MPH2MPS = 0.44704
 
 # Need rho, velocity, wind gust, diameter, fin dimensions, mach, linear density, total mass, total length, 
 
+# Make linear_dnsity_array and length_along_rocket_linspace inputs
+def mass_model(rocket_dict):
+    num_points = 500
+    length_along_rocket_linspace = np.linspace(rocket_dict["engine"]["bottom_distance_from_aft"], rocket_dict["nosecone"]["bottom_distance_from_aft"] + rocket_dict["nosecone"]["length"], num_points)
+    linear_density_array = np.zeros(num_points)
+    for component in rocket_dict:
+        mass = rocket_dict[component]["mass"]
+        bottom_distance_from_aft = rocket_dict[component]["bottom_distance_from_aft"]
+        length = rocket_dict[component]["length"]
+        linear_density = mass / length
+        for index, length_along_rocket in enumerate(length_along_rocket_linspace):
+            above_component_bottom = length_along_rocket >= bottom_distance_from_aft
+            below_component_top = length_along_rocket <= (bottom_distance_from_aft + length)
+            
+            if (above_component_bottom and below_component_top):
+                linear_density_array[index] += linear_density
+    return linear_density_array, length_along_rocket_linspace
+
 # Calculate dynamic pressure
 def calcQ(rho, velocity, wind_gust):
     '''
@@ -97,7 +115,7 @@ def calcNoseSD(machCoeff):
     machCoeff: Mach coefficient
     why don't I include the mach coefficient for fins?
     '''
-    return 2 * machCoeff # Cambridge equation 25
+    return 2 * machCoeff # Cambridge equation 25 # NEED because elliptical nosecone
 
 # Calculate lift
 def calcLift(Q, S, AOA, SD):
@@ -120,6 +138,7 @@ def calcCG(linear_density_array, length_along_rocket_linspace):
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
     totalMass = np.sum(linear_density_array * dx)
     # print(totalMass / LB2KG)
+    
     lengths = np.array(length_along_rocket_linspace)
     masses = np.array(linear_density_array * dx)
     moments = np.sum(lengths * masses)
@@ -229,7 +248,7 @@ def calcNoseCP(nosecone_length, total_length):
     total_length [m]
     noseCP: Location of center of pressure of the nose
     '''
-    noseCP = 0.5 * nosecone_length # [m] Nosecone CP, Cambridge equation 28
+    noseCP = 0.5 * nosecone_length # [m] Nosecone CP, Cambridge equation 28 # NEED because elliptical nosecone
     return total_length - noseCP # [m] Nose CP from aft
 
 # Calculate angular acceleration across rocket length
@@ -294,7 +313,7 @@ def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, rh
     axial: Array of axial forces across rocket length [N]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    masses = np.array(linear_density_array) * dx # aft to nose
+    masses = linear_density_array * dx # aft to nose
     masses1 = masses[::-1] # nose to aft
     masses2 = np.cumsum(masses1) # nose to aft
     masses3 = masses2[::-1] # aft to nose
