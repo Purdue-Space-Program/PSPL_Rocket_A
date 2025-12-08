@@ -3,12 +3,17 @@ function StrutAnalysis(objectInQuestion)
 %% INITIALIZATION
 
 %% SFD Importing
+currentDirectory = pwd;
+cd('C:../SFD')
+
 sfdData = load('sfd_outputs_max_q.mat');
 %sfdData = load('sfd_outputs_off_the_rail.mat');
 axialLoads = sfdData.axial_array / 4.448; % Axial loads converted to pounds
 shearLoads = sfdData.shear_array / 4.448; % Shear loads converted to pounds
 momentLoads = sfdData.bending_array * 8.85; % Moment loads converted to feet-pounds
 lengthLoads = sfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
+
+cd(currentDirectory)
 
 %% Object Properities
 
@@ -36,6 +41,7 @@ objectInQuestion.safetyAllowance = objectInQuestion.buckleLimit ./ (safetyFactor
 
 %% ____________________
 %% FORMATTED TEXT/FIGURE DISPLAYS
+fprintf("Analysis of %s\n", objectInQuestion.name)
 fprintf("Max compression case: %.2f lbf\n", objectInQuestion.netLoad(1));
 if objectInQuestion.netLoad(2) >= 0
     fprintf("Max tension case: Not Under Tension\n\n");
@@ -44,6 +50,7 @@ else
 end
 fprintf("Buckling Load Limit: %.2f lbf\n", objectInQuestion.buckleLimit)
 fprintf("Max load safety factor for the %s: %.2f\n", objectInQuestion.name, objectInQuestion.safetyAllowance - 1)
+fprintf("------------------------------------------------------\n")
 
 %% ____________________
 %% Functions
