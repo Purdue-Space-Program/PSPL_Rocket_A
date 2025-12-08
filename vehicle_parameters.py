@@ -53,16 +53,16 @@ class VehicleParameters:
     total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # (4.42 + 4.42) * c.LB2KG # The total mass of propellant needed for the burn time [kilograms]
 
     total_length: float = 7.5 * c.FT2M            # The estimated length of the rocket [meter]
-    wet_mass: float = 96.0 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
-    dry_mass: float = 87.2 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
-    estimated_apogee: float = 2587 * c.FT2M       # The estimated 1-DOF altitude [meters]
-    off_the_rail_TWR: float = 7.22                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    off_the_rail_acceleration: float = 6.22       # The target acceleration of the rocket off the launch rail [standard gravity]
-    off_the_rail_velocity: float = 27.21          # The target velocity of the rocket off the launch rail [meters/second]
-    max_acceleration: float = 6.72 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
-    max_mach: float = 0.385                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    max_velocity: float = 0.385 * 343                  # The maximum speed of the rocket during flight [meters/second]
-    total_impulse: float = 6380                   # The total impulse of the rocket over the duration of flight [newton seconds]
+    wet_mass: float = 93.3 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
+    dry_mass: float = 84.5 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
+    estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DOF altitude [meters]
+    off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
+    off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravity]
+    off_the_rail_velocity: float = 27.64          # The target velocity of the rocket off the launch rail [meters/second]
+    max_acceleration: float = 6.96 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
+    max_mach: float = 0.395                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    max_velocity: float = max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
+    total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
 parameters = VehicleParameters()
 
@@ -123,9 +123,11 @@ engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_leng
 
 injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
 
+number_of_fins = 3
+fin_mass = number_of_fins * 3.51 * c.LBM2KG # [kg]
 valves_mass = 2 * 3.26 * c.LBM2KG # fuel and ox 3/4 inch valve https://habonim.com/wp-content/uploads/2020/08/C47-BD_C47__2023_VO4_28-06-23.pdf
 lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, lower_length)
-lower_mass = valves_mass + lower_panels_mass
+lower_mass = valves_mass + lower_panels_mass + fin_mass
 
 bulkhead_wall_thickness = 0.25 * c.IN2M
 bulkhead_top_thickness = 0.76 * c.IN2M
