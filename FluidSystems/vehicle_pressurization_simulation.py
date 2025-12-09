@@ -8,7 +8,7 @@ from CoolProp.CoolProp import PropsSI
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from FluidSystems.heat_transfer_functions import *
+from heat_transfer_functions import *
 
 import sys
 import os
@@ -21,21 +21,22 @@ import vehicle_parameters as vehicle
 T_AMBIENT = 293 # [K] ambient temperature
 LOITER_TIME = 0 * 1 # [s] time between prepressurization and the start of flow
 LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-DT = 0.01 # [s] simulation step size
+DT = 0.00050 # [s] simulation step size
 Q_FACTOR = 1 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
 PLOT_OUTPUT = True # True to make pretty plots of the results :)
 
 # inputs
-ADIABATIC = False # True to ignore heat transfer in the tanks
-PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
-PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
 
 # Vehicle parameters
 # COPV
-vehicle_name = "Copperhead"
+vehicle_name = "Rocket_A"
 
 if vehicle_name == "Copperhead":
+    ADIABATIC = False # True to ignore heat transfer in the tanks
+    PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
+    PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
+    
     GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
     # COPV
     PRESS_GAS = 'helium'
@@ -67,13 +68,17 @@ if vehicle_name == "Copperhead":
     V_FU = 2062 * c.IN32M3 # [m^3] fuel tank total volume
     ULLAGE_FU =  1 / 100 # [] fuel tank volume ullage fraction
     
-    # V_ullage_ox = 98.9 * c.IN32M3 # [m^3] oxidizer tank ullage volume
-    # V_ullage_fu = 10 * c.IN32M3 # [m^3] fuel tank ullage volume
+    V_ullage_ox = 98.9 * c.IN32M3 # [m^3] oxidizer tank ullage volume
+    V_ullage_fu = 10 * c.IN32M3 # [m^3] fuel tank ullage volume
     
-    V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
-    V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
+    # V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
+    # V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
 
 if vehicle_name == "Rocket_A":
+    ADIABATIC = False # True to ignore heat transfer in the tanks
+    PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
+    PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
+    
     PRESS_GAS = "nitrogen"
     P_COPV = vehicle.calculated_parameters.COPV_starting_pressure # [Pa] starting COPV pressure
     T_COPV = 300 # [K] starting COPV temperature (assumed)
@@ -120,6 +125,8 @@ if vehicle_name == "Rocket_A":
     
     V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
     V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
+else:
+    raise ValueError("what")
 
 # Volumetric flow rates
 # Oxidizer
@@ -217,6 +224,9 @@ m_ullage_ox[0] = V_ullage_tank_ox * PropsSI('D', 'P', P_OX, 'T', T0_ox, PRESS_GA
 mdot_ullage_ox = np.empty(total_steps + 1) # [kg/s] oxidizer ullage mass flow rate array
 rho_ullage_ox = np.empty(total_steps + 1) # [kg/m^3] oxidizer ullage density array
 rho_ullage_ox[0] = m_ullage_ox[0] / V_ullage_tank_ox
+partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox = np.empty(total_steps + 1) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy array
+partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[0] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[0], 'U', e_ullage_ox[0], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
+
 
 # Fuel
 e_ullage_fu = np.empty(total_steps + 1) # [J/kg] fuel ullage energy array
@@ -309,15 +319,24 @@ for i in tqdm(range(total_steps)):
     rho_ullage_fu[step] = m_ullage_fu[step] / V_ullage_tank_fu # [kg/m^3] fuel ullage density
     
     h_in = PropsSI('H', 'D', rho_copv[step], 'S', s_copv, PRESS_GAS) # [J/kg] adiabatic flow between COPV and tank so isenthalpic
-    partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
-
+    try:
+        # print(f"\nrho_ullage_ox[step]: {rho_ullage_ox[step]}")
+        # print(f"e_ullage_ox[step]: {e_ullage_ox[step]}")
+        partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
+        # print(f"partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox: {partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step]}")
+    except:
+        plt.plot(time, partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox)
+        plt.show
+        
+    
+    
     # Oxidizer e_dot
     e_dot_ox = (
         (Q_dot_ox - P_OX*V_dot_ox - rho_ullage_ox[step]*V_dot_ox*e_ullage_ox[step] + rho_ullage_ox[step]*V_dot_ox*h_in)
-        / (m_ullage_ox[step] + partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox*V_ullage_tank_ox*e_ullage_ox[step] - partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox*V_ullage_tank_ox*h_in)
+        / (m_ullage_ox[step] + partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step]*V_ullage_tank_ox*e_ullage_ox[step] - partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step]*V_ullage_tank_ox*h_in)
     ) # [J/kg/s] rate of change of internal energy in oxidizer ullage
     # Oxidizer Mdot
-    mdot_ullage_ox[step] = partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox*e_dot_ox*V_ullage_tank_ox + rho_ullage_ox[step]*V_dot_ox # [kg/s] rate of change of mass in oxidizer ullage
+    mdot_ullage_ox[step] = partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step]*e_dot_ox*V_ullage_tank_ox + rho_ullage_ox[step]*V_dot_ox # [kg/s] rate of change of mass in oxidizer ullage
 
     partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_fuel = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_fu[step], 'U', e_ullage_fu[step], PRESS_GAS) # [1/Jm^3] partial derivative of fuel ullage density WRT internal energy
 

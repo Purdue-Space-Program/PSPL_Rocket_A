@@ -6,7 +6,7 @@ def bearingStrength(material, diameter, thickness):
 
 def main():
     fSU_SS_316_U = 66000.0
-    boltHoleDiameter = 0.25
+    boltHoleDiameter = 0.2075
     boltSheerStrength = sheerStrength(fSU_SS_316_U, boltHoleDiameter)
     print(boltSheerStrength)
 
