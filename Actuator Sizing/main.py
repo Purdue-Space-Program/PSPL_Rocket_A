@@ -45,9 +45,9 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, pi
     print(f"Length of valve arm would be {armlength * M2IN}")
     return required_torque, armlength, torque
 
-def actuation_time(F_net, piston_mass, piston_diameter):
+def actuation_time(F_net, piston_mass, piston_diameter, armlength):
     time = 0 
-    time_step = 0.0001 
+    time_step = 0.0001  
     piston_velocity = 0 
     dist_travelled = 0
     valve_angle = 0
@@ -58,7 +58,7 @@ def actuation_time(F_net, piston_mass, piston_diameter):
     volume_swept_history = []
     distance_travelled_history = []
     while valve_angle <= 90:
-        dist_travelled = piston_velocity * time + 0.5 * (F_net / piston_mass) * time**2
+        dist_travelled = piston_velocity * time_step + 0.5 * (F_net / piston_mass) * time_step**2
         piston_velocity_new = piston_velocity + (F_net * time_step) / (piston_mass)
         piston_velocity = piston_velocity_new
         if dist_travelled == 0:
@@ -119,5 +119,5 @@ shaft_seal_length = np.pi * shaft_diameter
 piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 series 
 shaft_seal_area = 0.21 * IN2M * shaft_seal_length
 f_net = calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength)
-volume_swept_history, time_history = actuation_time(f_net, piston_mass, piston_diameter)
+volume_swept_history, time_history = actuation_time(f_net, piston_mass, piston_diameter, armlength)
 calc_volumetric_flow(volume_swept_history, time_history)
