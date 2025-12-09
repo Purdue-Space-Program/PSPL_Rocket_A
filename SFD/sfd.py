@@ -154,6 +154,8 @@ def updateCG(vehicle, burn_time, total_time):
     burn_time: burn time [s]
     '''
     length_along_rocket_linspace = vehicle.length_along_rocket_linspace
+    vehicle_length = max(length_along_rocket_linspace)
+    
     cg = []
     dt = 0.005
     times = np.arange(0.0, total_time, dt)
@@ -183,6 +185,9 @@ def updateCG(vehicle, burn_time, total_time):
                     if (above_component_bottom and below_component_top):
                         linear_density_array[index] += linear_density
             cg.append(calcCG(linear_density_array, length_along_rocket_linspace))
+            
+        # print(f"{float(t)}, {float(vehicle_length - cg[-1])}")
+    
     cg_max_q = cg[-1]
     x = int(0.4 / dt)
     cg_off_the_rail = cg[x]

@@ -361,7 +361,7 @@ for component in mass_distribution.components:
 
 
 if __name__ == "__main__":
-    print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM} lbm")
+    print(f"wet mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM} lbm")
     print(f"engine mass: {engine.mass * c.KG2LBM:.2f} lbm")
     print(f"injector mass: {injector.mass * c.KG2LBM:.2f} lbm")
 
