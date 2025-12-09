@@ -45,7 +45,9 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, pi
     print(f"Length of valve arm would be {armlength * M2IN}")
     return required_torque, armlength, torque
 
-def actuation_time_vol_flow
+def actuation_time_vol_flow():
+    return None
+
 def actuation_time_kinematics(F_net, piston_mass, piston_diameter, armlength):
     time = 0 
     time_step = 0.0001  
