@@ -278,19 +278,11 @@ for item in rocket_dict_wet:
         }
     else:
         rocket_dict_dry[item] = rocket_dict_wet[item]
+item_sum = 0
+for item in rocket_dict_wet: item_sum += rocket_dict_wet[item]['mass']; print(f"{item}: {rocket_dict_wet[item]['mass']*c.KG2LBM} lbm")
+print(f"Mass of rocket dict wet: {item_sum * c.KG2LBM} lbm")
+for item in rocket_dict_wet: print(f"{item}: {rocket_dict_dry[item]['length']*c.M2FT} ft")
 
-rocket_dict_recovery = {}
-for item in rocket_dict_dry:
-    if item == "recovery_bay":
-        rocket_dict_recovery[item] = {
-            "mass": rocket_dict_dry[item]["mass"] - parachute_mass,
-            "bottom_distance_from_aft": rocket_dict_dry[item]["bottom_distance_from_aft"],
-            "length": rocket_dict_dry[item]["length"]
-        }
-    elif item == "nosecone":
-        break
-    else:
-        rocket_dict_recovery[item] = rocket_dict_dry[item]
 '''
 print(rocket_dict_wet)
 print(f"Mass of rocket dict wet: {sum(component['mass'] for component in rocket_dict_wet.values())} kg")
