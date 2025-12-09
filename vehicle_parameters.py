@@ -388,9 +388,14 @@ if __name__ == "__main__":
     plt.show()
 
     for component in mass_distribution.components:
-        print(f"{component.name}: {component.mass * c.KG2LBM:.2f} lbm {component.length:.2f} m long")
-        print(f"\t{component.mass * c.KG2LBM:.2f} lbm")
+        print(f"{component.name}: {component.mass:.2f} kg {component.length:.2f} m long")
+        print(f"\t{component.mass:.2f} kg")
         print(f"\t{(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m from nose")
-
+    print(f"Fuel mass: {parameters.fuel_total_mass:.2f} kg")
+    print(f"fuel tank mass: {fuel_tank_wall_mass+lower_fuel_bulkhead.mass+upper_fuel_bulkhead.mass:.2f} kg")
+    print(f"total fuel tank length: {fuel_tank.length + lower_fuel_bulkhead.length + upper_fuel_bulkhead.length:.2f} m")
+    print(f"Oxidizer mass: {parameters.oxidizer_total_mass:.2f} kg")
+    print(f"oxidizer tank mass: {oxidizer_tank_wall_mass+lower_oxidizer_bulkhead.mass+upper_oxidizer_bulkhead.mass:.2f} kg")
+    print(f"total oxidizer tank length: {oxidizer_tank.length + lower_oxidizer_bulkhead.length + upper_oxidizer_bulkhead.length:.2f} m")
 
     
