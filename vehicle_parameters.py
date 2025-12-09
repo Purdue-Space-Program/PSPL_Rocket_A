@@ -360,6 +360,16 @@ if __name__ == "__main__":
 
     panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
     print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
+    print(f"fuel tank mass: {fuel_tank_wall_mass * c.KG2LBM:.2f} lbm")
+    print(f"oxidizer tank mass: {oxidizer_tank_wall_mass * c.KG2LBM:.2f} lbm")
+    print(f"nose cone mass: {nose_cone_mass * c.KG2LBM:.2f} lbm")
+    print(f"upper mass: {upper_mass * c.KG2LBM:.2f} lbm")
+    print(f"mid mass: {mid_mass * c.KG2LBM:.2f} lbm")
+    print(f"lower mass: {lower_mass * c.KG2LBM:.2f} lbm")
+    print(f"helium bay mass: {helium_bay_mass * c.KG2LBM:.2f} lbm")
+    print(f"recovery bay mass: {recovery_bay_mass * c.KG2LBM:.2f} lbm")
+    print(f"fuel mass: {parameters.fuel_total_mass * c.KG2LBM:.2f} lbm")
+
 
     plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * (c.KG2LBM / c.M2FT))    )
     
@@ -376,6 +386,11 @@ if __name__ == "__main__":
     plt.xlabel("length [feet]")
     plt.ylabel("mass density [lbs/feet]")
     plt.show()
+
+    for component in mass_distribution.components:
+        print(f"{component.name}: {component.mass * c.KG2LBM:.2f} lbm {component.length:.2f} m long")
+        print(f"\t{component.mass * c.KG2LBM:.2f} lbm")
+        print(f"\t{(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m from nose")
 
 
     
