@@ -9,6 +9,8 @@ classdef MidStrutValues
         crossArea = (0.5)^2 - (0.5 - 0.065*2)^2;
         slendernessRatio % Slenderness Ratio
         buckleLimit % Buckling Limit (lbf)
+        compressionLimit % Compression material yield Limit (lbf)
+        tensionLimit % Tension material yield limit (lbf)
         location % Location in the SFD calculations
         axialLoad % Axials load (lbf)
         torqueLoad % Moment load (lb-in)

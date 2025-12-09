@@ -1,9 +1,10 @@
 classdef AluminumMaterialProperities
     properties
-        youngs = 10007601
-        yieldStrength = 12038 % (psi) okay source
-        tensileStrength = 46000 % (psi) shit source
-        density = 0.0975
+        youngs = 10007601 % (psi)
+        yieldCompressionStrength = 35000; % (psi)
+        yieldTensionStrength = 35000; % (psi) 
+        ultimateTensionStrength = 42000; % (psi)
+        density = 0.0975 % (lb/in^3)
     end
 end
-% Sourced from a good source
+% Sourced from pg 857 of mmpds

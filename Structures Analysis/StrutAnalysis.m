@@ -17,6 +17,8 @@ cd(currentDirectory)
 
 %% Object Properities
 
+%objectInQuestion = MidStrutValues;
+
 %% ____________________
 %% Parameters
 safetyFactor = 1.4; % Safety Factor (randomly chosen fr fr)
@@ -28,7 +30,9 @@ objectInQuestion.effectiveLength = K * objectInQuestion.length;
 objectInQuestion.slendernessRatio = objectInQuestion.effectiveLength / objectInQuestion.radiusGyration;
 objectInQuestion.mass = objectInQuestion.length * objectInQuestion.crossArea * objectInQuestion.material.density;
 
-objectInQuestion.buckleLimit = (objectInQuestion.material.yieldStrength - (objectInQuestion.material.yieldStrength * K * objectInQuestion.effectiveLength / (2 * pi * objectInQuestion.radiusGyration)) ^ 2 * (objectInQuestion.material.youngs ^ (-1))) * objectInQuestion.crossArea;
+objectInQuestion.buckleLimit = (objectInQuestion.material.yieldCompressionStrength - (objectInQuestion.material.yieldCompressionStrength * K * objectInQuestion.effectiveLength / (2 * pi * objectInQuestion.radiusGyration)) ^ 2 * (objectInQuestion.material.youngs ^ (-1))) * objectInQuestion.crossArea;
+objectInQuestion.compressionLimit = objectInQuestion.material.yieldCompressionStrength * objectInQuestion.crossArea; % Compressive limit
+objectInQuestion.tensionLimit = objectInQuestion.material.yieldTensionStrength * objectInQuestion.crossArea; % Tension limit
 
 %% SFD Properities
 [~, objectInQuestion.location] = min(abs(lengthLoads - objectInQuestion.distance));
@@ -48,7 +52,11 @@ if objectInQuestion.netLoad(2) >= 0
 else
     fprintf("Max tension case: %.2f lbf\n\n", objectInQuestion.netLoad(2));
 end
+fprintf("Slenderness Ratio: %.2f\n", objectInQuestion.slendernessRatio)
 fprintf("Buckling Load Limit: %.2f lbf\n", objectInQuestion.buckleLimit)
+fprintf("Euler Buckling Load Limit: %.2f lbf\n", objectinQuestion.eulerLimit)
+fprintf("Compression Load Limit: %.2f lbf\n", objectInQuestion.compressionLimit)
+fprintf("Tension Load Limit: %.2f lbf\n", objectInQuestion.tensionLimit)
 fprintf("Max load safety factor for the %s: %.2f\n", objectInQuestion.name, objectInQuestion.safetyAllowance - 1)
 fprintf("------------------------------------------------------\n")
 

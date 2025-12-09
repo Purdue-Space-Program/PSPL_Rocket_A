@@ -1,9 +1,10 @@
 classdef SteelMaterialProperities
     properties
-        youngs = 29000000 % Not pulled from proper sources (psi)
-        yieldStrength = 33000 % Grade C steel (psi)
-        tensileStrength = 45000 % Grade C steel (psi)
-        density = 0.2818 % Not pulled from proper sources (lb/in^3)
+        youngs = 29000000 % (psi)
+        yieldCompressionStrength = 33000; % (psi) % Currently a made up number
+        yieldTensionStrength = 33000; % (psi) 
+        ultimateTensionStrength = 45000; % (psi)
+        density = 0.2818 % (lb/in^3)
     end
 end
 % Properities for grade C Cold-Formed Welded and Seamless Carbon Steel
