@@ -315,43 +315,6 @@ for component in mass_distribution.components:
             linear_density_array[index] += linear_density
 
 
-    
-    # component_range = np.linspace(component.bottom_distance_from_aft, component.bottom_distance_from_aft + component.length, num_points_per_component, endpoint=False)
-    
-    # for point in component_range:
-    #     point_nearest = 999999999999999999999
-    #     for potential_nearest_point in x:
-    #         if (abs(potential_nearest_point - point) < point_nearest):
-    #             point_nearest = potential_nearest_point
-            
-    #         if (x != []) and (abs((point - point_nearest)) <= 0.000000001):
-    #             while point < sorted(x)[i]:
-    #                 i += 1
-    #             y[i-1] += average_mass
-    #         else:
-    #             x.append(point)
-    #             y.append(average_mass)
-                
-                
-    
-    # x.extend(component_range)
-    # y.extend([] * len(component_range))
-
-
-
-
-
-# num_points = 1000  # high resolution along rocket length
-# x = np.linspace(0, nosecone.StartAfter(), num_points)
-# y = np.zeros_like(x)
-
-# for component in mass_distribution:
-#     component_range_mask = (x >= component.bottom_distance_from_aft) & (x <= component.bottom_distance_from_aft + component.length)
-#     y[component_range_mask] += component.mass / component.length
-
-
-
-
 if __name__ == "__main__":
     print(f"wet mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM} lbm")
     print(f"engine mass: {engine.mass * c.KG2LBM:.2f} lbm")
