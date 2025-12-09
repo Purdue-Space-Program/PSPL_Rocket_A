@@ -18,8 +18,6 @@ burn_time = vehicle.parameters.burn_time # [s]
 total_time = burn_time # [s]
 cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_time) # Center of gravity over time
 
-<<<<<<< Updated upstream
-=======
 # plt.plot(cg_array)
 # plt.show()
 
@@ -41,7 +39,6 @@ elif location == "off_the_rail":
     mach = velocity / 343 # Speed of sound near sea level ~343 m/s
     cg = cg_off_the_rail
 
->>>>>>> Stashed changes
 # Inputs
 air_density = 1.81 # [kg / m^3] NEED
 max_q_wind_gust = 13.4112 # [m / s] about 30 mph NEED
