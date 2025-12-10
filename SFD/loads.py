@@ -8,7 +8,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import vehicle_parameters as vehicle
 from scipy.io import savemat
 
-
 LB2KG = 0.453592
 FT2M = 0.3048
 IN2M = 0.0254
@@ -17,10 +16,13 @@ burn_time = vehicle.parameters.burn_time # [s]
 total_time = burn_time # [s]
 cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_time) # Center of gravity over time
 
+# plt.plot(cg_array)
+# plt.show()
+
 max_q_inputs = {"velocity": vehicle.parameters.max_velocity, "ax": vehicle.parameters.max_acceleration, "total_mass": vehicle.parameters.dry_mass}
 off_the_rail_inputs = {"velocity": vehicle.parameters.off_the_rail_velocity, "ax": vehicle.parameters.off_the_rail_acceleration, "total_mass": vehicle.parameters.wet_mass}
 
-location = "off_the_rail" # Change to "max_q" or "off_the_rail"
+location = "max_q" # Change to "max_q" or "off_the_rail"
 
 if location == "max_q":
     velocity = max_q_inputs["velocity"]
@@ -37,48 +39,64 @@ elif location == "off_the_rail":
 
 # Inputs
 air_density = 1.81 # [kg / m^3] NEED
-max_q_wind_gust = 9 # [m / s] about 69 mph NEED
-off_the_rail_rail_whip = 5 # [m / s] about 45 mph NEED
+max_q_wind_gust = 13.4112 # [m / s] about 30 mph NEED
+off_the_rail_rail_whip = 5 # [m / s] about 11 mph NEED
 diameter = vehicle.parameters.tube_outer_diameter # [m]
 
-# Fins
-root_chord = 0.29 # [m] NEED
-tip_chord = 0.066 # [m] NEED
-sweep_length = 0.224 # [m] NEED
-fin_height = 0.136 # [m] NEED
-numFins = 3 # [m] NEED
-
-linear_density_array = vehicle.linear_density_array # [kg / m]
-length_along_rocket_linspace = vehicle.length_along_rocket_linspace # [m]
-
-
-noseconeToFin = 2 # [m] NEED
-
-total_mass = np.sum(component.mass for component in vehicle.mass_distribution) # [kg]
-total_length = length_along_rocket_linspace[-1] # [m]
-
-thrust = vehicle.parameters.jet_thrust # [N]
-ax = vehicle.parameters.max_acceleration * 9.81 # [m / s]
-
 if location == "max_q":
+    linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle.rocket_dict_dry)
+    velocity = vehicle.parameters.max_velocity
+    ax = vehicle.parameters.max_acceleration * 9.81
+    mach = vehicle.parameters.max_mach
+    cg = cg_max_q
     wind_gust = max_q_wind_gust
 elif location == "off_the_rail":
+    linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle.rocket_dict_wet)
+    velocity = vehicle.parameters.off_the_rail_velocity
+    ax = vehicle.parameters.off_the_rail_acceleration * 9.81
+    mach = velocity / 343 # Speed of sound near sea level ~343 m/s
+    cg = cg_off_the_rail
     wind_gust = off_the_rail_rail_whip
-Q = sfd.calcQ(air_density, velocity, wind_gust)
-AOA = sfd.calcAOA(wind_gust, velocity)
+total_length = length_along_rocket_linspace[-1] # [m]
+total_mass = np.sum(linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0])) # [kg]
+print(f"Mass used: {total_mass} kg")
+print(f"Length used: {total_length} m")
+
+dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]  # [m]
+
+thrust = vehicle.parameters.jet_thrust # [N]
+
+# Fins
+root_chord = 11 * IN2M # [m]
+tip_chord = 2 * IN2M # [m]
+sweep_length = (11 - 2) * IN2M # [m]
+fin_height = 8 * IN2M # [m]
+numFins = 3 # [m]
+fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft  # [m]
+noseconeToFin = total_length - fin_top # [m]
+print(f"noseconeToFin: {noseconeToFin} m")
+
+# total_mass = 35.7 # [kg] This is when the bending moment will start and end at exactly 0 at max q
+# total_mass = 35.3 # [kg] This is when the bending moment will start and end at exactly 0 at off the rail
+# total_mass = np.sum(component.mass for component in vehicle.mass_distribution) # [kg] Total mass from mass distribution
+# total_mass = np.sum(linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0]))
+
+# Calculated inputs
+Q = sfd.calcQ(air_density, velocity)
+AOA = 4 * np.pi / 180 # NEED
 S = sfd.calcS(diameter)
 
 # Calculated values
 # Fins
+finCP = sfd.calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin) # Fin center of pressure
+noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length) # Nose center of pressure
 finSD = sfd.calcFinSD(root_chord, tip_chord, sweep_length, fin_height, numFins, diameter) # Fin stability derivative
 machCoeff = sfd.calcMachCoeff(1, mach) # Mach coefficient
-noseSD = sfd.calcNoseSD(machCoeff) # Nose stability derivative
+noseSD = sfd.calcNoseSD(cg, noseCP, diameter) # Nose stability derivative
 noseLift = sfd.calcLift(Q, S, AOA, noseSD) # Nose lift
 finLift = sfd.calcLift(Q, S, AOA, finSD) # Fin lift
 inertia = sfd.calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg) # Rotational inertia
 ay = sfd.calcLateralAcceleration(noseLift, finLift, total_mass) # Lateral acceleration
-finCP = sfd.calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin) # Fin center of pressure
-noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length) # Nose center of pressure
 r = sfd.calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg) # Angular acceleration
 shear_array = np.array(sfd.calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg)) # Shear force array
 bending_array = np.array(sfd.calcBending(shear_array, length_along_rocket_linspace)) # Bending moment array
@@ -122,6 +140,18 @@ plt.show()
 print(f"cg {cg:.2f} m")
 print(f"finCP {finCP:.2f} m")
 print(f"total_length {total_length:.2f} m")
+print(f"Wet mass: {vehicle.parameters.wet_mass:.2f} kg")
+print(f"Dry mass: {vehicle.parameters.dry_mass:.2f} kg")
+print(f"Total mass using vehicle mass distribution: {np.sum(component.mass for component in vehicle.mass_distribution):.2f} kg")
+print(f"Total mass using linear density array: {np.sum(linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0])):.2f} kg")
+print(vehicle.oxidizer_tank.bottom_distance_from_aft)
+print(linear_density_array)
+print(length_along_rocket_linspace)
+print(f"ax: {ax} m/s^2")
+print(f"rho: {air_density} kg/m^3")
+print(f"V: {velocity} m/s")
+print(f"Diameter: {S} m")
+print(f"Angular acceleration: {r} rad/s^2")
 '''
 print("Parameters")
 print(f"Air density: {air_density}")
