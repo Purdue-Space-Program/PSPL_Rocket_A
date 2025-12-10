@@ -34,7 +34,7 @@ def main():
     upwardPressureForce_lbs = calculateUpwardForce(recoveryBayPressure_psi, parachuteRadius_in, recoveryBayLength_in)
     print(f"upwardPressureForce_lbs: {upwardPressureForce_lbs:.2f}")
 
-    coefficientOfFriction = 0.6
+    coefficientOfFriction = 0.2
     frictionForce_lbs = calculateFrictionForce(recoveryBayPressure_psi, parachuteRadius_in, recoveryBayLength_in, coefficientOfFriction)
     print(f"frictionForce_lbs: {frictionForce_lbs:.2f}")
     
