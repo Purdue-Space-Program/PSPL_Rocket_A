@@ -107,7 +107,7 @@ upper_length =          31 * c.IN2M
 recovery_bay_length =   9 * c.IN2M
 nosecone_length =       12 * c.IN2M
 
-fucked_length = engine_length + injector_length + lower_length + bulkhead_length + fuel_tank_length + mid_length + oxidizer_tank_length + upper_length + recovery_bay_length + nosecone_length
+fucked_length = engine_length + injector_length + lower_length + (4*bulkhead_length) + fuel_tank_length + mid_length + oxidizer_tank_length + upper_length + recovery_bay_length + nosecone_length
 print(f"fucked_length: {fucked_length:.2f}")
 
 
@@ -218,7 +218,7 @@ mass_distribution = MassDistribution(components=
     fuel_tank,
     upper_fuel_bulkhead,
     
-    # mid,
+    mid,
     
     lower_oxidizer_bulkhead,
     oxidizer_tank,
@@ -318,6 +318,7 @@ if __name__ == "__main__":
     
     rocket_length = max(length_along_rocket_linspace)
     print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
+    print(f"Rocket Length: {rocket_length:.2f} m\n")
     
     COG_location = calcCG(linear_density_array, length_along_rocket_linspace)
     print(f"COM location distance from bottom: {COG_location * c.M2IN:.2f} in")
@@ -336,17 +337,17 @@ if __name__ == "__main__":
     # print(f"oxidizer tank mass: {oxidizer_tank_wall_mass+lower_oxidizer_bulkhead.mass+upper_oxidizer_bulkhead.mass:.2f} kg")
     # print(f"total oxidizer tank length: {oxidizer_tank.length + lower_oxidizer_bulkhead.length + upper_oxidizer_bulkhead.length:.2f} m\n")
 
-    # for component in mass_distribution.components:
+    for component in mass_distribution.components:
         
-    #     # imperial
-    #     print(f"{component.name}:")
-    #     print(f"\tlength: {component.length * c.M2IN:.2f} in")
-    #     print(f"\tmass: {component.mass * c.KG2LBM:.2f} kg")
-    #     print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))) * c.M2IN:.2f} in")
+        # imperial
+        # print(f"{component.name}:")
+        # print(f"\tlength: {component.length * c.M2IN:.2f} in")
+        # print(f"\tmass: {component.mass * c.KG2LBM:.2f} lbm")
+        # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))) * c.M2IN:.2f} in")
         
         # # metric
-        # print(f"{component.name}: {component.mass:.2f} kg {component.length:.2f} m long")
-        # print(f"\t{component.mass:.2f} kg")
-        # print(f"\t{(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m from nose")
+        print(f"{component.name}: {component.mass:.2f} kg {component.length:.2f} m long")
+        print(f"\t{component.mass:.2f} kg")
+        print(f"\t{(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m from nose")
 
     # plt.show()
