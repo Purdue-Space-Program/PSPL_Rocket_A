@@ -98,17 +98,18 @@ def CalcTubeVolume(OD, ID, length):
 engine_length =         10.179 * c.IN2M
 injector_length =       0.475 * c.IN2M
 lower_length =          12 * c.IN2M
-bulkhead_length =       2 * c.IN2M
+bulkhead_length =       1.22 * c.IN2M
 fuel_tank_length =      parameters.fuel_tank_length
 mid_length =            5 * c.IN2M
 oxidizer_tank_length =  parameters.oxidizer_tank_length
 
-upper_length =          12 * c.IN2M
-helium_bay_length =     16 * c.IN2M
-
-avionics_bay_length =   3 * c.IN2M
-recovery_bay_length =   6 * c.IN2M
+upper_length =          31 * c.IN2M
+recovery_bay_length =   9 * c.IN2M
 nosecone_length =       12 * c.IN2M
+
+fucked_length = engine_length + injector_length + lower_length + bulkhead_length + fuel_tank_length + mid_length + oxidizer_tank_length + upper_length + recovery_bay_length + nosecone_length
+print(f"fucked_length: {fucked_length:.2f}")
+
 
 propellant_tank_outer_diameter = parameters.tube_outer_diameter
 propellant_tank_inner_diameter = parameters.tube_inner_diameter
@@ -148,15 +149,9 @@ oxidizer_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_di
 oxidizer_tank_wet_mass = oxidizer_tank_wall_mass + parameters.oxidizer_total_mass
 
 regulator_mass = 1.200 # regulator https://valvesandregulators.aquaenvironment.com/item/high-flow-reducing-regulators-2/873-d-high-flow-dome-loaded-reducing-regulators/item-1659
+copv_mass = 2.9 # [kg]
 upper_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, upper_length)
-upper_mass = regulator_mass + upper_panels_mass
-
-copv_mass = 2.9 
-helium_bay_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, helium_bay_length)
-helium_bay_mass = copv_mass + helium_bay_panels_mass
-
-avionics_bay_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, avionics_bay_length)
-avionics_bay_mass = avionics_bay_panels_mass + (1 * c.LBM2KG) # avionics doesn't weigh anything...
+upper_mass = regulator_mass + copv_mass + upper_panels_mass
 
 recovery_bay_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, recovery_bay_length)
 parachute_mass = 8 * c.LBM2KG  # [kg] 1/3 cuz 1/3 of dry mass compared to --> https://github.com/Purdue-Space-Program/PSPL_Rocket_4_Sizing/blob/2b15e1dc508a56731056ff594a3c6b5afb639b4c/scripts/structures.py#L75
@@ -199,18 +194,16 @@ lower =                   MassComponent(name = 'lower',                       ma
 
 lower_fuel_bulkhead =     MassComponent(name = 'lower_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = lower.StartAfter(),                               length = bulkhead_length)
 fuel_tank =               MassComponent(name = 'fuel_tank',                   mass = fuel_tank_wet_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.StartAfter(),                 length = parameters.fuel_tank_length)
-upper_fuel_bulkhead =     MassComponent(name = 'upper_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = fuel_tank.StartAfter() - (bulkhead_length),       length = bulkhead_length)
+upper_fuel_bulkhead =     MassComponent(name = 'upper_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = fuel_tank.StartAfter()                    ,       length = bulkhead_length)
 
 mid =                     MassComponent(name = 'mid',                         mass = mid_mass,               bottom_distance_from_aft = upper_fuel_bulkhead.StartAfter(),                 length = mid_length)
 
 lower_oxidizer_bulkhead = MassComponent(name = 'lower_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = mid.StartAfter(),                                 length = bulkhead_length)
 oxidizer_tank =           MassComponent(name = 'oxidizer_tank',               mass = oxidizer_tank_wet_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.StartAfter(),             length = parameters.oxidizer_tank_length)
-upper_oxidizer_bulkhead = MassComponent(name = 'upper_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = oxidizer_tank.StartAfter() - (bulkhead_length),   length = bulkhead_length)
+upper_oxidizer_bulkhead = MassComponent(name = 'upper_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = oxidizer_tank.StartAfter(),                       length = bulkhead_length)
 
 upper =                   MassComponent(name = 'upper',                       mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.StartAfter(),             length = upper_length)
-helium_bay =              MassComponent(name = 'helium_bay',                  mass = helium_bay_mass,        bottom_distance_from_aft = upper.StartAfter(),                               length = helium_bay_length)
-avionics_bay =            MassComponent(name = 'avionics_bay',                mass = avionics_bay_mass,      bottom_distance_from_aft = helium_bay.StartAfter(),                          length = avionics_bay_length)
-recovery_bay =            MassComponent(name = 'recovery_bay',                mass = recovery_bay_mass,      bottom_distance_from_aft = avionics_bay.StartAfter(),                        length = recovery_bay_length)
+recovery_bay =            MassComponent(name = 'recovery_bay',                mass = recovery_bay_mass,      bottom_distance_from_aft = upper.StartAfter(),                        length = recovery_bay_length)
 
 nosecone =                MassComponent(name = 'nosecone',                    mass = nose_cone_mass,         bottom_distance_from_aft = recovery_bay.StartAfter(),                        length=nosecone_length)
 
@@ -225,14 +218,14 @@ mass_distribution = MassDistribution(components=
     fuel_tank,
     upper_fuel_bulkhead,
     
+    # mid,
+    
     lower_oxidizer_bulkhead,
     oxidizer_tank,
     upper_oxidizer_bulkhead,
     
     upper,
-    helium_bay,
     
-    avionics_bay,
     recovery_bay,
     nosecone,
     ]
@@ -317,21 +310,9 @@ for component in mass_distribution.components:
 
 if __name__ == "__main__":
     print(f"wet mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM} lbm")
-    print(f"engine mass: {engine.mass * c.KG2LBM:.2f} lbm")
-    print(f"injector mass: {injector.mass * c.KG2LBM:.2f} lbm")
 
-    panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
+    panels_mass = lower_panels_mass + upper_panels_mass + recovery_bay_panels_mass
     print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
-    print(f"fuel tank mass: {fuel_tank_wall_mass * c.KG2LBM:.2f} lbm")
-    print(f"oxidizer tank mass: {oxidizer_tank_wall_mass * c.KG2LBM:.2f} lbm")
-    print(f"nose cone mass: {nose_cone_mass * c.KG2LBM:.2f} lbm")
-    print(f"upper mass: {upper_mass * c.KG2LBM:.2f} lbm")
-    print(f"mid mass: {mid_mass * c.KG2LBM:.2f} lbm")
-    print(f"lower mass: {lower_mass * c.KG2LBM:.2f} lbm")
-    print(f"helium bay mass: {helium_bay_mass * c.KG2LBM:.2f} lbm")
-    print(f"recovery bay mass: {recovery_bay_mass * c.KG2LBM:.2f} lbm")
-    print(f"fuel mass: {parameters.fuel_total_mass * c.KG2LBM:.2f} lbm")
-
 
     plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * (c.KG2LBM / c.M2FT))    )
     
@@ -347,17 +328,25 @@ if __name__ == "__main__":
     
     plt.xlabel("length [feet]")
     plt.ylabel("mass density [lbs/feet]")
-    plt.show()
+        
+    # print(f"Fuel mass: {parameters.fuel_total_mass:.2f} kg")
+    # print(f"fuel tank mass: {fuel_tank_wall_mass+lower_fuel_bulkhead.mass+upper_fuel_bulkhead.mass:.2f} kg")
+    # print(f"total fuel tank length: {fuel_tank.length + lower_fuel_bulkhead.length + upper_fuel_bulkhead.length:.2f} m")
+    # print(f"Oxidizer mass: {parameters.oxidizer_total_mass:.2f} kg")
+    # print(f"oxidizer tank mass: {oxidizer_tank_wall_mass+lower_oxidizer_bulkhead.mass+upper_oxidizer_bulkhead.mass:.2f} kg")
+    # print(f"total oxidizer tank length: {oxidizer_tank.length + lower_oxidizer_bulkhead.length + upper_oxidizer_bulkhead.length:.2f} m\n")
 
-    for component in mass_distribution.components:
-        print(f"{component.name}: {component.mass:.2f} kg {component.length:.2f} m long")
-        print(f"\t{component.mass:.2f} kg")
-        print(f"\t{(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m from nose")
-    print(f"Fuel mass: {parameters.fuel_total_mass:.2f} kg")
-    print(f"fuel tank mass: {fuel_tank_wall_mass+lower_fuel_bulkhead.mass+upper_fuel_bulkhead.mass:.2f} kg")
-    print(f"total fuel tank length: {fuel_tank.length + lower_fuel_bulkhead.length + upper_fuel_bulkhead.length:.2f} m")
-    print(f"Oxidizer mass: {parameters.oxidizer_total_mass:.2f} kg")
-    print(f"oxidizer tank mass: {oxidizer_tank_wall_mass+lower_oxidizer_bulkhead.mass+upper_oxidizer_bulkhead.mass:.2f} kg")
-    print(f"total oxidizer tank length: {oxidizer_tank.length + lower_oxidizer_bulkhead.length + upper_oxidizer_bulkhead.length:.2f} m")
+    # for component in mass_distribution.components:
+        
+    #     # imperial
+    #     print(f"{component.name}:")
+    #     print(f"\tlength: {component.length * c.M2IN:.2f} in")
+    #     print(f"\tmass: {component.mass * c.KG2LBM:.2f} kg")
+    #     print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))) * c.M2IN:.2f} in")
+        
+        # # metric
+        # print(f"{component.name}: {component.mass:.2f} kg {component.length:.2f} m long")
+        # print(f"\t{component.mass:.2f} kg")
+        # print(f"\t{(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m from nose")
 
-    
+    # plt.show()
