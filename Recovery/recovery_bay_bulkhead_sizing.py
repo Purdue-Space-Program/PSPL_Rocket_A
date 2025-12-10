@@ -30,9 +30,9 @@ def main():
     print(f"boltBearingStrengthUltimate: {boltBearingStrengthUltimate}")
     print(f"boltBearingStrengthYield: {boltBearingStrengthYield}")
 
-    netShearForce = 180
+    netAxialForce = 300
     numberOfBolts = 6
-    shearForcePerBolt = netShearForce/numberOfBolts
+    shearForcePerBolt = netAxialForce/numberOfBolts
     ultimateFOS = 2.0
     yieldFOS = 1.5
     fittingFOS = 1.15
