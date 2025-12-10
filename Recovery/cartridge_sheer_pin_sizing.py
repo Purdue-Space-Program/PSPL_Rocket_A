@@ -12,7 +12,7 @@ def calculateUpwardForce(pressure_psi, radius_in, length_in):
     return (pressure_psi)*(3.14159*radius_in*radius_in)
 
 def calculateFrictionForce(pressure_psi, radius_in, length_in, coefficient):
-    return (pressure_psi)*(2*3.14159*radius_in*length_in)*coefficient
+    return (pressure_psi)*(3.14159*radius_in*radius_in)*coefficient
 
 def calculateNetForce(positiveForce, negativeForce):
     return positiveForce - negativeForce
