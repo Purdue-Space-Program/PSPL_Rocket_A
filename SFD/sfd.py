@@ -41,6 +41,12 @@ MPH2MPS = 0.44704
 
 # Make linear_dnsity_array and length_along_rocket_linspace inputs
 def mass_model(rocket_dict):
+    '''
+    rocket_dict: Dictionary of rocket components
+    linear_density_array: Array of linear density along the rocket [kg / m]
+    length_along_rocket_linspace: Array of length along rocket [m]
+    '''
+
     num_points = 500
     length_along_rocket_linspace = np.linspace(rocket_dict["engine"]["bottom_distance_from_aft"], rocket_dict["nosecone"]["bottom_distance_from_aft"] + rocket_dict["nosecone"]["length"], num_points)
     linear_density_array = np.zeros(num_points)
@@ -58,13 +64,13 @@ def mass_model(rocket_dict):
     return linear_density_array, length_along_rocket_linspace
 
 # Calculate dynamic pressure
-def calcQ(rho, velocity, wind_gust):
+def calcQ(rho, velocity):
     '''
     rho: air density [kg / m^3]
     velocity: air velocity = rocket velocity [m/s]
     Q: Dynamic pressure [Pa]
     '''
-    return rho * (sqrt(velocity**2 + wind_gust**2))**2 / 2
+    return rho * velocity**2 / 2
 
 # Calculate angle of attack
 def calcAOA(wind_gust, velocity):
@@ -73,6 +79,7 @@ def calcAOA(wind_gust, velocity):
     velocity: rocket velocity [m/s]
     AOA: Angle of attack [radians]
     '''
+    print(f"AOA: {degrees(atan(wind_gust / velocity))} degrees")
     return atan(wind_gust / velocity)
 
 # Calculate cross sectional area
@@ -110,12 +117,15 @@ def calcMachCoeff(coeff, mach):
     return coeff / sqrt(1 - mach**2) # Cambridge equation 55, 56, assume rocket goes subsonic
 
 # Calculate nose stability derivative
-def calcNoseSD(machCoeff):
+def calcNoseSD(cg, noseCP, diameter):
     '''
-    machCoeff: Mach coefficient
-    why don't I include the mach coefficient for fins?
+    cg: Location of center of gravity of rocket [m]
+    noseCP: Location of center of pressure of the nose [m]
+    diameter: Rocket diameter [m]
+    noseSD: Nose stability derivative [unitless]
     '''
-    return 2 * machCoeff # Cambridge equation 25 # NEED because elliptical nosecone
+    noseSD = abs(cg - noseCP) / diameter 
+    return noseSD
 
 # Calculate lift
 def calcLift(Q, S, AOA, SD):
@@ -154,6 +164,8 @@ def updateCG(vehicle, burn_time, total_time):
     burn_time: burn time [s]
     '''
     length_along_rocket_linspace = vehicle.length_along_rocket_linspace
+    vehicle_length = max(length_along_rocket_linspace)
+    
     cg = []
     dt = 0.005
     times = np.arange(0.0, total_time, dt)
@@ -183,6 +195,9 @@ def updateCG(vehicle, burn_time, total_time):
                     if (above_component_bottom and below_component_top):
                         linear_density_array[index] += linear_density
             cg.append(calcCG(linear_density_array, length_along_rocket_linspace))
+            
+        # print(f"{float(t)}, {float(vehicle_length - cg[-1])}")
+    
     cg_max_q = cg[-1]
     x = int(0.4 / dt)
     cg_off_the_rail = cg[x]
@@ -228,7 +243,7 @@ def calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, nos
     sweep_length: Length of fin sweep length [m]
     fin_height: Fin height [m]
     total_length: Total length of rocket [m]
-    noseconeToFin: Length from noescone to find [m]
+    noseconeToFin: Length from nosecone to find [m]
     finCP: Location of center of pressure of the fin
     '''
     mid_chord = sqrt(fin_height**2 + ((tip_chord - root_chord) / 2 + sweep_length)**2) # [m] Length of fin mid-chord line, Rocket Fin Design equation 1
@@ -248,7 +263,7 @@ def calcNoseCP(nosecone_length, total_length):
     total_length [m]
     noseCP: Location of center of pressure of the nose
     '''
-    noseCP = 0.5 * nosecone_length # [m] Nosecone CP, Cambridge equation 28 # NEED because elliptical nosecone
+    noseCP = 2/6 * nosecone_length # [m] Nosecone CP from nose tip
     return total_length - noseCP # [m] Nose CP from aft
 
 # Calculate angular acceleration across rocket length

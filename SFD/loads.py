@@ -18,10 +18,31 @@ burn_time = vehicle.parameters.burn_time # [s]
 total_time = burn_time # [s]
 cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_time) # Center of gravity over time
 
+# plt.plot(cg_array)
+# plt.show()
+
+max_q_inputs = {"velocity": vehicle.parameters.max_velocity, "ax": vehicle.parameters.max_acceleration, "total_mass": vehicle.parameters.dry_mass}
+off_the_rail_inputs = {"velocity": vehicle.parameters.off_the_rail_velocity, "ax": vehicle.parameters.off_the_rail_acceleration, "total_mass": vehicle.parameters.wet_mass}
+
+location = "off_the_rail" # Change to "max_q" or "off_the_rail"
+
+if location == "max_q":
+    velocity = max_q_inputs["velocity"]
+    ax = max_q_inputs["ax"]
+    total_mass = max_q_inputs["total_mass"]
+    mach = vehicle.parameters.max_mach
+    cg = cg_max_q
+elif location == "off_the_rail":
+    velocity = off_the_rail_inputs["velocity"]
+    ax = off_the_rail_inputs["ax"]
+    total_mass = off_the_rail_inputs["total_mass"]
+    mach = velocity / 343 # Speed of sound near sea level ~343 m/s
+    cg = cg_off_the_rail
+
 # Inputs
 air_density = 1.81 # [kg / m^3] NEED
-max_q_wind_gust = 9 # [m / s] about 69 mph NEED
-off_the_rail_rail_whip = 5 # [m / s] about 45 mph NEED
+max_q_wind_gust = 13.4112 # [m / s] about 30 mph NEED
+off_the_rail_rail_whip = 5 # [m / s] about 11 mph NEED
 diameter = vehicle.parameters.tube_outer_diameter # [m]
 
 if location == "max_q":
@@ -43,6 +64,8 @@ total_mass = np.sum(linear_density_array * (length_along_rocket_linspace[1] - le
 print(f"Mass used: {total_mass} kg")
 print(f"Length used: {total_length} m")
 
+dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]  # [m]
+
 thrust = vehicle.parameters.jet_thrust # [N]
 
 # Fins
@@ -61,21 +84,21 @@ print(f"noseconeToFin: {noseconeToFin} m")
 # total_mass = np.sum(linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0]))
 
 # Calculated inputs
-Q = sfd.calcQ(air_density, velocity, wind_gust)
+Q = sfd.calcQ(air_density, velocity)
 AOA = sfd.calcAOA(wind_gust, velocity)
 S = sfd.calcS(diameter)
 
 # Calculated values
 # Fins
+finCP = sfd.calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin) # Fin center of pressure
+noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length) # Nose center of pressure
 finSD = sfd.calcFinSD(root_chord, tip_chord, sweep_length, fin_height, numFins, diameter) # Fin stability derivative
 machCoeff = sfd.calcMachCoeff(1, mach) # Mach coefficient
-noseSD = sfd.calcNoseSD(machCoeff) # Nose stability derivative
+noseSD = sfd.calcNoseSD(cg, noseCP, diameter) # Nose stability derivative
 noseLift = sfd.calcLift(Q, S, AOA, noseSD) # Nose lift
 finLift = sfd.calcLift(Q, S, AOA, finSD) # Fin lift
 inertia = sfd.calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg) # Rotational inertia
 ay = sfd.calcLateralAcceleration(noseLift, finLift, total_mass) # Lateral acceleration
-finCP = sfd.calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin) # Fin center of pressure
-noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length) # Nose center of pressure
 r = sfd.calcAngularAcceleration(noseLift, finLift, noseCP, finCP, inertia, cg) # Angular acceleration
 shear_array = np.array(sfd.calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length_along_rocket_linspace, r, cg)) # Shear force array
 bending_array = np.array(sfd.calcBending(shear_array, length_along_rocket_linspace)) # Bending moment array

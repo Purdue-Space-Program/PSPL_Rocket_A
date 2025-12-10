@@ -19,7 +19,7 @@ def calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length
     print(f"fh_shaft: {fh_shaft}")
     f_net = piston_force_at_200psi - force_valve - friction_piston - friction_shaft
     print(f"F_net: {f_net * N2LBF} LBF")
-    return None
+    return f_net
 
 def calc_volumetric_flow(volume_swept_history, time_history):
     volumetric_flow_history = []
@@ -45,14 +45,15 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, pi
     print(f"Length of valve arm would be {armlength * M2IN}")
     return required_torque, armlength, torque
 
-def actuation_time(armlength, braking_torque, torque, piston_mass, piston_diameter):
-    net_torque = torque - braking_torque
-    F_net = net_torque * np.sqrt(2) / armlength
+def actuation_time_vol_flow():
+    return None
+
+def actuation_time_kinematics(F_net, piston_mass, piston_diameter, armlength):
     time = 0 
-    time_step = 0.0001 
+    time_step = 0.0001  
     piston_velocity = 0 
     dist_travelled = 0
-    valve_angle = 0 
+    valve_angle = 0
     volume_swept = 0
     time_history = []
     angle_history = []
@@ -60,10 +61,10 @@ def actuation_time(armlength, braking_torque, torque, piston_mass, piston_diamet
     volume_swept_history = []
     distance_travelled_history = []
     while valve_angle <= 90:
-        dist_travelled = piston_velocity * time + 0.5 * (F_net / piston_mass) * time**2
+        dist_travelled = piston_velocity * time_step + 0.5 * (F_net / piston_mass) * time_step**2
         piston_velocity_new = piston_velocity + (F_net * time_step) / (piston_mass)
         piston_velocity = piston_velocity_new
-        if dist_travelled ==0:
+        if dist_travelled == 0:
             valve_angle = 0
         else:
             valve_angle = np.degrees((np.pi / 2) - np.arctan((((armlength / dist_travelled) - (1/np.sqrt(2))) * np.sqrt(2))))
@@ -113,13 +114,13 @@ safety_factor = 3
 piston_force_at_200psi = 620 * LBF2N 
 piston_stroke_length = 2.5 * IN2M 
 required_torque, armlength, torque = calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length)
-piston_mass = 5 * LBM2KG 
+piston_mass = 1 * LBM2KG
 piston_diameter = 2 * IN2M
 shaft_diameter = 0.625 * IN2M
-volume_swept_history, time_history = actuation_time(armlength, braking_torque, torque, piston_mass, piston_diameter)
-calc_volumetric_flow(volume_swept_history, time_history)
 piston_seal_length = np.pi * piston_diameter
 shaft_seal_length = np.pi * shaft_diameter
 piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 series 
 shaft_seal_area = 0.21 * IN2M * shaft_seal_length
-calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength)
+f_net = calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength)
+volume_swept_history, time_history = actuation_time_kinematics(f_net, piston_mass, piston_diameter, armlength)
+calc_volumetric_flow(volume_swept_history, time_history)

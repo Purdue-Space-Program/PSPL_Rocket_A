@@ -53,16 +53,16 @@ class VehicleParameters:
     total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # (4.42 + 4.42) * c.LB2KG # The total mass of propellant needed for the burn time [kilograms]
 
     total_length: float = 7.5 * c.FT2M            # The estimated length of the rocket [meter]
-    wet_mass: float = 96.0 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
-    dry_mass: float = 87.2 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
-    estimated_apogee: float = 2587 * c.FT2M       # The estimated 1-DOF altitude [meters]
-    off_the_rail_TWR: float = 7.22                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    off_the_rail_acceleration: float = 6.22       # The target acceleration of the rocket off the launch rail [standard gravity]
-    off_the_rail_velocity: float = 27.21          # The target velocity of the rocket off the launch rail [meters/second]
-    max_acceleration: float = 6.72 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
-    max_mach: float = 0.385                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    max_velocity: float = 0.385 * 343                  # The maximum speed of the rocket during flight [meters/second]
-    total_impulse: float = 6380                   # The total impulse of the rocket over the duration of flight [newton seconds]
+    wet_mass: float = 93.3 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
+    dry_mass: float = 84.5 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
+    estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DOF altitude [meters]
+    off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
+    off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravity]
+    off_the_rail_velocity: float = 27.64          # The target velocity of the rocket off the launch rail [meters/second]
+    max_acceleration: float = 6.96 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
+    max_mach: float = 0.395                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    max_velocity: float = max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
+    total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
 parameters = VehicleParameters()
 
@@ -123,9 +123,11 @@ engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_leng
 
 injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
 
+number_of_fins = 3
+fin_mass = number_of_fins * 3.51 * c.LBM2KG # [kg]
 valves_mass = 2 * 3.26 * c.LBM2KG # fuel and ox 3/4 inch valve https://habonim.com/wp-content/uploads/2020/08/C47-BD_C47__2023_VO4_28-06-23.pdf
 lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, lower_length)
-lower_mass = valves_mass + lower_panels_mass
+lower_mass = valves_mass + lower_panels_mass + fin_mass
 
 bulkhead_wall_thickness = 0.25 * c.IN2M
 bulkhead_top_thickness = 0.76 * c.IN2M
@@ -278,19 +280,11 @@ for item in rocket_dict_wet:
         }
     else:
         rocket_dict_dry[item] = rocket_dict_wet[item]
+item_sum = 0
+for item in rocket_dict_wet: item_sum += rocket_dict_wet[item]['mass']; print(f"{item}: {rocket_dict_wet[item]['mass']*c.KG2LBM} lbm")
+print(f"Mass of rocket dict wet: {item_sum * c.KG2LBM} lbm")
+for item in rocket_dict_wet: print(f"{item}: {rocket_dict_dry[item]['length']*c.M2FT} ft")
 
-rocket_dict_recovery = {}
-for item in rocket_dict_dry:
-    if item == "recovery_bay":
-        rocket_dict_recovery[item] = {
-            "mass": rocket_dict_dry[item]["mass"] - parachute_mass,
-            "bottom_distance_from_aft": rocket_dict_dry[item]["bottom_distance_from_aft"],
-            "length": rocket_dict_dry[item]["length"]
-        }
-    elif item == "nosecone":
-        break
-    else:
-        rocket_dict_recovery[item] = rocket_dict_dry[item]
 '''
 print(rocket_dict_wet)
 print(f"Mass of rocket dict wet: {sum(component['mass'] for component in rocket_dict_wet.values())} kg")
@@ -321,50 +315,23 @@ for component in mass_distribution.components:
             linear_density_array[index] += linear_density
 
 
-    
-    # component_range = np.linspace(component.bottom_distance_from_aft, component.bottom_distance_from_aft + component.length, num_points_per_component, endpoint=False)
-    
-    # for point in component_range:
-    #     point_nearest = 999999999999999999999
-    #     for potential_nearest_point in x:
-    #         if (abs(potential_nearest_point - point) < point_nearest):
-    #             point_nearest = potential_nearest_point
-            
-    #         if (x != []) and (abs((point - point_nearest)) <= 0.000000001):
-    #             while point < sorted(x)[i]:
-    #                 i += 1
-    #             y[i-1] += average_mass
-    #         else:
-    #             x.append(point)
-    #             y.append(average_mass)
-                
-                
-    
-    # x.extend(component_range)
-    # y.extend([] * len(component_range))
-
-
-
-
-
-# num_points = 1000  # high resolution along rocket length
-# x = np.linspace(0, nosecone.StartAfter(), num_points)
-# y = np.zeros_like(x)
-
-# for component in mass_distribution:
-#     component_range_mask = (x >= component.bottom_distance_from_aft) & (x <= component.bottom_distance_from_aft + component.length)
-#     y[component_range_mask] += component.mass / component.length
-
-
-
-
 if __name__ == "__main__":
-    print(f"total mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM} lbm")
+    print(f"wet mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM} lbm")
     print(f"engine mass: {engine.mass * c.KG2LBM:.2f} lbm")
     print(f"injector mass: {injector.mass * c.KG2LBM:.2f} lbm")
 
     panels_mass = lower_panels_mass + upper_panels_mass + helium_bay_panels_mass + avionics_bay_panels_mass + recovery_bay_panels_mass
     print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
+    print(f"fuel tank mass: {fuel_tank_wall_mass * c.KG2LBM:.2f} lbm")
+    print(f"oxidizer tank mass: {oxidizer_tank_wall_mass * c.KG2LBM:.2f} lbm")
+    print(f"nose cone mass: {nose_cone_mass * c.KG2LBM:.2f} lbm")
+    print(f"upper mass: {upper_mass * c.KG2LBM:.2f} lbm")
+    print(f"mid mass: {mid_mass * c.KG2LBM:.2f} lbm")
+    print(f"lower mass: {lower_mass * c.KG2LBM:.2f} lbm")
+    print(f"helium bay mass: {helium_bay_mass * c.KG2LBM:.2f} lbm")
+    print(f"recovery bay mass: {recovery_bay_mass * c.KG2LBM:.2f} lbm")
+    print(f"fuel mass: {parameters.fuel_total_mass * c.KG2LBM:.2f} lbm")
+
 
     plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * (c.KG2LBM / c.M2FT))    )
     
@@ -382,5 +349,15 @@ if __name__ == "__main__":
     plt.ylabel("mass density [lbs/feet]")
     plt.show()
 
+    for component in mass_distribution.components:
+        print(f"{component.name}: {component.mass:.2f} kg {component.length:.2f} m long")
+        print(f"\t{component.mass:.2f} kg")
+        print(f"\t{(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m from nose")
+    print(f"Fuel mass: {parameters.fuel_total_mass:.2f} kg")
+    print(f"fuel tank mass: {fuel_tank_wall_mass+lower_fuel_bulkhead.mass+upper_fuel_bulkhead.mass:.2f} kg")
+    print(f"total fuel tank length: {fuel_tank.length + lower_fuel_bulkhead.length + upper_fuel_bulkhead.length:.2f} m")
+    print(f"Oxidizer mass: {parameters.oxidizer_total_mass:.2f} kg")
+    print(f"oxidizer tank mass: {oxidizer_tank_wall_mass+lower_oxidizer_bulkhead.mass+upper_oxidizer_bulkhead.mass:.2f} kg")
+    print(f"total oxidizer tank length: {oxidizer_tank.length + lower_oxidizer_bulkhead.length + upper_oxidizer_bulkhead.length:.2f} m")
 
     
