@@ -8,8 +8,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import vehicle_parameters as vehicle
 from scipy.io import savemat
 
-location = "max_q" # Change to "max_q" or "off_the_rail"
-
 LB2KG = 0.453592
 FT2M = 0.3048
 IN2M = 0.0254
@@ -24,7 +22,7 @@ cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_tim
 max_q_inputs = {"velocity": vehicle.parameters.max_velocity, "ax": vehicle.parameters.max_acceleration, "total_mass": vehicle.parameters.dry_mass}
 off_the_rail_inputs = {"velocity": vehicle.parameters.off_the_rail_velocity, "ax": vehicle.parameters.off_the_rail_acceleration, "total_mass": vehicle.parameters.wet_mass}
 
-location = "off_the_rail" # Change to "max_q" or "off_the_rail"
+location = "max_q" # Change to "max_q" or "off_the_rail"
 
 if location == "max_q":
     velocity = max_q_inputs["velocity"]
@@ -85,7 +83,7 @@ print(f"noseconeToFin: {noseconeToFin} m")
 
 # Calculated inputs
 Q = sfd.calcQ(air_density, velocity)
-AOA = sfd.calcAOA(wind_gust, velocity)
+AOA = 4 * np.pi / 180 # NEED
 S = sfd.calcS(diameter)
 
 # Calculated values

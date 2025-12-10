@@ -281,9 +281,9 @@ for item in rocket_dict_wet:
     else:
         rocket_dict_dry[item] = rocket_dict_wet[item]
 item_sum = 0
-for item in rocket_dict_wet: item_sum += rocket_dict_wet[item]['mass']; print(f"{item}: {rocket_dict_wet[item]['mass']*c.KG2LBM} lbm")
-print(f"Mass of rocket dict wet: {item_sum * c.KG2LBM} lbm")
-for item in rocket_dict_wet: print(f"{item}: {rocket_dict_dry[item]['length']*c.M2FT} ft")
+# for item in rocket_dict_wet: item_sum += rocket_dict_wet[item]['mass']; print(f"{item}: {rocket_dict_wet[item]['mass']*c.KG2LBM} lbm")
+# print(f"Mass of rocket dict wet: {item_sum * c.KG2LBM} lbm")
+# for item in rocket_dict_wet: print(f"{item}: {rocket_dict_dry[item]['length']*c.M2FT} ft")
 
 '''
 print(rocket_dict_wet)
