@@ -164,6 +164,8 @@ def updateCG(vehicle, burn_time, total_time):
     burn_time: burn time [s]
     '''
     length_along_rocket_linspace = vehicle.length_along_rocket_linspace
+    vehicle_length = max(length_along_rocket_linspace)
+    
     cg = []
     dt = 0.005
     times = np.arange(0.0, total_time, dt)
@@ -193,6 +195,9 @@ def updateCG(vehicle, burn_time, total_time):
                     if (above_component_bottom and below_component_top):
                         linear_density_array[index] += linear_density
             cg.append(calcCG(linear_density_array, length_along_rocket_linspace))
+            
+        # print(f"{float(t)}, {float(vehicle_length - cg[-1])}")
+    
     cg_max_q = cg[-1]
     x = int(0.4 / dt)
     cg_off_the_rail = cg[x]
@@ -238,7 +243,7 @@ def calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, nos
     sweep_length: Length of fin sweep length [m]
     fin_height: Fin height [m]
     total_length: Total length of rocket [m]
-    noseconeToFin: Length from noescone to find [m]
+    noseconeToFin: Length from nosecone to find [m]
     finCP: Location of center of pressure of the fin
     '''
     mid_chord = sqrt(fin_height**2 + ((tip_chord - root_chord) / 2 + sweep_length)**2) # [m] Length of fin mid-chord line, Rocket Fin Design equation 1
@@ -281,7 +286,7 @@ def calcShear(noseLift, finLift, noseCP, finCP, ay, linear_density_array, length
     noseLift: Nosecone lift [N]
     finLift: Fin lift [N]
     noseCP: Location of center of pressure of the nose [m]
-    finCP: Location of center of prxessure of the fin [m]
+    finCP: Location of center of pressure of the fin [m]
     ay: Lateral acceleration [m / s^2]
     linear_density_array: Array of linear density across rocket length [kg / m]
     length_along_rocket_linspace: Array of rocket lengths [m]

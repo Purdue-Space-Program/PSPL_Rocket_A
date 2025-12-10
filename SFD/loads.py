@@ -18,6 +18,27 @@ burn_time = vehicle.parameters.burn_time # [s]
 total_time = burn_time # [s]
 cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_time) # Center of gravity over time
 
+# plt.plot(cg_array)
+# plt.show()
+
+max_q_inputs = {"velocity": vehicle.parameters.max_velocity, "ax": vehicle.parameters.max_acceleration, "total_mass": vehicle.parameters.dry_mass}
+off_the_rail_inputs = {"velocity": vehicle.parameters.off_the_rail_velocity, "ax": vehicle.parameters.off_the_rail_acceleration, "total_mass": vehicle.parameters.wet_mass}
+
+location = "off_the_rail" # Change to "max_q" or "off_the_rail"
+
+if location == "max_q":
+    velocity = max_q_inputs["velocity"]
+    ax = max_q_inputs["ax"]
+    total_mass = max_q_inputs["total_mass"]
+    mach = vehicle.parameters.max_mach
+    cg = cg_max_q
+elif location == "off_the_rail":
+    velocity = off_the_rail_inputs["velocity"]
+    ax = off_the_rail_inputs["ax"]
+    total_mass = off_the_rail_inputs["total_mass"]
+    mach = velocity / 343 # Speed of sound near sea level ~343 m/s
+    cg = cg_off_the_rail
+
 # Inputs
 air_density = 1.81 # [kg / m^3] NEED
 max_q_wind_gust = 13.4112 # [m / s] about 30 mph NEED
