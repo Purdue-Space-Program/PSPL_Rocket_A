@@ -13,12 +13,10 @@ LBF2N = 4.44822  # Pounds force to Newtons
 FT2M = 0.3048  # Feet to Meters
 
 rocket_dict_dry = vehicle.rocket_dict_dry
-cg = loads.cg_max_q
-inertia = loads.inertia
 parachute_mass = vehicle.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
 max_q_velocity = vehicle.parameters.max_velocity  # [m / s]
-AOA = loads.AOA  # [radians]
+AOA = loads.AOA  # [radians] # NEED
 velocity = max_q_velocity * np.sin(AOA) # [m / s]
 
 
@@ -79,6 +77,35 @@ decent_time1 = max_height/terminal_velocity1
 print('Terminal Velocity: ', terminal_velocity1, 'm/s')
 print('Decent Time: ',decent_time1, 'seconds')
 '''
+
+def calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg):
+    '''
+    linear_density_array: Array of linear density across rocket [array]
+    length_along_rocket_linspace: Numpy linspace for lengths along rocket [array]
+    cg: Location of center of gravity [m]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    mass_model = linear_density_array * dx
+    inertia = 0
+    for x in range(len(length_along_rocket_linspace)):
+        inertia += mass_model[x] * (length_along_rocket_linspace[x] - cg)**2
+    return inertia
+
+def calcCG(linear_density_array, length_along_rocket_linspace):
+    '''
+    linear_density_array: Array of linear density as a function of length [kg / m]
+    length_along_rocket_linspace: Array of length along rocket [m]
+    cg: Location of center of gravity of rocket from aft [m]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    totalMass = np.sum(linear_density_array * dx)
+    # print(totalMass / LB2KG)
+    
+    lengths = np.array(length_along_rocket_linspace)
+    masses = np.array(linear_density_array * dx)
+    moments = np.sum(lengths * masses)
+    cg = moments / totalMass
+    return cg
 
 def calcDragForce(cd, rho, velocity, area):
     '''
@@ -172,6 +199,8 @@ print ('Terminal Velocity: ', terminal_velocity, 'm/s')
 print ("Descent Time: ", descent_time, 'seconds')
 print ('Drag Force: ', drag_force, 'N')
 
+cg = calcCG(linear_density_array, length_along_rocket_linspace) # Center of gravity
+inertia = calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg) # Rotational inertia
 ay = calcLateralAcceleration(drag_force, total_mass) # Lateral acceleration
 r = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg) # Angular acceleration
 shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r, cg)) # Shear force array

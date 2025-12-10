@@ -132,6 +132,7 @@ print(f"ax: {ax} m/s^2")
 print(f"rho: {air_density} kg/m^3")
 print(f"V: {velocity} m/s")
 print(f"Diameter: {S} m")
+print(f"Angular acceleration: {r} rad/s^2")
 '''
 print("Parameters")
 print(f"Air density: {air_density}")
