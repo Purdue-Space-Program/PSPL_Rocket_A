@@ -1,4 +1,4 @@
-function StrutAnalysis(objectInQuestion)
+%function StrutAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
 
@@ -10,54 +10,67 @@ sfdData = load('sfd_outputs_max_q.mat');
 %sfdData = load('sfd_outputs_off_the_rail.mat');
 axialLoads = sfdData.axial_array / 4.448; % Axial loads converted to pounds
 shearLoads = sfdData.shear_array / 4.448; % Shear loads converted to pounds
-momentLoads = sfdData.bending_array * 8.85; % Moment loads converted to feet-pounds
+momentLoads = sfdData.bending_array * 8.85; % Moment loads converted to inch-pounds
 lengthLoads = sfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
 
 cd(currentDirectory)
 
 %% Object Properities
 
-%objectInQuestion = MidStrutValues;
+objectInQuestion = MidStrutValues;
 
 %% ____________________
 %% Parameters
-safetyFactor = 1.4; % Safety Factor (randomly chosen fr fr)
+safetyFactor = [1.5, 1.5]; % Safety Factor [compression, tension] (randomly chosen fr fr)
 K = 0.9; % Effective length factor Fixed-Fixed
+
+length = objectInQuestion.length;
+radiusGyration = objectInQuestion.radiusGyration;
+crossArea = objectInQuestion.crossArea;
+material = objectInQuestion.material;
+distance = objectInQuestion.distance;
+radius = objectInQuestion.radius;
+name = objectInQuestion.name;
 
 %% ____________________
 %% Calculated Properities
-objectInQuestion.effectiveLength = K * objectInQuestion.length;
-objectInQuestion.slendernessRatio = objectInQuestion.effectiveLength / objectInQuestion.radiusGyration;
-objectInQuestion.mass = objectInQuestion.length * objectInQuestion.crossArea * objectInQuestion.material.density;
+effectiveLength = K * length;
+slendernessRatio = effectiveLength / radiusGyration;
+mass = length * crossArea * material.density;
 
-objectInQuestion.buckleLimit = (objectInQuestion.material.yieldCompressionStrength - (objectInQuestion.material.yieldCompressionStrength * K * objectInQuestion.effectiveLength / (2 * pi * objectInQuestion.radiusGyration)) ^ 2 * (objectInQuestion.material.youngs ^ (-1))) * objectInQuestion.crossArea;
-objectInQuestion.compressionLimit = objectInQuestion.material.yieldCompressionStrength * objectInQuestion.crossArea; % Compressive limit
-objectInQuestion.tensionLimit = objectInQuestion.material.yieldTensionStrength * objectInQuestion.crossArea; % Tension limit
+buckleLimit = (material.yieldCompressionStrength - (material.yieldCompressionStrength * K * effectiveLength / (2 * pi * radiusGyration)) ^ 2 * (material.youngs ^ (-1))) * crossArea;
+compressionLimit = material.yieldCompressionStrength * crossArea; % Compressive limit
+tensionLimit = material.yieldTensionStrength * crossArea; % Tension limit
+eulerLimit = (pi ^ 2 * material.youngs / ((K * effectiveLength / radiusGyration) ^ 2)) * crossArea;
+
 
 %% SFD Properities
-[~, objectInQuestion.location] = min(abs(lengthLoads - objectInQuestion.distance));
-objectInQuestion.axialLoad = axialLoads(objectInQuestion.location);
-objectInQuestion.torqueLoad = momentLoads(objectInQuestion.location);
+[~, location] = min(abs(lengthLoads - distance));
+axialLoad = axialLoads(location);
+torqueLoad = momentLoads(location);
 
 %% Load Limit Properities
-objectInQuestion.netLoad = [objectInQuestion.axialLoad + 2 * objectInQuestion.torqueLoad / objectInQuestion.radius, objectInQuestion.axialLoad - 2 * objectInQuestion.torqueLoad / objectInQuestion.radius]; % Net force
-objectInQuestion.safetyAllowance = objectInQuestion.buckleLimit ./ (safetyFactor * objectInQuestion.netLoad(1));
+netLoad = [axialLoad + 2 * torqueLoad / radius, axialLoad - 2 * torqueLoad / radius] / 3; % Net force
+failureMode = min([buckleLimit, eulerLimit, compressionLimit]);
 
+safetyAllowance(1) = (failureMode - (safetyFactor(1) * netLoad(1))) / (safetyFactor(1) * netLoad(1));
+safetyAllowance(2) = (tensionLimit - abs(safetyFactor(2) * netLoad(2))) / abs((safetyFactor(2) * netLoad(2)));
 %% ____________________
 %% FORMATTED TEXT/FIGURE DISPLAYS
-fprintf("Analysis of %s\n", objectInQuestion.name)
-fprintf("Max compression case: %.2f lbf\n", objectInQuestion.netLoad(1));
-if objectInQuestion.netLoad(2) >= 0
+fprintf("Analysis of %s\n", name)
+fprintf("Max compression case: %.2f lbf\n", netLoad(1));
+if netLoad(2) >= 0
     fprintf("Max tension case: Not Under Tension\n\n");
 else
-    fprintf("Max tension case: %.2f lbf\n\n", objectInQuestion.netLoad(2));
+    fprintf("Max tension case: %.2f lbf\n\n", netLoad(2));
 end
-fprintf("Slenderness Ratio: %.2f\n", objectInQuestion.slendernessRatio)
-fprintf("Buckling Load Limit: %.2f lbf\n", objectInQuestion.buckleLimit)
-fprintf("Euler Buckling Load Limit: %.2f lbf\n", objectinQuestion.eulerLimit)
-fprintf("Compression Load Limit: %.2f lbf\n", objectInQuestion.compressionLimit)
-fprintf("Tension Load Limit: %.2f lbf\n", objectInQuestion.tensionLimit)
-fprintf("Max load safety factor for the %s: %.2f\n", objectInQuestion.name, objectInQuestion.safetyAllowance - 1)
+fprintf("Slenderness Ratio: %.2f\n", slendernessRatio)
+fprintf("Buckling Load Limit: %.2f lbf\n", buckleLimit)
+%fprintf("Euler Buckling Load Limit: %.2f lbf\n", eulerLimit)
+fprintf("Compression Load Limit: %.2f lbf\n", compressionLimit)
+fprintf("Tension Load Limit: %.2f lbf\n", tensionLimit)
+fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
+fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))
 fprintf("------------------------------------------------------\n")
 
 %% ____________________
