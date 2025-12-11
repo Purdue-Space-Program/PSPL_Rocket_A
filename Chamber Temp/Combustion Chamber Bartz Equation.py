@@ -26,7 +26,7 @@ def main():
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
     station_depths = chamber_contour[:, 0]
-    station_inner_radii = chamber_contour[:, 2]
+    station_inner_radii = chamber_contour[:, 1]
 
     #aligning axial positions to the throat
     throat_index = np.argmin(station_inner_radii)
@@ -36,26 +36,22 @@ def main():
     station_area_ratios = station_areas / A_star
 
     #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
-    #Mach_total = np.zeros_like(station_area_ratios) #mach number at each axial position
-    Mach_total = np.full_like(station_area_ratios, np.nan, dtype = float)
-    #h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
-    h_total = np.full_like(station_area_ratios, np.nan, dtype = float)
-    #Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
-    Temp_surface_total = np.full_like(station_area_ratios, np.nan, dtype = float)
+    Mach_total = np.zeros_like(station_area_ratios) #mach number at each axial position
+    #Mach_total = np.full_like(station_area_ratios, np.nan, dtype = float)
+    h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
+    #h_total = np.full_like(station_area_ratios, np.nan, dtype = float)
+    Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
+    #Temp_surface_total = np.full_like(station_area_ratios, np.nan, dtype = float)
 
 
     cea_results = RunCEA(vp.parameters.chamber_pressure, "ethanol", "liquid oxygen", 1.0)
-    gamma_loc = cea_results["gamma"]
-    Pr_loc = cea_results["pran"]
-    cp_loc = cea_results["cp"]
-    #idk what units chamber pressure is in
-    if cp_loc < 100:
-        cp_loc *= 1000 #avoiding unrealistically low cp values from CEA
-    visc_loc = cea_results["visc"]
-    t_loc = cea_results["t"]
-    P_loc = cea_results["p"] * 1e5
-    if P_loc < 5000:
-        p_loc *= 6894.76
+    gamma_loc = cea_results["gamma"] #specific heat ratio
+    Pr_loc = cea_results["pran"] #prandtl number
+    cp_loc = cea_results["cp"] #specific heat
+    visc_loc = cea_results["visc"] #dynamic viscosity
+    cstar_loc = cea_results["c_star"] #characteristic exhaust velocity
+    t_loc = cea_results["t"] #stagnation temperature
+    P_loc = cea_results["p"] * c.BAR2PA #chamber pressure in Pascals
 
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
@@ -92,7 +88,7 @@ def main():
             Rt = ((1.5 * 1.15 * c.IN2M) + (0.382 * 1.15 * c.IN2M)) / 2,     #radius of throat curve (m)
             Pr = Pr_loc, #Prandtl number of the combustion gas (n/a)
             gamma = gamma_loc, #specific heat ratio of the combustion gas (n/a)
-            c_star = cea_results["c_star"], #characteristic exhaust velocity (m/s)
+            c_star = cstar_loc, #characteristic exhaust velocity (m/s)
             T0 = t_loc, #stagnation temperature of the combustion gas ((K))
             Twg = recovery_temperature( #recovery temperature at the wall
                 T_c = t_loc,
@@ -100,7 +96,7 @@ def main():
                 M = M_local,
                 Pr = Pr_loc
             ),
-            Cp = cp_loc * 1000, #specific heat at constant pressure of the combustion
+            Cp = cp_loc, #specific heat at constant pressure of the combustion
             P0 = P_loc, #chamber pressure (Pascals)
             mu = visc_loc, #dynamic viscosity of the combustion gas (Pascal - seconds)
             M = M_local, #Mach number at the local axial point (no units)
@@ -112,7 +108,7 @@ def main():
             heat_transfer_coefficient_value = h_total[station_index],
             axial_position = station_depths[station_index],
             T_infinity = t_loc, #chamber temperature (K)
-            k = 50, #thermal conductivity of the chamber wall material (W/(m*K))
+            k = 51.9, #thermal conductivity of the chamber wall material (W/(m*K)) #1018 Steel
             t = vp.parameters.burn_time #s, burn time
         )
 
@@ -132,6 +128,16 @@ def main():
     plt.title("Heat Transfer Coefficient vs Axial Position")
     plt.grid(True)
     plt.show()
+
+    print("gamma_loc:", gamma_loc)
+    print("Pr_loc:", Pr_loc)
+    print("cp_loc (as used, J/kg-K):", cp_loc)
+    print("cstar_loc:", cstar_loc)
+    print("t_loc (K):", t_loc)
+    print("P_loc (after scaling):", P_loc)
+    print("visc_loc (Pa*s):", visc_loc)
+    print("A_star (m^2):", A_star)
+
     
 
 def RunCEA(
@@ -140,6 +146,8 @@ def RunCEA(
     oxidizer_name,
     OF_Ratio,
 ):
+    chamber_pressure = chamber_pressure * c.PA2BAR  # convert to bar for CEA input
+
     # convert regular string for propellants to what CEA_wrap uses
     if fuel_name == "ethanol":
         CEA_fuel_name = CEA.Fuel("C2H5OH(L)", temp=290)
@@ -155,7 +163,7 @@ def RunCEA(
     else:
         raise ValueError(f"{oxidizer_name} not supported")
 
-    exit_pressure = 15 # [psi]
+    exit_pressure = 1 # [bar]
     pressure_ratio = chamber_pressure / exit_pressure # assume exit pressure is a constantly at the pressure of air a bit above sea level
 
     rocket = CEA.RocketProblem(
@@ -163,7 +171,7 @@ def RunCEA(
         pip =            pressure_ratio, # pip is "Pressure ratio of chamber pressure to exit pressure." github.com/civilwargeeky/CEA_Wrap/blob/main/README.md#rocket-problem-constructor-additional-parameters
         materials =      [CEA_fuel_name, CEA_oxidizer_name],
         o_f =            OF_Ratio,
-        pressure_units = "psi",
+        pressure_units = "bar",
         analysis_type= "frozen",
     )
 
@@ -183,7 +191,8 @@ def RunCEA(
     
 def recovery_temperature(T_c, gamma, M, Pr):
 
-    T_r = T_c * (1 + (((Pr*(gamma - 1)) / 2) * M**2))
+    r = Pr ** (1/3)
+    T_r = T_c * (1 + ((r*(gamma-1)/2) * M**2))
 
     return T_r
 
@@ -196,14 +205,14 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess, branch):
         Mach_function = (Mach_function_part1 * Mach_function_part2) - area_ratio_value
         return Mach_function
 
-        guess = initial_guess
-        if branch == "subsonic:":
-            guess = min(0.8, max(0.05, guess))
+    guess = initial_guess
+    if branch == "subsonic":
+        guess = min(0.8, max(0.05, guess))
 
-        else:
-            guess = max(1.1, guess)
+    else:
+        guess = max(1.1, guess)
 
-    M_solution = fsolve(f, initial_guess)
+    M_solution = fsolve(f, guess)
     return float(M_solution[0])
 
 
@@ -225,15 +234,23 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
     bartz_equation = heat_transfer_term1 * heat_transfer_term2 * heat_transfer_term3 * heat_transfer_term4 * area_factor * sigma
 
     return bartz_equation
+    
 
-def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k = 167, t = vp.parameters.burn_time):
+def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k, t = vp.parameters.burn_time):
     Ti = 294 #K, initial temperature of the chamber wall
-    alpha = 1.5e-5 #thermal diffusivity of the chamber wall material (m^2/s)
+    alpha = thermal_diffusivity_calc(k) #thermal diffusivity of the chamber wall material (m^2/s)
 
     term_conduction = k / ((pi * alpha * t) ** 0.5)     # conduction resistance term
     Ts = (heat_transfer_coefficient_value * T_infinity + term_conduction * Ti) / (heat_transfer_coefficient_value + term_conduction)
 
     return Ts
+
+def thermal_diffusivity_calc(k = 51.9): #thermal diffusivity of 1018 Stainless Steel 
+    rho = 7.87*1000 #kg/m^3
+    C_p = 0.486*1000 #J/kg-K
+
+    alpha = k / (rho * C_p)
+    return alpha
 
 
 if __name__ == "__main__":

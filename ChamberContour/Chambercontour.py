@@ -85,7 +85,7 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     
     
     # Chamber
-    x_c = np.linspace(-Lc+x_con_rad[0], x_con_rad[0], num=4) 
+    x_c = np.linspace(-Lc+x_con_rad[0], x_con_rad[0], num=20) 
     y_c = np.zeros(np.size(x_c)) + Rc
     x_c = np.delete(x_c, -1)
     y_c = np.delete(y_c, -1)
@@ -110,17 +110,18 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     
     z_arr = np.zeros(np.size(x_arr))
     
-    
-    
-    import_point_in_NX = True
-    if import_point_in_NX:
-        x_arr -= x_arr[-1]
-        nozzle = np.transpose(np.array([y_arr, z_arr, -x_arr]))
-    else:
-        nozzle = np.transpose(np.array([x_arr, y_arr, z_arr]))
+    # for nx
+    x_arr -= x_arr[-1]
+    nozzle = np.transpose(np.array([y_arr, z_arr, -x_arr]))
+    print("hello")
+    np.savetxt(filename + "_meters_nx.csv", nozzle, delimiter=',')
+    np.savetxt(filename + "_inches_nx.csv", nozzle * c.M2IN, delimiter=',')
 
+    # for code
+    nozzle = np.transpose(np.array([x_arr, y_arr, z_arr]))
     np.savetxt(filename + "_meters.csv", nozzle, delimiter=',')
     np.savetxt(filename + "_inches.csv", nozzle * c.M2IN, delimiter=',')
+
 
 
 # Nozzle contour plot
