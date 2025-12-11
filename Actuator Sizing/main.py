@@ -17,7 +17,7 @@ def calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length
     print(f"fc_shaft: {fc_shaft}")
     print(f"fh_piston: {fh_piston}")
     print(f"fh_shaft: {fh_shaft}")
-    f_net = piston_force_at_200psi - force_valve - friction_piston - friction_shaft
+    f_net = piston_force_at_200psi - force_valve - friction_piston * 2 - friction_shaft # two seals on piston, 1 on rod
     print(f"F_net: {f_net * N2LBF} LBF")
     return f_net
 
@@ -133,8 +133,8 @@ def actuation_time_kinematics_dist(F_net, piston_mass, piston_diameter, piston_s
     volume_swept = 0
     time_history = []
     velocity_history = []
-    volume_swept_history = []
-    distance_travelled_history = []
+    volume_swept_history_dist = []
+    distance_travelled_history_dist = []
     while dist_travelled <= piston_stroke_length:
         dist_travelled = dist_travelled + piston_velocity * time_step + 0.5 * (F_net / piston_mass) * time_step**2
         piston_velocity_new = piston_velocity + (F_net * time_step) / (piston_mass)
@@ -143,7 +143,7 @@ def actuation_time_kinematics_dist(F_net, piston_mass, piston_diameter, piston_s
         time_history.append(time)
         velocity_history.append(piston_velocity)
         volume_swept_history.append(volume_swept)
-        distance_travelled_history.append(dist_travelled)
+        distance_travelled_history_dist.append(dist_travelled)
         time += time_step
 
     plt.subplot(2, 2, 2)
@@ -153,13 +153,13 @@ def actuation_time_kinematics_dist(F_net, piston_mass, piston_diameter, piston_s
     plt.title("Time vs Velocity")
 
     plt.subplot(2, 2, 3)
-    plt.plot(time_history, volume_swept_history)
+    plt.plot(time_history, volume_swept_history_dist)
     plt.xlabel("Time")
     plt.ylabel("Volume")
     plt.title("Time vs Volume Swept")
 
     plt.subplot(2, 2, 4)
-    plt.plot(time_history, distance_travelled_history)
+    plt.plot(time_history, distance_travelled_history_dist)
     plt.xlabel("Time")
     plt.ylabel("Distance Swept")
     plt.title("Time vs Distance Swept")
