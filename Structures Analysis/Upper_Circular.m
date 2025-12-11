@@ -61,7 +61,6 @@ area_total = (pi/4) * (strut_od^2 - strut_id^2);
 mass = area_total * length * density;
 
 
-
 % === Tension Check ===
 tensile_stress = tension_load / area_total;
 FoS_tension = yield_strength / tensile_stress;

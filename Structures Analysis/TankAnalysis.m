@@ -1,8 +1,6 @@
-%function StrutAnalysis(objectInQuestion)
+function TankAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
-clear
-clc
 
 %% SFD Importing
 currentDirectory = pwd;
@@ -15,8 +13,8 @@ shearLoadssfd = sfdData.shear_array / 4.448; % Shear loads converted to pounds
 momentLoadssfd = sfdData.bending_array * 8.85; % Moment loads converted to inch-pounds
 lengthLoadssfd = sfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
 
-rfdData = load('sfd_outputs_max_q.mat');
-axialLoadsrfd = rfdData.axial_array / 4.448: % Axial loads converted to pounds
+rfdData = load('rfd_outputs_revcovery.mat');
+axialLoadsrfd = rfdData.axial_array / 4.448; % Axial loads converted to pounds
 shearLoadsrfd = rfdData.shear_array / 4.448; % Shear loads converted to pounds
 momentLoadsrfd = rfdData.bending_array * 8.85; % Moment loads conevrted to inch-pounds
 lengthLoadsrfd = rfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
@@ -24,7 +22,6 @@ lengthLoadsrfd = rfdData.length_along_rocket_linspace * 39.37; % Length along th
 cd(currentDirectory)
 
 %% Object Properities
-
 objectInQuestion = FuelTankValues;
 
 %% ____________________
@@ -44,7 +41,6 @@ name = objectInQuestion.name; % Name of the objectin in question
 
 material = objectInQuestion.material; % Material properties from object
 
-
 %% ____________________
 %% Calculated Properities
 crossArea = ((oD/2)^2 - (iD/2)^2) * pi;
@@ -56,8 +52,6 @@ mass = length * crossArea * material.density;
 
 transitionalRatio = sqrt(2 * pi^2 * material.youngs) / (K ^2 * material.yieldCompressionStrength);
 wtRatio = oD / (oD - iD); % Width-Thickness ratio
-plasticMod = (pi/4) * ((oD/2) ^ 3 - (iD/2)^3); % Plastic modulus
-sectionMod = (pi * (oD^4 - iD^4)) / (32 * oD); % Section modulus
 
 buckleLimit = (material.yieldCompressionStrength - (material.yieldCompressionStrength * K * effectiveLength / (2 * pi * radiusGyration)) ^ 2 * (material.youngs ^ (-1))) * crossArea;
 compressionLimit = material.yieldCompressionStrength * crossArea; % Compressive limit
@@ -88,17 +82,18 @@ area_total = (pi/4) * (oD^2 - iD^2);
 
 %% SFD Properities
 [~, locationTakeOff] = min(abs(lengthLoadssfd - distance));
-[~, locationRecovery] = min(abs(lengthLoadss - distance));
+[~, locationRecovery] = min(abs(lengthLoadsrfd - distance));
 
 %% Load Limit Properities
 netLoadTakeoff = [axialLoadssfd(locationTakeOff) + 2 * momentLoadssfd(locationTakeOff) / radius, axialLoadssfd(locationTakeOff) - 2 * momentLoadssfd(locationTakeOff) / radius]; % Net force
-netLoadRecovery = [];
+netLoadRecovery = [axialLoadsrfd(locationRecovery) + 2 * momentLoadsrfd(locationRecovery) / radius, axialLoadsrfd(locationRecovery) - 2 * momentLoadsrfd(locationTakeOff) / radius]; % Net force
 
-netLoad(1) = max([]);
-netLoad(2) = max([]);
+netLoad(1) = max([netLoadTakeoff(1), netLoadRecovery(1)]); % Compression max loads (lbs)
+netLoad(2) = abs(min([netLoadTakeoff(2), netLoadRecovery(2)])); % Tension max loads (lbs)
 
 % === Tension Check ===
 tensileStress = abs(netLoad(2) / area_total);
+FoSCompression = pAllow / netLoad(1) - 1;
 FoSTension = material.yieldCompressionStrength / tensileStress - 1;
 
 %% ____________________
@@ -120,7 +115,8 @@ end
 % fprintf("Tension Load Limit: %.2f lbf\n", tensionLimit)
 fprintf("Available Axial Strength (ASD): %.2f lbs\n", pAllow);
 fprintf("Mass of %s: %.2f lbs\n", name, mass);
-fprintf("Tensile FoS: %.2f\n", FoSTension);
+fprintf("Compression FoS: %.2f\n", FoSCompression);
+fprintf("Tension FoS: %.2f\n", FoSTension);
 fprintf("------------------------------------------------------\n")
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
 % fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))

@@ -1,4 +1,4 @@
-%function StrutAnalysis(objectInQuestion)
+function StrutAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
 
@@ -8,70 +8,117 @@ cd('C:../SFD')
 
 sfdData = load('sfd_outputs_max_q.mat');
 %sfdData = load('sfd_outputs_off_the_rail.mat');
-axialLoads = sfdData.axial_array / 4.448; % Axial loads converted to pounds
-shearLoads = sfdData.shear_array / 4.448; % Shear loads converted to pounds
-momentLoads = sfdData.bending_array * 8.85; % Moment loads converted to inch-pounds
-lengthLoads = sfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
+axialLoadssfd = sfdData.axial_array / 4.448; % Axial loads converted to pounds
+shearLoadssfd = sfdData.shear_array / 4.448; % Shear loads converted to pounds
+momentLoadssfd = sfdData.bending_array * 8.85; % Moment loads converted to inch-pounds
+lengthLoadssfd = sfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
+
+rfdData = load('rfd_outputs_revcovery.mat');
+axialLoadsrfd = rfdData.axial_array / 4.448; % Axial loads converted to pounds
+shearLoadsrfd = rfdData.shear_array / 4.448; % Shear loads converted to pounds
+momentLoadsrfd = rfdData.bending_array * 8.85; % Moment loads conevrted to inch-pounds
+lengthLoadsrfd = rfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
 
 cd(currentDirectory)
 
 %% Object Properities
 
-objectInQuestion = MidStrutValues;
+%objectInQuestion = MidStrutValues;
 
 %% ____________________
 %% Parameters
 safetyFactor = [1.5, 1.5]; % Safety Factor [compression, tension] (randomly chosen fr fr)
+safetyFactorComp = 1.65; % Compression safety factor (ADM ASD)
+safetyFactorBending = 1.67; % Bending safety factor (ADM ASD)
+
 K = 0.9; % Effective length factor Fixed-Fixed
 
-length = objectInQuestion.length;
-radiusGyration = objectInQuestion.radiusGyration;
-crossArea = objectInQuestion.crossArea;
-material = objectInQuestion.material;
-distance = objectInQuestion.distance;
-radius = objectInQuestion.radius;
-name = objectInQuestion.name;
+length = objectInQuestion.length; % Length (in)
+distance = objectInQuestion.distance; % Distance from Aft to top (in)
+radius = objectInQuestion.radius; % Distance from center axis (in)
+name = objectInQuestion.name; % Name of the objectin in question
+width = objectInQuestion.width; % Width of the object (in)
+wallThickness = objectInQuestion.wallThickness; % Wall thickness of the objct (in)
+crossArea = objectInQuestion.crossArea; % Cross sectional area)
+radiusGyration = objectInQuestion.radiusGyration; % Radius of gyration
+
+material = objectInQuestion.material; % Material properties from object
 
 %% ____________________
 %% Calculated Properities
+
 effectiveLength = K * length;
 slendernessRatio = effectiveLength / radiusGyration;
 mass = length * crossArea * material.density;
+
+transitionalRatio = sqrt(2 * pi^2 * material.youngs) / (K ^2 * material.yieldCompressionStrength);
+wtRatio = width / (wallThickness); % Width-Thickness ratio
 
 buckleLimit = (material.yieldCompressionStrength - (material.yieldCompressionStrength * K * effectiveLength / (2 * pi * radiusGyration)) ^ 2 * (material.youngs ^ (-1))) * crossArea;
 compressionLimit = material.yieldCompressionStrength * crossArea; % Compressive limit
 tensionLimit = material.yieldTensionStrength * crossArea; % Tension limit
 eulerLimit = (pi ^ 2 * material.youngs / ((K * effectiveLength / radiusGyration) ^ 2)) * crossArea;
 
+%% Buckling Flow
+
+if wtRatio <= ((0.11 * material.youngs) / material.yieldCompressionStrength)
+    area = crossArea;
+    Fe = (pi^2 * material.youngs) / (slendernessRatio ^ 2);
+    consideringLocalBuckling = 1;
+else
+    area = crossArea * ((0.038 * material.youngs) / (material.yieldCompressionStrength * (wt_ratio)) + 2/3);
+    Fe = (pi ^ 2 * E) / (slenderness_ratio ^ 2);
+    consideringLocalBuckling = 0;
+end
+
+if slendernessRatio <= (4.71 * (material.youngs / material.yieldCompressionStrength)^ (1/2))
+    Fcr = ((0.658) ^ (material.yieldCompressionStrength / Fe)) * material.yieldCompressionStrength;
+else
+    Fcr = 0.877 * Fe;
+end
+
+pAllow = (Fcr * area) / safetyFactorComp; % Allowable axial load (lb)
 
 %% SFD Properities
-[~, location] = min(abs(lengthLoads - distance));
-axialLoad = axialLoads(location);
-torqueLoad = momentLoads(location);
+[~, locationTakeOff] = min(abs(lengthLoadssfd - distance));
+[~, locationRecovery] = min(abs(lengthLoadsrfd - distance));
 
 %% Load Limit Properities
-netLoad = [axialLoad + 2 * torqueLoad / radius, axialLoad - 2 * torqueLoad / radius] / 3; % Net force
-failureMode = min([buckleLimit, eulerLimit, compressionLimit]);
+netLoadTakeoff = [axialLoadssfd(locationTakeOff) + 2 * momentLoadssfd(locationTakeOff) / radius, axialLoadssfd(locationTakeOff) - 2 * momentLoadssfd(locationTakeOff) / radius]; % Net force
+netLoadRecovery = [axialLoadsrfd(locationRecovery) + 2 * momentLoadsrfd(locationRecovery) / radius, axialLoadsrfd(locationRecovery) - 2 * momentLoadsrfd(locationTakeOff) / radius]; % Net force
 
-safetyAllowance(1) = (failureMode - (safetyFactor(1) * netLoad(1))) / (safetyFactor(1) * netLoad(1));
-safetyAllowance(2) = (tensionLimit - abs(safetyFactor(2) * netLoad(2))) / abs((safetyFactor(2) * netLoad(2)));
+netLoad(1) = max([netLoadTakeoff(1), netLoadRecovery(1)]) / 3; % Compression max loads (lbs)
+netLoad(2) = abs(min([netLoadTakeoff(2), netLoadRecovery(2)])) / 3; % Tension max loads (lbs)
+
+% === Tension Check ===
+tensileStress = abs(netLoad(2) / crossArea);
+FoSCompression = pAllow / netLoad(1) - 1;
+FoSTension = material.yieldCompressionStrength / tensileStress - 1;
+
 %% ____________________
 %% FORMATTED TEXT/FIGURE DISPLAYS
 fprintf("Analysis of %s\n", name)
 fprintf("Max compression case: %.2f lbf\n", netLoad(1));
-if netLoad(2) >= 0
-    fprintf("Max tension case: Not Under Tension\n\n");
+fprintf("Max tension case: %.2f lbf\n\n", netLoad(2));
+
+if consideringLocalBuckling == 1
+    fprintf("Nonslender - local buckling not critcal.\n")
 else
-    fprintf("Max tension case: %.2f lbf\n\n", netLoad(2));
+    fprintf("Slender = local buckling must be considered.\n");
 end
-fprintf("Slenderness Ratio: %.2f\n", slendernessRatio)
-fprintf("Buckling Load Limit: %.2f lbf\n", buckleLimit)
-%fprintf("Euler Buckling Load Limit: %.2f lbf\n", eulerLimit)
-fprintf("Compression Load Limit: %.2f lbf\n", compressionLimit)
-fprintf("Tension Load Limit: %.2f lbf\n", tensionLimit)
-fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
-fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))
+% fprintf("Slenderness Ratio: %.2f\n", slendernessRatio)
+% fprintf("Buckling Load Limit: %.2f lbf\n", buckleLimit)
+% %fprintf("Euler Buckling Load Limit: %.2f lbf\n", eulerLimit)
+% fprintf("Compression Load Limit: %.2f lbf\n", compressionLimit)
+% fprintf("Tension Load Limit: %.2f lbf\n", tensionLimit)
+fprintf("Available Axial Strength (ASD): %.2f lbs\n", pAllow);
+fprintf("Mass of %s: %.2f lbs\n", name, mass);
+fprintf("Compression FoS: %.2f\n", FoSCompression);
+fprintf("Tension FoS: %.2f\n", FoSTension);
 fprintf("------------------------------------------------------\n")
+% fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
+% fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))
+% fprintf("------------------------------------------------------\n")
 
 %% ____________________
 %% Functions
