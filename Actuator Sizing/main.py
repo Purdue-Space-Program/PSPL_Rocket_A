@@ -23,8 +23,10 @@ def calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length
 
 def calc_volumetric_flow(volume_swept_history, time_history):
     volumetric_flow_history = []
-    for volume, time in zip(volume_swept_history, time_history):
-        volumetric_flow = volume / time if time != 0 else None
+    time_step = time_history[1] - time_history[0] if len(time_history) > 1 else 0
+    volumetric_flow_history.append(0)
+    for i in range(1, len(volume_swept_history)):
+        volumetric_flow = (volume_swept_history[i] - volume_swept_history[i-1]) / time_step
         volumetric_flow_history.append(volumetric_flow)
     plt.subplot(2, 1, 1)
     plt.plot(volume_swept_history, volumetric_flow_history)
@@ -164,7 +166,7 @@ def actuation_time_kinematics_dist(F_net, piston_mass, piston_diameter, piston_s
     plt.tight_layout()
     plt.show()
 
-    print(f"Actuation time: {time}s")
+    print(f"Actuation time by using distance condition: {time}s")
     return volume_swept_history, time_history
 
 # Shortlisted Piston: https://pspliquids.slack.com/archives/C09C5J1EJDB/p1764894397354269?thread_ts=1764888234.600949&cid=C09C5J1EJDB
