@@ -17,6 +17,7 @@ ATM2PA = 101325  # [Pa/atm] Conversion factor from atm to Pa
 PA2ATM = 1 / ATM2PA  # [atm/Pa] Conversion factor from Pa to atm
 
 PA2BAR = 1e-5  # [bar/Pa] Conversion factor from Pa to bar
+PSI2BAR = PSI2PA * PA2BAR  # [bar/psi] Conversion factor from psi to bar
 BAR2PA = 1 / PA2BAR  # [Pa/bar] Conversion factor from bar to Pa
 
 ## Temperature
