@@ -151,6 +151,8 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     plt.axis('equal')
     plt.grid()
     plt.show()
+    
+    return -x_arr* c.M2IN, y_arr* c.M2IN
 
 
 expansion_ratio = 2.288 # [n/a]
