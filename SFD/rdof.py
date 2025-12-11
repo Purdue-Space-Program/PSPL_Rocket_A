@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import vehicle_parameters as vehicle
 import sfd as sfd
 import loads as loads
+from scipy.io import savemat
 
 LBF2N = 4.44822  # Pounds force to Newtons
 FT2M = 0.3048  # Feet to Meters
@@ -206,6 +207,11 @@ r = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg) # Angul
 shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r, cg)) # Shear force array
 bending_array = np.array(calcBending(shear_array, length_along_rocket_linspace)) # Bending moment array
 axial_array = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace)) # Axial forces array
+
+# Converting to matlab file
+matlab_dict = {"axial_array": axial_array, "shear_array": shear_array, "bending_array": bending_array, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
+savemat("rfd_outputs_revcovery.mat", matlab_dict) # Save as .mat file for MATLAB
+
 
 # Plotting
 N2LBS = 0.224809
