@@ -24,7 +24,7 @@ def calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length
 def calc_volumetric_flow(volume_swept_history, time_history):
     volumetric_flow_history = []
     for volume, time in zip(volume_swept_history, time_history):
-        volumetric_flow = volume / time
+        volumetric_flow = volume / time if time != 0 else None
         volumetric_flow_history.append(volumetric_flow)
     plt.subplot(2, 1, 1)
     plt.plot(volume_swept_history, volumetric_flow_history)
@@ -34,7 +34,7 @@ def calc_volumetric_flow(volume_swept_history, time_history):
     plt.title("Time vs Volumetric Flow")
     plt.tight_layout()
     plt.show()
-    return None
+    return volumetric_flow_history, time_history
 
 def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length):
     required_torque = braking_torque * safety_factor
@@ -45,9 +45,23 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, pi
     print(f"Length of valve arm would be {armlength * M2IN}")
     return required_torque, armlength, torque
 
-def actuation_time_vol_flow():
-    return None
-
+def actuation_time_vol_flow(piston_diameter, volumetric_flow_history, time_history, piston_stroke_length):
+    time = 0
+    time_history_vol_flow = []
+    distance_travelled = 0
+    piston_area = np.pi * piston_diameter**2 / 4 
+    time_step = time_history[1] - time_history[0]
+    for volumetric_flow in volumetric_flow_history:
+        piston_velocity = volumetric_flow / piston_area if volumetric_flow is not None else 0
+        distance_travelled = distance_travelled + piston_velocity * time_step
+        time_history_vol_flow.append(time)
+        time = time + time_step
+        if distance_travelled >= piston_stroke_length:
+            return distance_travelled, time 
+    else:
+        print('Ran out of volumetric flow values in volumetric flow history, something is broken :(')
+        return None
+    
 def actuation_time_kinematics(F_net, piston_mass, piston_diameter, armlength):
     time = 0 
     time_step = 0.0001  
@@ -123,4 +137,6 @@ piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 s
 shaft_seal_area = 0.21 * IN2M * shaft_seal_length
 f_net = calc_net_force(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength)
 volume_swept_history, time_history = actuation_time_kinematics(f_net, piston_mass, piston_diameter, armlength)
-calc_volumetric_flow(volume_swept_history, time_history)
+volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history)
+distance_travelled, time = actuation_time_vol_flow(piston_diameter, volumetric_flow_history, time_history, piston_stroke_length)
+print(f"Actuation time using vol flow {time}")
