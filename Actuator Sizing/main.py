@@ -121,15 +121,17 @@ def actuation_time_kinematics(F_net, piston_mass, piston_diameter, armlength):
     print(f"Actuation time: {time}")
     return volume_swept_history, time_history
 
-# Shortlisted Piston: https://www.mcmaster.com/6498K297/
+# Shortlisted Piston: https://pspliquids.slack.com/archives/C09C5J1EJDB/p1764894397354269?thread_ts=1764888234.600949&cid=C09C5J1EJDB
 
 braking_torque = 240 * LBI2NM 
 safety_factor = 3
 piston_force_at_200psi = 620 * LBF2N 
 piston_stroke_length = 2.5 * IN2M 
 required_torque, armlength, torque = calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length)
-piston_mass = 1 * LBM2KG
+piston_mass = 3.147 * LBM2KG # Estimated from CAD
 piston_diameter = 2 * IN2M
+piston_retracted_length = 9.44 * IN2M
+piston_extended_length = piston_retracted_length + piston_stroke_length
 shaft_diameter = 0.625 * IN2M
 piston_seal_length = np.pi * piston_diameter
 shaft_seal_length = np.pi * shaft_diameter
