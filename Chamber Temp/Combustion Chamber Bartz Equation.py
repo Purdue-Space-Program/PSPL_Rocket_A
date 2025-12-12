@@ -44,25 +44,27 @@ def main():
     #Temp_surface_total = np.full_like(station_area_ratios, np.nan, dtype = float)
 
 
-    cea_results = RunCEA(vp.parameters.chamber_pressure, "ethanol", "liquid oxygen", 1.0)
-    gamma_loc = cea_results["gamma"] #specific heat ratio
-    Pr_loc = cea_results["pran"] #prandtl number
-    cp_loc = cea_results["cp"] #specific heat
-    visc_loc = cea_results["visc"] #dynamic viscosity
-    cstar_loc = cea_results["c_star"] #characteristic exhaust velocity
-    t_loc = cea_results["t"] #stagnation temperature
-    P_loc = cea_results["p"] * c.BAR2PA #chamber pressure in Pascals
-
-
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
 
+        #chamber_pressure = vp.parameters.chamber_pressure * c.PA2BAR#chamber pressure (Pa)
+
+        cea_results = RunCEA(vp.parameters.chamber_pressure, "ethanol", "liquid oxygen", vp.parameters.OF_ratio)
+        gamma_loc = cea_results["gamma"] #specific heat ratio
+        Pr_loc = cea_results["pran"] #prandtl number
+        cp_loc = cea_results["cp"] * 1000 #specific heat J/(kg * K)
+        visc_loc = cea_results["visc"] #dynamic viscosity
+        cstar_loc = cea_results["c_star"] #characteristic exhaust velocity (m/s)
+        t_loc = cea_results["t"] #stagnation temperature (K)
+        P_loc = cea_results["p"] * c.BAR2PA #chamber pressure in Pascals
+
+        
         #new stuff
         branch = "subsonic" if x_relative[station_index] <= 0 else "supersonic"
         initial_guess = Mach_total[station_index -1] if station_index > 0 else (0.5 if branch == "subsonic" else 2.0) 
         M_local = calculating_MachNumber(gamma = gamma_loc, area_ratio_value = A_ratio, initial_guess = initial_guess, branch = branch)
         Mach_total[station_index] = M_local 
-
+        
         
         '''
         if station_index > 0:
@@ -74,11 +76,13 @@ def main():
         '''
         Dt = 2 * station_inner_radii[station_index]  # local diameter
 
+        '''
         if Dt == 0:
             Mach_total[station_index] = 0
             h_total[station_index] = 0
             Temp_surface_total[station_index] = 294 #K, initial temperature of the chamber wall
             continue
+        '''
                 
         #updating initial guess for next iteration
         initial_guess = M_local  
@@ -97,20 +101,25 @@ def main():
                 Pr = Pr_loc
             ),
             Cp = cp_loc, #specific heat at constant pressure of the combustion
-            P0 = P_loc, #chamber pressure (Pascals)
+            P0 = vp.parameters.chamber_pressure, #chamber pressure (Pascals)
             mu = visc_loc, #dynamic viscosity of the combustion gas (Pascal - seconds)
             M = M_local, #Mach number at the local axial point (no units)
             local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
             )
         h_total[station_index] = h_local
 
+        #T_static_loc = t_loc/(1 + (((gamma_loc - 1)/2) * M_local**2)) #static temperature (K)
+
+
         Temp_surface_total[station_index] = temperature_surface_calculation(
             heat_transfer_coefficient_value = h_total[station_index],
             axial_position = station_depths[station_index],
-            T_infinity = t_loc, #chamber temperature (K)
+            T_infinity = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc), #chamber temperature (K)
             k = 51.9, #thermal conductivity of the chamber wall material (W/(m*K)) #1018 Steel
             t = vp.parameters.burn_time #s, burn time
         )
+        
+            
 
         #plots
     plt.figure()
@@ -129,14 +138,20 @@ def main():
     plt.grid(True)
     plt.show()
 
-    print("gamma_loc:", gamma_loc)
-    print("Pr_loc:", Pr_loc)
-    print("cp_loc (as used, J/kg-K):", cp_loc)
-    print("cstar_loc:", cstar_loc)
-    print("t_loc (K):", t_loc)
-    print("P_loc (after scaling):", P_loc)
-    print("visc_loc (Pa*s):", visc_loc)
-    print("A_star (m^2):", A_star)
+    print("max temp in Kelvin:", max(Temp_surface_total))
+    print("max heat transfer coefficient:", max(h_total))
+    print("specific heat ratio", cea_results["gamma"])
+    print("prandtl number", cea_results["pran"])
+    print("dynamic viscosity:", cea_results["visc"])
+    print("specific heat:", cea_results["cp"] * 1000)
+    print("characteristic exhaust velocity:", cea_results["c_star"])
+    print("stagnation temperature:", cea_results["t"])
+    print("chamber pressure:", cea_results["p"])
+
+    print("Throat Mach:", Mach_total[throat_index])
+    print("Throat h:", h_total[throat_index])
+    print("Throat Ts:", Temp_surface_total[throat_index])
+    print("Chamber pressure input (Pa):", vp.parameters.chamber_pressure)
 
     
 
@@ -206,12 +221,14 @@ def calculating_MachNumber(gamma, area_ratio_value, initial_guess, branch):
         return Mach_function
 
     guess = initial_guess
+
+    
     if branch == "subsonic":
         guess = min(0.8, max(0.05, guess))
 
     else:
         guess = max(1.1, guess)
-
+    
     M_solution = fsolve(f, guess)
     return float(M_solution[0])
 
@@ -251,6 +268,7 @@ def thermal_diffusivity_calc(k = 51.9): #thermal diffusivity of 1018 Stainless S
 
     alpha = k / (rho * C_p)
     return alpha
+
 
 
 if __name__ == "__main__":
