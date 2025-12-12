@@ -21,7 +21,7 @@ import CEA_Wrap as CEA
 def main():
 
     #cylinder part of the chamber geometry parameters
-    D_star = vp.parameters.chamber_throat_diameter #throat diameter (m) 
+    D_star = vp.parameters.chamber_inner_diameter #throat diameter (m) 
     A_star = pi * (D_star / 2)**2 #throat area (m^2)
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
