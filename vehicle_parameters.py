@@ -11,7 +11,7 @@ import constants as c
 
 
 
-@dataclass(frozen=True)
+# @dataclass(frozen=True)
 class VehicleParameters:
 
     fuel_name: str = "isopropyl alcohol" 
@@ -52,17 +52,22 @@ class VehicleParameters:
 
     total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # (4.42 + 4.42) * c.LB2KG # The total mass of propellant needed for the burn time [kilograms]
 
-    total_length: float = 7.5 * c.FT2M            # The estimated length of the rocket [meter]
-    wet_mass: float = 93.3 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
-    dry_mass: float = 84.5 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
-    estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DOF altitude [meters]
+    # total_length: float = 7.5 * c.FT2M            # The estimated length of the rocket [meter]
+    # wet_mass: float = 93.3 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
+    # dry_mass: float = 84.5 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
+    
     off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravity]
     off_the_rail_velocity: float = 27.64          # The target velocity of the rocket off the launch rail [meters/second]
+    
+    # 1 DOF Results:
+    estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DOF altitude [meters]
     max_acceleration: float = 6.96 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
     max_mach: float = 0.395                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
     max_velocity: float = max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
     total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
+    
+    # 6 DOF results:
     
 parameters = VehicleParameters()
 
@@ -108,7 +113,7 @@ recovery_bay_length =   16 * c.IN2M
 nosecone_length =       15 * c.IN2M
 
 fucked_length = engine_length + injector_length + lower_length + (4*bulkhead_length) + fuel_tank_length + mid_length + oxidizer_tank_length + upper_length + recovery_bay_length + nosecone_length
-print(f"fucked_length: {fucked_length:.2f}")
+# print(f"fucked_length: {fucked_length:.2f}")
 
 
 propellant_tank_outer_diameter = parameters.tube_outer_diameter
@@ -122,13 +127,22 @@ engine_OD = 6 * c.IN2M
 engine_ID = engine_OD - (2 * engine_wall_thickness)
 engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_length)
 
-injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
+# injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
+injector_mass = 4.68666 * c.LBM2KG # [lbm] measured CAD value
 
 number_of_fins = 3
-fin_mass = number_of_fins * 3.51 * c.LBM2KG # [kg]
+mass_per_fin = 1.614 * c.LBM2KG # [lbm]
+total_fin_mass = number_of_fins * mass_per_fin # [kg]
+
+number_of_fin_can_struts = 3
+mass_per_fin_can_strut = 0.7257 * c.LBM2KG # [lbm]
+total_strut_mass = number_of_fin_can_struts * mass_per_fin_can_strut # [kg]
+
+total_lower_panel_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, lower_length)
+
 valves_mass = 2 * 3.26 * c.LBM2KG # fuel and ox 3/4 inch valve https://habonim.com/wp-content/uploads/2020/08/C47-BD_C47__2023_VO4_28-06-23.pdf
-lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, lower_length)
-lower_mass = valves_mass + lower_panels_mass + fin_mass
+
+lower_mass = valves_mass + total_lower_panel_mass + total_fin_mass + total_strut_mass
 
 bulkhead_wall_thickness = 0.25 * c.IN2M
 bulkhead_top_thickness = 0.76 * c.IN2M
@@ -233,7 +247,6 @@ mass_distribution = MassDistribution(components=
 
 
 
-
 def calcCG(linear_density_array, length_along_rocket_linspace):
     '''
     linear_density_array: Array of linear density as a function of length [kg / m]
@@ -308,15 +321,26 @@ for component in mass_distribution.components:
             linear_density_array[index] += linear_density
 
 
-if __name__ == "__main__":
-    print(f"wet mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM} lbm")
 
-    panels_mass = lower_panels_mass + upper_panels_mass + recovery_bay_panels_mass
-    print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
+vehicle_wet_mass = sum(component.mass for component in mass_distribution)
+vehicle_dry_mass = vehicle_wet_mass - parameters.fuel_total_mass - parameters.oxidizer_total_mass
+rocket_length = max(length_along_rocket_linspace)
 
-    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * (c.KG2LBM / c.M2FT))    )
+
+parameters.wet_mass = vehicle_wet_mass    # The estimated dry mass of the rocket [kilograms]
+parameters.dry_mass = vehicle_dry_mass    # The estimated dry mass of the rocket [kilograms]
+parameters.total_length = rocket_length   # The estimated length of the rocket [meters]
     
-    rocket_length = max(length_along_rocket_linspace)
+
+
+if __name__ == "__main__":
+    print(f"Vehicle Wet Mass: {sum(component.mass for component in mass_distribution) * c.KG2LBM:.2f} lbm")
+    
+    panels_mass = total_lower_panel_mass + upper_panels_mass + recovery_bay_panels_mass
+    # print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
+
+    plt.plot(length_along_rocket_linspace * c.M2FT, (linear_density_array * (c.KG2LBM / c.M2FT)))
+    
     print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
     print(f"Rocket Length: {rocket_length:.2f} m\n")
     
