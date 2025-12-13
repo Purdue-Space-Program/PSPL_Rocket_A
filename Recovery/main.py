@@ -27,7 +27,7 @@ def main():
     if parachute_name == "Fruity Chutes":
         drag_coefficient = 2.2 # https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-120-standard-parachute-79lbs-20fps
         # effective_parachute_area = 24.6677824063 abhi?
-        outer_parachute_diameter = 192 * c.IN2M # https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-120-standard-parachute-79lbs-20fps
+        outer_parachute_diameter = 192 * c.IN2M # i think this is wrong but!!! https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-120-standard-parachute-79lbs-20fps
         spill_hole_diameter = 15.76 * c.IN2M # guess
         effective_parachute_area = CalculateEffectiveParachuteArea(outer_parachute_diameter, spill_hole_diameter)
           
