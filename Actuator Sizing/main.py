@@ -16,8 +16,7 @@ piston = "test" # test or real
 braking_torque = 240 * LBI2NM 
 safety_factor = 3
 piston_stroke_length = 2 * IN2M 
-piston_force_at_200psi = 177 * LBF2N 
-piston_mass = 1 * LBM2KG # Estimated from CAD
+piston_mass = 1.6 * LBM2KG # Estimated from CAD
 piston_diameter = 17/16 * IN2M
 piston_retracted_length = 9.44 * IN2M
 piston_extended_length = piston_retracted_length + piston_stroke_length
@@ -26,8 +25,11 @@ piston_seal_length = np.pi * piston_diameter
 shaft_seal_length = np.pi * shaft_diameter
 piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 series 
 shaft_seal_area = 0.21 * IN2M * shaft_seal_length
+pressure = 200 * PSI2PA
+piston_force = pressure * np.pi * piston_diameter**2 / 4
+print(f'Maximum possible net force disregarding friction (and valve arm if real condition): {piston_force * N2LBF}')
 
-def calc_net_force_real(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength):
+def calc_net_force_real(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength):
     fc_piston = (4 * piston_seal_length * M2IN) * LBF2N # assuming 4, worst case, for now
     fc_shaft = (4 * shaft_seal_length * M2IN) * LBF2N
     fh_piston = (18 * piston_seal_area * M22IN2) * LBF2N # from parker oring handbook figure 5-10, lowkey using it for u-cup :skull:
@@ -39,11 +41,11 @@ def calc_net_force_real(piston_force_at_200psi, piston_seal_length, shaft_seal_l
     print(f"fc_shaft: {fc_shaft * N2LBF} LBF")
     print(f"fh_piston: {fh_piston * N2LBF} LBF")
     print(f"fh_shaft: {fh_shaft * N2LBF} LBF")
-    f_net = piston_force_at_200psi - force_valve - friction_piston * 2 - friction_shaft # two seals on piston, 1 on rod
+    f_net = piston_force - force_valve - friction_piston * 2 - friction_shaft # two seals on piston, 1 on rod
     print(f"F_net: {f_net * N2LBF} LBF")
     return f_net
 
-def calc_net_force_test(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area):
+def calc_net_force_test(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area):
     fc_piston = (4 * piston_seal_length * M2IN) * LBF2N # assuming 4, worst case, for now
     fc_shaft = (4 * shaft_seal_length * M2IN) * LBF2N
     fh_piston = (18 * piston_seal_area * M22IN2) * LBF2N # from parker oring handbook figure 5-10, lowkey using it for u-cup :skull:
@@ -54,7 +56,7 @@ def calc_net_force_test(piston_force_at_200psi, piston_seal_length, shaft_seal_l
     print(f"fc_shaft: {fc_shaft * N2LBF} LBF")
     print(f"fh_piston: {fh_piston * N2LBF} LBF")
     print(f"fh_shaft: {fh_shaft * N2LBF} LBF")
-    f_net = piston_force_at_200psi - friction_piston * 2 - friction_shaft # two seals on piston, 1 on rod
+    f_net = piston_force - friction_piston * 2 - friction_shaft # two seals on piston, 1 on rod
     print(f"F_net: {f_net * N2LBF} LBF")
     return f_net
 
@@ -75,10 +77,10 @@ def calc_volumetric_flow(volume_swept_history, time_history):
     plt.show()
     return volumetric_flow_history, time_history
 
-def calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length):
+def calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length):
     required_torque = braking_torque * safety_factor
     armlength = piston_stroke_length / np.sqrt(2)
-    torque = armlength * piston_force_at_200psi / np.sqrt(2)
+    torque = armlength * piston_force / np.sqrt(2)
     print(f"The piston will produce ~{torque * NM2LBI} torque at 200 psi.")
     print(f"The required torque with a safety factor of 3 is {required_torque * NM2LBI}")
     print(f"Length of valve arm would be {armlength * M2IN}")
@@ -130,7 +132,7 @@ def actuation_time_kinematics_real(F_net, piston_mass, piston_diameter, armlengt
         volume_swept_history.append(volume_swept)
         distance_travelled_history.append(dist_travelled)
         time += time_step
-    plt.subplot(2, 2, 1)
+    plt.subplot(1, 2, 1)
     plt.plot(time_history, angle_history)
     plt.xlabel("Actuation Time")
     plt.ylabel("Valve Angle")
@@ -184,19 +186,19 @@ def actuation_time_kinematics_test(F_net, piston_mass, piston_diameter, piston_s
         distance_travelled_history.append(dist_travelled)
         time += time_step
 
-    plt.subplot(2, 2, 2)
+    plt.subplot(1, 3, 1)
     plt.plot(time_history, velocity_history)
     plt.xlabel("Time")
     plt.ylabel("Velocity")
     plt.title("Time vs Velocity")
 
-    plt.subplot(2, 2, 3)
+    plt.subplot(1, 3, 2)
     plt.plot(time_history, volume_swept_history)
     plt.xlabel("Time")
     plt.ylabel("Volume")
     plt.title("Time vs Volume Swept")
 
-    plt.subplot(2, 2, 4)
+    plt.subplot(1, 3, 3)
     plt.plot(time_history, distance_travelled_history)
     plt.xlabel("Time")
     plt.ylabel("Distance Swept")
@@ -212,11 +214,11 @@ def actuation_time_kinematics_test(F_net, piston_mass, piston_diameter, piston_s
 # Shortlisted Piston: https://pspliquids.slack.com/archives/C09C5J1EJDB/p1764894397354269?thread_ts=1764888234.600949&cid=C09C5J1EJDB
 
 if piston.lower() == "test":
-    f_net = calc_net_force_test(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area)
+    f_net = calc_net_force_test(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area)
     volume_swept_history, time_history = actuation_time_kinematics_test(f_net, piston_mass, piston_diameter, piston_stroke_length)
 elif piston.lower() == "real":
-    required_torque, armlength, torque = calc_torque_piston(braking_torque, safety_factor, piston_force_at_200psi, piston_stroke_length)
-    f_net = calc_net_force_real(piston_force_at_200psi, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength)
+    required_torque, armlength, torque = calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length)
+    f_net = calc_net_force_real(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, armlength)
     volume_swept_history, time_history = actuation_time_kinematics_real(f_net, piston_mass, piston_diameter, armlength)
 else:
     print('Invalid piston chosen')
