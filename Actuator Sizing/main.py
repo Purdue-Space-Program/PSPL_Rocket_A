@@ -86,6 +86,16 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force, piston_strok
     print(f"Length of valve arm would be {armlength * M2IN}")
     return required_torque, armlength, torque
 
+def actuation_time_valve(Cv, piston_diameter, piston_stroke_length):
+    piston_area = np.pi * piston_diameter**2 / 4
+    cf = 11.2 # for 150 psi, but works since it is conservative; more accurate than extrapolating
+    A = 0.036 # for 150 psi, 5 psi ∆P
+    actuation_time = piston_area * M22IN2 * piston_stroke_length * M2IN * A * cf / (29 * Cv)
+    print(f"Actuation time using cv of valve: {actuation_time}s")
+
+Cv = 0.5
+actuation_time_valve(Cv, piston_diameter, piston_stroke_length)
+
 def actuation_time_vol_flow(piston_diameter, volumetric_flow_history, time_history, piston_stroke_length):
     time = 0
     time_history_vol_flow = []
