@@ -20,30 +20,30 @@ def main ():
     proof_stress = proof(proof_stress_safety_factor,steel_tensile_strength)
 
     #Pathfinder
-    #tensile_force_from_chamber_faceplate = tensile_from_chamber(4.9,250)
-    #tensile_force_from_outer_o_ring = tensile_from_o_ring(5.19301,70)
-    #tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.19302,70)
-    #tensile_force_from_film_o_ring = 0 #tensile_from_o_ring(3.984,70)
-    #tensile_force_from_manifold_o_ring = 0 #tensile_from_o_ring(3.512,70)
-    #force_safety_factor_faceplate = 1.5
+    tensile_force_from_chamber_faceplate = tensile_from_chamber(4.9,500)
+    tensile_force_from_outer_o_ring = tensile_from_o_ring(5.19301,70)
+    tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.19302,70)
+    tensile_force_from_film_o_ring = 0 #tensile_from_o_ring(3.984,70)
+    tensile_force_from_manifold_o_ring = 0 #tensile_from_o_ring(3.512,70)
+    force_safety_factor_faceplate = 1.5
 
     #CMS
-    tensile_force_from_chamber_faceplate = tensile_from_chamber(5.05,200)
-    tensile_force_from_outer_o_ring = 0
-    tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.19301,70)
-    tensile_force_from_film_o_ring = 0 
-    tensile_force_from_manifold_o_ring = 0 
-    force_safety_factor_faceplate = 1.5
+    #tensile_force_from_chamber_faceplate = tensile_from_chamber(5.05,200)
+    #tensile_force_from_outer_o_ring = 0
+    #tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.19301,70)
+    #tensile_force_from_film_o_ring = 0 
+    #tensile_force_from_manifold_o_ring = 0 
+    #force_safety_factor_faceplate = 1.5
 
     forces_faceplate = {tensile_force_from_chamber_faceplate,tensile_force_from_outer_o_ring,tensile_force_from_chamber_o_ring,tensile_force_from_film_o_ring,tensile_force_from_manifold_o_ring}
     net_force_faceplate = sum(forces_faceplate)*force_safety_factor_faceplate
     #print(net_force_faceplate)
     
     #Pathfinder
-    #bolt_diameter_faceplate = 0.195
+    bolt_diameter_faceplate = 0.25
 
     #CMS
-    bolt_diameter_faceplate = 0.25
+    #bolt_diameter_faceplate = 0.25
 
     lower_bound_preload_faceplate=lower_preload(bolt_diameter_faceplate,proof_stress)
     #print(lower_bound_preload_faceplate)
