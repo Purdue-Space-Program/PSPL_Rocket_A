@@ -51,7 +51,7 @@ def main ():
     number_of_bolts_faceplate = bolts(net_force_faceplate,lower_bound_preload_faceplate)
     print(number_of_bolts_faceplate)
 
-    tensile_force_from_chamber_pintle = tensile_from_chamber(.98,250)
+    tensile_force_from_chamber_pintle = tensile_from_chamber(.98,500)
     tensile_force_from_pintle_o_ring = tensile_from_o_ring(1.25,70)
     force_safety_factor_pintle = 1.5
 
