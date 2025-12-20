@@ -103,7 +103,7 @@ def actuation_time_valve(Cv, piston_diameter, piston_stroke_length):
     cf = 11.2 # for 150 psi, but works since it is conservative; more accurate than extrapolating
     A = 0.036 # for 150 psi, 5 psi ∆P
     actuation_time = piston_area * M22IN2 * piston_stroke_length * M2IN * A * cf / (29 * Cv)
-    print(f"Actuation time using cv of valve: {actuation_time:.2f}s")
+    print(f"Actuation time using cv of valve: {actuation_time:.3f}s")
 
 Cv = 0.5
 actuation_time_valve(Cv, piston_diameter, piston_stroke_length)
@@ -154,35 +154,36 @@ def actuation_time_kinematics_real(F_net, piston_mass, piston_diameter, arm_leng
         volume_swept_history.append(volume_swept)
         distance_travelled_history.append(dist_travelled)
         time += time_step
+
     plt.subplot(1, 2, 1)
     plt.plot(time_history, angle_history)
-    plt.xlabel("Actuation Time")
-    plt.ylabel("Valve Angle")
+    plt.xlabel("Actuation Time [s]")
+    plt.ylabel("Valve Angle [˚]")
     plt.title("Valve Angle Over Time")
     plt.ylim(0, 90)
     plt.xlim(0, time)
 
     plt.subplot(2, 2, 2)
     plt.plot(time_history, velocity_history)
-    plt.xlabel("Time")
-    plt.ylabel("Velocity")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Velocity [m/s]")
     plt.title("Time vs Velocity")
 
     plt.subplot(2, 2, 3)
     plt.plot(time_history, volume_swept_history)
-    plt.xlabel("Time")
-    plt.ylabel("Volume")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Volume [m^3]")
     plt.title("Time vs Volume Swept")
 
     plt.subplot(2, 2, 4)
     plt.plot(time_history, distance_travelled_history)
-    plt.xlabel("Time")
-    plt.ylabel("Distance Swept")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Distance Swept [m]")
     plt.title("Time vs Distance Swept")
     plt.tight_layout()
     plt.show()
 
-    print(f"Actuation time: {time:.2f}s")
+    print(f"Actuation time: {time:.3f}s")
     print(f"Stroke length when using valve angle condition: {distance_travelled_history[-1] * M2IN:.2f} in")
 
     return volume_swept_history, time_history
@@ -210,26 +211,26 @@ def actuation_time_kinematics_test(F_net, piston_mass, piston_diameter, piston_s
 
     plt.subplot(1, 3, 1)
     plt.plot(time_history, velocity_history)
-    plt.xlabel("Time")
-    plt.ylabel("Velocity")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Velocity [m/s]")
     plt.title("Time vs Velocity")
 
     plt.subplot(1, 3, 2)
     plt.plot(time_history, volume_swept_history)
-    plt.xlabel("Time")
-    plt.ylabel("Volume")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Volume [m^3]")
     plt.title("Time vs Volume Swept")
 
     plt.subplot(1, 3, 3)
     plt.plot(time_history, distance_travelled_history)
-    plt.xlabel("Time")
-    plt.ylabel("Distance Swept")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Distance Swept [m]")
     plt.title("Time vs Distance Swept")
     plt.tight_layout()
     plt.show()
 
-    print(f"Actuation time: {time}s")
-    print(f"Stroke length when using valve angle condition: {distance_travelled_history[-1] * M2IN} in")
+    print(f"Actuation time: {time:.3f} seconds")
+    print(f"Stroke length when using valve angle condition: {distance_travelled_history[-1] * M2IN:.2f} in")
 
     return volume_swept_history, time_history
 
@@ -246,4 +247,4 @@ else:
     print('Invalid piston chosen')
 volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history)
 distance_travelled, time = actuation_time_vol_flow(piston_diameter, volumetric_flow_history, time_history, piston_stroke_length)
-print(f"Actuation time using vol flow: {time:.2f}s")
+print(f"Actuation time using volumetric flow: {time:.3f}s")
