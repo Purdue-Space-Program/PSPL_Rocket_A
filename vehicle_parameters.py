@@ -127,14 +127,14 @@ propellant_tank_inner_diameter = parameters.tube_inner_diameter
 panels_outer_diameter = parameters.tube_outer_diameter
 panels_inner_diameter = parameters.tube_inner_diameter
 
-engine_wall_thickness = 0.25 * c.IN2M
-# engine_ID = propellant_tank_outer_diameter - (2 * engine_wall_thickness)
-engine_OD = 6 * c.IN2M
-engine_ID = engine_OD - (2 * engine_wall_thickness)
-engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_length)
+# engine_wall_thickness = 0.25 * c.IN2M
+# engine_OD = 6 * c.IN2M
+# engine_ID = engine_OD - (2 * engine_wall_thickness)
+# engine_mass = c.DENSITY_SS316 * CalcTubeVolume(engine_OD, engine_ID, engine_length)
+engine_mass = 11.66 * c.LBM2KG # [lbm] measured CAD value
 
 # injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
-injector_mass = 4.68666 * c.LBM2KG # [lbm] measured CAD value
+injector_mass = 4.69 * c.LBM2KG # [lbm] measured CAD value
 
 number_of_fins = 3
 mass_per_fin = 1.614 * c.LBM2KG # [lbm]
@@ -174,7 +174,7 @@ upper_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_
 upper_mass = regulator_mass + copv_mass + upper_panels_mass
 
 recovery_bay_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, recovery_bay_length)
-parachute_mass = 8 * c.LBM2KG  # [kg] 1/3 cuz 1/3 of dry mass compared to --> https://github.com/Purdue-Space-Program/PSPL_Rocket_4_Sizing/blob/2b15e1dc508a56731056ff594a3c6b5afb639b4c/scripts/structures.py#L75
+parachute_mass = 2.25 * c.LBM2KG  # [kg] https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-144-compact-chute-114lbs-20fps-64lbs-15fps
 recovery_bay_mass = recovery_bay_panels_mass + parachute_mass
 
 nose_cone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) # guess
@@ -297,21 +297,18 @@ item_sum = 0
 # print(f"Mass of rocket dict wet: {item_sum * c.KG2LBM} lbm")
 # for item in rocket_dict_wet: print(f"{item}: {rocket_dict_dry[item]['length']*c.M2FT} ft")
 
-'''
-print(rocket_dict_wet)
-print(f"Mass of rocket dict wet: {sum(component['mass'] for component in rocket_dict_wet.values())} kg")
-print(" ")
-print(rocket_dict_dry)
-print(f"Mass of rocket dict dry: {sum(component['mass'] for component in rocket_dict_dry.values())} kg")
-print(" ")
-print(rocket_dict_recovery)
-print(f"Mass of rocket dict recovery: {sum(component['mass'] for component in rocket_dict_recovery.values())} kg")
-'''
+
+# print(rocket_dict_wet)
+# print(f"Mass of rocket dict wet: {sum(component['mass'] for component in rocket_dict_wet.values())} kg")
+# print(" ")
+# print(rocket_dict_dry)
+# print(f"Mass of rocket dict dry: {sum(component['mass'] for component in rocket_dict_dry.values())} kg")
+# print(" ")
+# print(rocket_dict_recovery)
+# print(f"Mass of rocket dict recovery: {sum(component['mass'] for component in rocket_dict_recovery.values())} kg")
+
 num_points = 500
 length_along_rocket_linspace = np.linspace(mass_distribution.components[0].bottom_distance_from_aft, mass_distribution.components[-1].StartAfter(), num_points)
-
-# x = np.linspace(0, nosecone.StartAfter(), num_points_per_component * np.size(mass_distribution))
-# y = np.zeros(num_points_per_component * len(mass_distribution))
 
 linear_density_array = np.zeros(num_points)
 
