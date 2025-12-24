@@ -19,6 +19,9 @@ cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_tim
 # plt.plot(cg_array)
 # plt.show()
 
+off_the_rail_time = vehicle.parameters.off_the_rail_velocity / (vehicle.parameters.off_the_rail_acceleration * 9.81) # [s]
+max_q_time = burn_time # [s]
+
 max_q_inputs = {"velocity": vehicle.parameters.max_velocity, "ax": vehicle.parameters.max_acceleration, "total_mass": vehicle.parameters.dry_mass}
 off_the_rail_inputs = {"velocity": vehicle.parameters.off_the_rail_velocity, "ax": vehicle.parameters.off_the_rail_acceleration, "total_mass": vehicle.parameters.wet_mass}
 
@@ -29,13 +32,13 @@ if location == "max_q":
     ax = max_q_inputs["ax"]
     total_mass = max_q_inputs["total_mass"]
     mach = vehicle.parameters.max_mach
-    cg = cg_max_q
+    cg = cg_array[-1]
 elif location == "off_the_rail":
     velocity = off_the_rail_inputs["velocity"]
     ax = off_the_rail_inputs["ax"]
     total_mass = off_the_rail_inputs["total_mass"]
     mach = velocity / 343 # Speed of sound near sea level ~343 m/s
-    cg = cg_off_the_rail
+    cg = cg_array[int(off_the_rail_time / 0.005)] # Assuming dt = 0.005s
 
 # Inputs
 air_density = 1.81 # [kg / m^3] NEED
@@ -83,7 +86,7 @@ print(f"noseconeToFin: {noseconeToFin} m")
 
 # Calculated inputs
 Q = sfd.calcQ(air_density, velocity)
-AOA = 4 * np.pi / 180 # NEED
+AOA = 1.02331 * np.pi / 180 # NEED
 S = sfd.calcS(diameter)
 
 # Calculated values
