@@ -50,7 +50,8 @@ class VehicleParameters:
     oxidizer_tank_usable_volume: float = 1.94 * c.L2M3   # The required loaded volume of oxidizer needed for the burn time [meter^3]
     oxidizer_total_mass: float = 4.42 * c.LBM2KG   # The required loaded mass of oxidizer needed for the burn time [kilograms]
 
-    total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # (4.42 + 4.42) * c.LB2KG # The total mass of propellant needed for the burn time [kilograms]
+    total_used_propellant_mass: float = burn_time * total_mass_flow_rate # The total mass of propellant needed for the burn time [kilograms]
+    total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # The total mass of propellant put on the vehicle [kilograms]
 
     # total_length: float = 7.5 * c.FT2M            # The estimated length of the rocket [meter]
     # wet_mass: float = 93.3 * c.LBM2KG             # The estimated dry mass of the rocket [kilograms]
@@ -68,6 +69,11 @@ class VehicleParameters:
     total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
     # 6 DOF results:
+    # estimated_apogee: float = ? * c.FT2M       # The estimated 1-DOF altitude [meters]
+    # max_acceleration: float = ? # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
+    # max_mach: float = ?                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    # max_velocity: float = max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
+    # total_impulse: float = ?                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
 parameters = VehicleParameters()
 
