@@ -150,13 +150,15 @@ valves_mass = 2 * 3.26 * c.LBM2KG # fuel and ox 3/4 inch valve https://habonim.c
 
 lower_mass = valves_mass + total_lower_panel_mass + total_fin_mass + total_strut_mass
 
-bulkhead_wall_thickness = 0.25 * c.IN2M
-bulkhead_top_thickness = 0.76 * c.IN2M
+# bulkhead_wall_thickness = 0.25 * c.IN2M
+# bulkhead_top_thickness = 0.76 * c.IN2M
 
-bulkhead_mass =  c.DENSITY_AL * (
-    (CalcCylinderVolume(propellant_tank_outer_diameter, bulkhead_length) - 
-    CalcCylinderVolume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), bulkhead_length - bulkhead_top_thickness))
-)
+# bulkhead_mass =  c.DENSITY_AL * (
+#     (CalcCylinderVolume(propellant_tank_outer_diameter, bulkhead_length) - 
+#     CalcCylinderVolume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), bulkhead_length - bulkhead_top_thickness))
+# )
+
+bulkhead_mass = 1.971 * c.LBM2KG # [lbm] measured CAD value
 
 fuel_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, fuel_tank_length)
 fuel_tank_wet_mass = fuel_tank_wall_mass + parameters.fuel_total_mass
