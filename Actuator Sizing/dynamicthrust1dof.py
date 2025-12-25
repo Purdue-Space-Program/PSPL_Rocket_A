@@ -3,12 +3,15 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.interpolate import interp1d
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
+import main as m
+import vehicle_parameters as v
 
-ATMOSPHERE_DATA = pd.read_csv("atmosphere.csv")
-ATMOSPHERE_DATA = np.array(ATMOSPHERE_DATA)
+#ATMOSPHERE_DATA = pd.read_csv("atmosphere.csv")
+#ATMOSPHERE_DATA = np.array(ATMOSPHERE_DATA)
 
 def calculate_trajectory(
     wetMass,
@@ -31,7 +34,7 @@ def calculate_trajectory(
     wetMass : float
         Wet mass of the rocket [kg].
     mDotTotal : float
-        Total mass flow rate of the engine [kg/s].
+        Maximum total mass flow rate of the engine [kg/s].
     jetThrust : float
         Engine thrust [N].
     tankOD : float
@@ -83,7 +86,6 @@ def calculate_trajectory(
     altitude_array = [altitude]
     velocity_array = [velocity]
     acceleration_array = [acceleration]
-    # accelArray = [((jetThrust - (c.GRAVITY*wetMass))/wetMass) * 0.1]
     time_array = [time]
     
     totalImpulse = 0  # Initialize total impulse
@@ -170,17 +172,6 @@ def calculate_trajectory(
         
         plt.ylabel("Height [ft], Velocity (any direction) [ft/s], Acceleration (any direction) [ft/s^2]")
         plt.xlabel("Time [s]")
-        
-        
-        # plot estimated apogee
-        # plt.axhline(y=estimated_apogee * c.M2FT, color='r', linestyle='--', label="Estimated Apogee")
-        
-        # # compare with OpenRocket trajectory
-        # OR_df = pd.read_csv('open_rocket_altitude_data.csv', comment='#')
-        # OR_time = OR_df.iloc[:, 0]
-        # OR_altitude = OR_df.iloc[:, 1]
-        # plt.plot(OR_time, OR_altitude + (c.INDIANA_ALTITUDE * c.M2FT))
-
 
         plt.grid()
         plt.show()
@@ -199,3 +190,36 @@ def calculate_trajectory(
         float(totalImpulse),
         float(off_the_rail_time),
     )
+
+def mdot_based_on_time(mDotTotal):
+    angle_history = m.angle_history
+    time_history = m.time_history
+    actuation_time = m.time
+    mdot_history = []
+    csv_path = os.path.join(os.path.dirname(__file__), "anglevscv.csv")
+    angle_data = pd.read_csv(csv_path)
+    angles = angle_data.iloc[:, 0].to_numpy()
+    cv_frac = angle_data.iloc[:, 1].to_numpy()
+    f_linear = interp1d(angles, cv_frac, kind='linear', bounds_error=False, fill_value=(0.0, 1.0))
+
+    if time_history[2] - time_history[1] != 0.0001:
+        print("Ensure time step of 0.0001 in actuator sizing code!")
+        return None
+    for time, angle in zip(time_history, angle_history):
+            cv_fraction = float(f_linear(angle))
+            mdot = mDotTotal * cv_fraction
+            mdot_history.append(mdot)
+            
+    mdot_history = np.array(mdot_history)
+    plt.plot(time_history, mdot_history * c.KG2LBM)
+    plt.xlabel('Time [s]')
+    plt.ylabel('mdot [lbm/s]')
+    plt.show()
+    plt.plot(angle_history, mdot_history * c.KG2LBM)
+    plt.xlabel('Valve Angle [degrees]')
+    plt.ylabel('mdot [lbm/s]')
+    plt.show()
+    return None
+
+mDotTotal = v.parameters.total_mass_flow_rate
+mdot_based_on_time(mDotTotal)
