@@ -125,7 +125,14 @@ fucked_length = engine_length + injector_length + lower_length + (4*bulkhead_len
 propellant_tank_outer_diameter = parameters.tube_outer_diameter
 propellant_tank_inner_diameter = parameters.tube_inner_diameter
 panels_outer_diameter = parameters.tube_outer_diameter
-panels_inner_diameter = parameters.tube_inner_diameter
+panels_thickness = 0.002 * c.IN2M
+
+panel_type = "foil"
+
+if panel_type == "tube":
+    panels_inner_diameter = parameters.tube_inner_diameter
+elif panel_type == "foil":
+    panels_inner_diameter = panels_outer_diameter - (2 * panels_thickness)
 
 # engine_wall_thickness = 0.25 * c.IN2M
 # engine_OD = 6 * c.IN2M
