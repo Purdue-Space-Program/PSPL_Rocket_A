@@ -10,8 +10,9 @@ import constants as c
 import main as m
 import vehicle_parameters as v
 
-#ATMOSPHERE_DATA = pd.read_csv("atmosphere.csv")
-#ATMOSPHERE_DATA = np.array(ATMOSPHERE_DATA)
+csv_path_atmosphere = os.path.join(os.path.dirname(__file__), "atmosphere.csv")
+ATMOSPHERE_DATA = pd.read_csv(csv_path_atmosphere)
+ATMOSPHERE_DATA = np.array(ATMOSPHERE_DATA)
 
 def calculate_trajectory(
     wetMass,
@@ -22,6 +23,7 @@ def calculate_trajectory(
     finHeight,
     exitArea,
     exitPressure,
+    exitVelocity,
     burnTime,
     totalLength,
     plots,
@@ -90,6 +92,8 @@ def calculate_trajectory(
     
     totalImpulse = 0  # Initialize total impulse
 
+    mdot_history, main_thrust_history, time_history = mdot_based_on_time(mDotTotal, exitVelocity)
+
     count = 1
     while (velocity >= 0) or (acceleration > 0):
 
@@ -105,7 +109,16 @@ def calculate_trajectory(
             pressure = ATMOSPHERE_DATA[(altitude_index, 1)]
             rho = ATMOSPHERE_DATA[(altitude_index, 2)]
         
-        if time < burnTime:
+        if time <= time_history[-1]:
+            mass = mass - mdot_history[int(time / 0.0001)] * dt  # [kg] mass of the rocket
+            thrust = (
+                main_thrust_history[int(time / 0.0001)] + (exitPressure - pressure) * exitArea
+            )  # [N] force of thrust, accounting for pressure thrust
+
+            totalImpulse += thrust * dt  # Accumulate impulse
+            if mass < 0:
+                raise ValueError("youre a dumbass, CHECK IF TANK DATA IS FAKE OR NOT!!!!!!!!!!!!!")
+        elif time < burnTime and time > time_history[-1]:
             mass = mass - mDotTotal * dt  # [kg] mass of the rocket
             thrust = (
                 jetThrust + (exitPressure - pressure) * exitArea
@@ -121,7 +134,6 @@ def calculate_trajectory(
             0.5 * rho * velocity**2 * ascent_drag_coefficient * reference_area
         )  # [N] force of drag
         weight = c.GRAVITY * mass  # [N] downward force due to gravity
-        da_TWR = thrust / weight  # acceleration equation of motion
 
         acceleration = (thrust - drag_force - weight) / mass  # acceleration equation of motion
         acceleration_array.append(acceleration)
@@ -191,10 +203,10 @@ def calculate_trajectory(
         float(off_the_rail_time),
     )
 
-def mdot_based_on_time(mDotTotal):
+def mdot_based_on_time(mDotTotal, exitVelocity):
     angle_history = m.angle_history
     time_history = m.time_history
-    actuation_time = m.time
+    main_thrust_history = []
     mdot_history = []
     csv_path = os.path.join(os.path.dirname(__file__), "anglevscv.csv")
     angle_data = pd.read_csv(csv_path)
@@ -205,11 +217,13 @@ def mdot_based_on_time(mDotTotal):
     if time_history[2] - time_history[1] != 0.0001:
         print("Ensure time step of 0.0001 in actuator sizing code!")
         return None
-    for time, angle in zip(time_history, angle_history):
+    for angle in angle_history:
             cv_fraction = float(f_linear(angle))
             mdot = mDotTotal * cv_fraction
             mdot_history.append(mdot)
-            
+            main_thrust = mdot * exitVelocity
+            main_thrust_history.append(main_thrust)
+    main_thrust_history = np.array(main_thrust_history)
     mdot_history = np.array(mdot_history)
     plt.plot(time_history, mdot_history * c.KG2LBM)
     plt.xlabel('Time [s]')
@@ -219,7 +233,40 @@ def mdot_based_on_time(mDotTotal):
     plt.xlabel('Valve Angle [degrees]')
     plt.ylabel('mdot [lbm/s]')
     plt.show()
-    return None
+    plt.plot(time_history, main_thrust_history)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Main Thrust [N]')
+    plt.show()
+    print(f"Main Thrust at kast: {main_thrust}")
+    return mdot_history, main_thrust_history, time_history
 
+
+#############################
+#######  PARAMETERS  ########
+#############################
+wetMass = v.vehicle_wet_mass
 mDotTotal = v.parameters.total_mass_flow_rate
-mdot_based_on_time(mDotTotal)
+jetThrust = v.parameters.jet_thrust
+tankOD = v.parameters.tank_outer_diameter
+finNumber =  v.number_of_fins
+finHeight = 
+exitArea = 
+exitPressure = v.parameters.exit_pressure
+exitVelocity = 1716.88 # [m/s]
+burnTime = v.parameters.burn_time
+totalLength = v.rocket_length
+plots = True
+
+calculate_trajectory(
+    wetMass,
+    mDotTotal,
+    jetThrust,
+    tankOD,
+    finNumber,
+    finHeight,
+    exitArea,
+    exitPressure,
+    exitVelocity,
+    burnTime,
+    totalLength,
+    plots)
