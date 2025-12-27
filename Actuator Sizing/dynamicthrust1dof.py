@@ -71,7 +71,7 @@ def calculate_trajectory(
     """
 
     # Rocket Properties
-    reference_area = (np.pi * (tankOD) ** 2 / 4) + finNumber * finHeight * c.FIN_THICKNESS # [m^2] reference area of the rocket
+    reference_area = (np.pi * (tankOD) ** 2 / 4) + finNumber * finHeight * 1/2 * c.IN2M # [m^2] reference area of the rocket, 1/2 in fin thickness
     mass = wetMass  # [kg] initial mass of the rocket
 
     cD = 0.5
@@ -80,7 +80,7 @@ def calculate_trajectory(
     # Initial Conditions
     altitude = c.INDIANA_ALTITUDE  # [m] initial altitude of the rocket
     velocity = 0  # [m/s] initial velocity of the rocket
-    acceleration = ((jetThrust + (exitPressure - ATMOSPHERE_DATA[(0, 1)]) * exitArea) - (c.GRAVITY * wetMass)) / wetMass  # [m/s] initial acceleration of the rocket
+    acceleration = 0  # [m/s] initial acceleration of the rocket
     time = 0  # [s] initial time of the rocket
     dt = 0.0001  # [s] time step of the rocket
 
@@ -95,7 +95,7 @@ def calculate_trajectory(
     mdot_history, main_thrust_history, time_history = mdot_based_on_time(mDotTotal, exitVelocity)
 
     count = 1
-    while (velocity >= 0) or (acceleration > 0):
+    while (velocity >= 0) or (acceleration >= 0):
 
         altitude_index = int(altitude // 10)  # Divide altitude by 10 to find index
 
@@ -109,7 +109,7 @@ def calculate_trajectory(
             pressure = ATMOSPHERE_DATA[(altitude_index, 1)]
             rho = ATMOSPHERE_DATA[(altitude_index, 2)]
         
-        if time <= time_history[-1]:
+        if time <= time_history[-1] and time != 0:
             mass = mass - mdot_history[int(time / 0.0001)] * dt  # [kg] mass of the rocket
             thrust = (
                 main_thrust_history[int(time / 0.0001)] + (exitPressure - pressure) * exitArea
@@ -249,15 +249,15 @@ mDotTotal = v.parameters.total_mass_flow_rate
 jetThrust = v.parameters.jet_thrust
 tankOD = v.parameters.tank_outer_diameter
 finNumber =  v.number_of_fins
-finHeight = 
-exitArea = 
+finHeight = 12 * c.IN2M
+exitArea = np.pi * 4**2 / 4 * c.IN22M2
 exitPressure = v.parameters.exit_pressure
 exitVelocity = 1716.88 # [m/s]
 burnTime = v.parameters.burn_time
 totalLength = v.rocket_length
-plots = True
+plots = 1
 
-calculate_trajectory(
+estimated_apogee, max_acceleration, max_velocity, off_the_rail_velocity, off_the_rail_acceleration, totalImpulse, off_the_rail_time = calculate_trajectory(
     wetMass,
     mDotTotal,
     jetThrust,
@@ -270,3 +270,5 @@ calculate_trajectory(
     burnTime,
     totalLength,
     plots)
+
+print(estimated_apogee, max_acceleration, max_velocity, off_the_rail_velocity, off_the_rail_acceleration, totalImpulse, off_the_rail_time)

@@ -47,34 +47,18 @@ else:
 
 print(f'Maximum possible net force disregarding friction (and valve arm if real condition): {piston_force * N2LBF:.2f}')
 
-def calc_net_force_real(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, arm_length):
+def calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve):
     fc_piston = (4 * piston_seal_length * M2IN) * LBF2N # assuming 4, worst case, for now
     fc_shaft = (4 * shaft_seal_length * M2IN) * LBF2N
     fh_piston = (18 * piston_seal_area * M22IN2) * LBF2N # from parker oring handbook figure 5-10, lowkey using it for u-cup :skull:
     fh_shaft = (18 * shaft_seal_area * M22IN2) * LBF2N
     friction_piston = fc_piston + fh_piston
     friction_shaft = fc_shaft + fh_shaft
-    force_valve = braking_torque * np.sqrt(2) / arm_length
     print(f"fc_piston: {fc_piston * N2LBF:.2f} LBF")
     print(f"fc_shaft: {fc_shaft * N2LBF:.2f} LBF")
     print(f"fh_piston: {fh_piston * N2LBF:.2f} LBF")
     print(f"fh_shaft: {fh_shaft * N2LBF:.2f} LBF")
     f_net = piston_force - force_valve - friction_piston * 2 - friction_shaft # two seals on piston, 1 on rod
-    print(f"F_net: {f_net * N2LBF:.2f} LBF")
-    return f_net
-
-def calc_net_force_test(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area):
-    fc_piston = (4 * piston_seal_length * M2IN) * LBF2N # assuming 4, worst case, for now
-    fc_shaft = (4 * shaft_seal_length * M2IN) * LBF2N
-    fh_piston = (18 * piston_seal_area * M22IN2) * LBF2N # from parker oring handbook figure 5-10, lowkey using it for u-cup :skull:
-    fh_shaft = (18 * shaft_seal_area * M22IN2) * LBF2N
-    friction_piston = fc_piston + fh_piston
-    friction_shaft = fc_shaft + fh_shaft
-    print(f"fc_piston: {fc_piston * N2LBF:.2f} LBF")
-    print(f"fc_shaft: {fc_shaft * N2LBF:.2f} LBF")
-    print(f"fh_piston: {fh_piston * N2LBF:.2f} LBF")
-    print(f"fh_shaft: {fh_shaft * N2LBF:.2f} LBF")
-    f_net = piston_force - friction_piston * 2 - friction_shaft # two seals on piston, 1 on rod
     print(f"F_net: {f_net * N2LBF:.2f} LBF")
     return f_net
 
@@ -243,11 +227,12 @@ def actuation_time_kinematics_test(F_net, rod_mass, piston_diameter, piston_stro
 # Shortlisted Piston: https://pspliquids.slack.com/archives/C09C5J1EJDB/p1764894397354269?thread_ts=1764888234.600949&cid=C09C5J1EJDB
 
 if piston.lower() == "test":
-    f_net = calc_net_force_test(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area)
+    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, 0)
     volume_swept_history, time_history, time  = actuation_time_kinematics_test(f_net, rod_mass, piston_diameter, piston_stroke_length)
 elif piston.lower() == "real":
     required_torque, arm_length, torque = calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length)
-    f_net = calc_net_force_real(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, braking_torque, arm_length)
+    force_valve = braking_torque * np.sqrt(2) / arm_length
+    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
     volume_swept_history, time_history, angle_history, time = actuation_time_kinematics_real(f_net, rod_mass, piston_diameter, arm_length)
 else:
     print('Invalid piston chosen')
