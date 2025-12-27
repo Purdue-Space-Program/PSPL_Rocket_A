@@ -139,16 +139,17 @@ def calculate_trajectory(
         acceleration_array.append(acceleration)
 
         velocity += acceleration * dt  # velocity integration
-        velocity_array.append(velocity)
-
         altitude += velocity * dt  # position integration
-        altitude_array.append(altitude)
-
         time = time + dt  # time is inevitable
+
+        if velocity < 0 and altitude <= altitude_array[0]:
+            velocity = 0
+            altitude = altitude_array[0]
+        velocity_array.append(velocity)
+        altitude_array.append(altitude)
         time_array.append(time)
-        
         count += 1
-        
+    print(acceleration_array[:50])
     # Find the closest altitude to the TRAILER_RAIL_HEIGHT
 
     off_the_rail_velocity, off_the_rail_acceleration, off_the_rail_time = 0, 0, 0
@@ -184,7 +185,6 @@ def calculate_trajectory(
         
         plt.ylabel("Height [ft], Velocity (any direction) [ft/s], Acceleration (any direction) [ft/s^2]")
         plt.xlabel("Time [s]")
-
         plt.grid()
         plt.show()
 

@@ -117,7 +117,7 @@ def actuation_time_vol_flow(piston_diameter, volumetric_flow_history, time_histo
         print('Ran out of volumetric flow values in volumetric flow history, something is broken :(')
         return 0, 0
 
-def actuation_time_kinematics_real(F_net, rod_mass, piston_diameter, arm_length):
+def actuation_time_kinematics_real(F_net, rod_mass, piston_diameter, arm_length, plot = 1):
     time = 0
     time_step = 0.0001
     piston_velocity = 0
@@ -145,33 +145,34 @@ def actuation_time_kinematics_real(F_net, rod_mass, piston_diameter, arm_length)
         distance_travelled_history.append(dist_travelled)
         time += time_step
 
-    plt.subplot(2, 2, 1)
-    plt.plot(time_history, angle_history)
-    plt.xlabel("Actuation Time [s]")
-    plt.ylabel("Valve Angle [˚]")
-    plt.title("Valve Angle Over Time")
-    plt.ylim(0, 90)
-    plt.xlim(0, time)
+    if plot == 1:
+        plt.subplot(2, 2, 1)
+        plt.plot(time_history, angle_history)
+        plt.xlabel("Actuation Time [s]")
+        plt.ylabel("Valve Angle [˚]")
+        plt.title("Valve Angle Over Time")
+        plt.ylim(0, 90)
+        plt.xlim(0, time)
 
-    plt.subplot(2, 2, 2)
-    plt.plot(time_history, velocity_history)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Velocity [m/s]")
-    plt.title("Time vs Velocity")
+        plt.subplot(2, 2, 2)
+        plt.plot(time_history, velocity_history)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Velocity [m/s]")
+        plt.title("Time vs Velocity")
 
-    plt.subplot(2, 2, 3)
-    plt.plot(time_history, volume_swept_history)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Volume [m^3]")
-    plt.title("Time vs Volume Swept")
+        plt.subplot(2, 2, 3)
+        plt.plot(time_history, volume_swept_history)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Volume [m^3]")
+        plt.title("Time vs Volume Swept")
 
-    plt.subplot(2, 2, 4)
-    plt.plot(time_history, distance_travelled_history)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Distance Swept [m]")
-    plt.title("Time vs Distance Swept")
-    plt.tight_layout()
-    plt.show()
+        plt.subplot(2, 2, 4)
+        plt.plot(time_history, distance_travelled_history)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Distance Swept [m]")
+        plt.title("Time vs Distance Swept")
+        plt.tight_layout()
+        plt.show()
 
     print(f"Actuation time: {time:.3f}s")
     print(f"Stroke length when using valve angle condition: {distance_travelled_history[-1] * M2IN:.2f} in")
@@ -239,3 +240,22 @@ else:
 volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history)
 distance_travelled, time = actuation_time_vol_flow(piston_diameter, volumetric_flow_history, time_history, piston_stroke_length)
 print(f"Actuation time using volumetric flow: {time:.3f}s")
+
+braking_torque_history = []
+actuation_time_history = []
+braking_torque = 120 * LBI2NM
+while braking_torque <= 820 * LBI2NM:
+    required_torque, arm_length, torque = calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length)
+    force_valve = braking_torque * np.sqrt(2) / arm_length
+    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
+    volume_swept_history, time_history, angle_history, time = actuation_time_kinematics_real(f_net, rod_mass, piston_diameter, arm_length, 0)
+    braking_torque_history.append(braking_torque)
+    actuation_time_history.append(time)
+    braking_torque = braking_torque + 1 * LBI2NM
+
+braking_torque_history = np.array(braking_torque_history)
+plt.plot(actuation_time_history, braking_torque_history * NM2LBI)
+plt.xlabel("Actuation Time [s]")
+plt.ylabel("Braking torque [lb-in]")
+plt.title("Braking Torque vs Actuation Time")
+plt.show()
