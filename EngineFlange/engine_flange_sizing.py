@@ -1,14 +1,16 @@
+pi = 3.14159
+
 def tensile_from_chamber(diameter, pressure):
-    return (diameter*diameter/4.0*3.14159) * pressure
+    return (diameter*diameter/4.0*pi) * pressure
 
 def tensile_from_o_ring(diameter, compression):
-    return (diameter*3.14159) * compression
+    return (diameter*pi) * compression
 
 def proof(safety, strength):
     return safety*strength
 
 def lower_preload(diameter, proof):
-    area = 3.14159 * (diameter*diameter/4)
+    area = pi * (diameter*diameter/4)
     return (((area*proof)*0.75)/1.25)*0.75
 
 def bolts(force, preload):
@@ -18,8 +20,7 @@ def sum_forces(array, safety):
     net = 0
     for i in array:
         net = net + i
-    return net * safety
-        
+    return net * safety   
 
 def main ():
     proof_stress_safety_factor = 0.8
@@ -27,10 +28,10 @@ def main ():
     proof_stress = proof(proof_stress_safety_factor,steel_tensile_strength)
     safety_factor = 1.4
     #Pathfinder
-    bolt_diameter_plates = 0.25
+    bolt_diameter_plates = 0.1875
     bolt_diameter_pintle = 0.125
     chamber_diameter = 4.9
-    chamber_pressure = 500
+    chamber_pressure = 250
     #CMS
     #bolt_diameter_plates = 0.25
     #chamber_diameter = 5.05

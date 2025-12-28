@@ -1,5 +1,7 @@
+pi = 3.14159
+
 def shearStrength(material, diameter):
-    return (material)*(3.14159*diameter*diameter*0.25)
+    return (material)*(pi*diameter*diameter*0.25)
 
 def bearingStrength(material, diameter, thickness):
     return (material)*(diameter)*(thickness)
