@@ -33,7 +33,7 @@ def main ():
     safety_factor = 1.4
     #Pathfinder
     bolt_diameter_plates = 0.1875
-    ED_ratio = 1.5
+    ED_ratio = 1.9325
     nut_diameter_plates = 0.375
     bolt_diameter_pintle = 0.125
     chamber_diameter = 4.9
