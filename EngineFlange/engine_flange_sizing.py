@@ -32,10 +32,12 @@ def main ():
     proof_stress = proof(proof_stress_safety_factor,steel_tensile_strength)
     safety_factor = 1.4
     #Pathfinder
-    bolt_diameter_plates = 0.1875
-    ED_ratio = 1.9325
-    nut_diameter_plates = 0.375
-    bolt_diameter_pintle = 0.125
+    bolt_diameter_plates_major = 0.25
+    bolt_diameter_plates_minor = 0.2075
+    bolt_diameter_pintle_major = 0.125
+    bolt_diameter_pintle_minor = 0.1
+    ED_ratio = 1.2
+    nut_diameter_plates = bolt_diameter_plates_major*2
     chamber_diameter = 4.9
     chamber_wall_thickness = 0.25
     chamber_pressure = 250
@@ -60,19 +62,19 @@ def main ():
 
     forces_plates = {tensile_force_from_chamber_plates,tensile_force_from_outer_o_ring,tensile_force_from_chamber_o_ring,tensile_force_from_film_o_ring,tensile_force_from_manifold_o_ring}
     net_force_plates = sum_forces(forces_plates, safety_factor)
-    lower_bound_preload_plates = lower_preload(bolt_diameter_plates,proof_stress)
+    lower_bound_preload_plates = lower_preload(bolt_diameter_plates_minor,proof_stress)
     number_of_bolts_plates = bolts(net_force_plates,lower_bound_preload_plates)
     print(number_of_bolts_plates)
 
     tensile_force_from_chamber_pintle = tensile_from_chamber(.98,500)
     tensile_force_from_pintle_o_ring = tensile_from_o_ring(1.25,70)
 
-    flange_diameter = diameter(ED_ratio, bolt_diameter_plates, nut_diameter_plates, chamber_diameter, chamber_wall_thickness)
+    flange_diameter = diameter(ED_ratio, bolt_diameter_plates_major, nut_diameter_plates, chamber_diameter, chamber_wall_thickness)
     print(flange_diameter)
 
     forces_pintle = {tensile_force_from_chamber_pintle,tensile_force_from_pintle_o_ring}
     net_force_pintle = sum_forces(forces_pintle, safety_factor)
-    lower_bound_preload_pintle = lower_preload(bolt_diameter_pintle,proof_stress)
+    lower_bound_preload_pintle = lower_preload(bolt_diameter_pintle_minor,proof_stress)
     number_of_bolts_pintle = bolts(net_force_pintle,lower_bound_preload_pintle)
     print(number_of_bolts_pintle)
 
