@@ -36,15 +36,18 @@ def main ():
     bolt_diameter_plates_minor = 0.2075
     bolt_diameter_pintle_major = 0.125
     bolt_diameter_pintle_minor = 0.1
-    ED_ratio = 1.2
-    nut_diameter_plates = bolt_diameter_plates_major*2
     chamber_diameter = 4.9
     chamber_wall_thickness = 0.25
     chamber_pressure = 250
     #CMS
-    #bolt_diameter_plates = 0.25
+    #bolt_diameter_plates_major = 0.25
+    #bolt_diameter_plates_minor = 0.2075
     #chamber_diameter = 5.05
     #chamber_pressure = 200
+
+    nut_diameter_plates = bolt_diameter_plates_major*2.1
+    ED_ratio = 1.5
+    chamber_wall_thickness = 0.25
 
     #Pathfinder
     tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
