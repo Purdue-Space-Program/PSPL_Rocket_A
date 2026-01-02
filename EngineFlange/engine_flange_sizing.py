@@ -34,8 +34,8 @@ def main ():
     #Pathfinder
     bolt_diameter_plates_major = 0.25#0.19
     bolt_diameter_plates_minor = 0.2075#0.1528
-    bolt_diameter_pintle_major = 0.125
-    bolt_diameter_pintle_minor = 0.1
+    bolt_diameter_pintle_major = 0.138
+    bolt_diameter_pintle_minor = 0.1082
     chamber_diameter = 4.9
     chamber_wall_thickness = 0.25
     chamber_pressure = 250
