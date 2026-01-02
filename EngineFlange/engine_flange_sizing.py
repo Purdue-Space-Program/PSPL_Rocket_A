@@ -32,8 +32,8 @@ def main ():
     proof_stress = proof(proof_stress_safety_factor,steel_tensile_strength)
     safety_factor = 1.4
     #Pathfinder
-    bolt_diameter_plates_major = 0.25
-    bolt_diameter_plates_minor = 0.2075
+    bolt_diameter_plates_major = 0.25#0.19
+    bolt_diameter_plates_minor = 0.2075#0.1528
     bolt_diameter_pintle_major = 0.125
     bolt_diameter_pintle_minor = 0.1
     chamber_diameter = 4.9
