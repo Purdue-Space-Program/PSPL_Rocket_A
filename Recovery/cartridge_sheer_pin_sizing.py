@@ -1,4 +1,4 @@
-# import numpy as np
+import vehicle_parameters as v
 molesMassCO2_g = 44.01
 R = 0.0821
 pi = 3.14159
@@ -29,7 +29,7 @@ def main():
     roomTemperature_K = 298
     dropTemperature_K = -50
     recoveryBayRadius_in = 5.75/2
-    recoveryBayLength_in = 15
+    recoveryBayLength_in = v.recovery_bay_length
     recoveryBayPressure_psi = calculatePressure(cartridgeMass_g, roomTemperature_K, dropTemperature_K, recoveryBayRadius_in, recoveryBayLength_in)
     
     print(f"recoveryBayPressure_psi: {recoveryBayPressure_psi:.2f}")

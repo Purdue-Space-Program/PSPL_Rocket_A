@@ -1,4 +1,5 @@
 pi = 3.14159
+import vehicle_parameters as v
 
 def shearStrength(material, diameter):
     return (material)*(pi*diameter*diameter*0.25)
