@@ -14,19 +14,17 @@ piston = "real" # test or real
 # INPUT PARAMETERS
 ###############################
 if piston == "test":
-    braking_torque = 240 * LBI2NM
-    safety_factor = 3
-    piston_stroke_length = 2 * IN2M
+    piston_stroke_length = 2.5 * IN2M
     rod_mass = 1.6 * LBM2KG # Estimated from CAD
-    piston_diameter = 17/16 * IN2M
-    piston_retracted_length = 9.44 * IN2M
+    piston_diameter = 3/4 * IN2M
+    piston_retracted_length = 5.97 * IN2M
     piston_extended_length = piston_retracted_length + piston_stroke_length
-    shaft_diameter = 0.312 * IN2M
+    shaft_diameter = 0.25 * IN2M
     piston_seal_length = np.pi * piston_diameter
     shaft_seal_length = np.pi * shaft_diameter
     piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 series
     shaft_seal_area = 0.21 * IN2M * shaft_seal_length
-    pressure = 200 * PSI2PA
+    pressure = 250 * PSI2PA
     piston_force = pressure * np.pi * ((piston_diameter**2) / 4)
 else:
     braking_torque = 240 * LBI2NM
@@ -95,27 +93,8 @@ def actuation_time_valve(Cv, piston_diameter, piston_stroke_length):
     actuation_time = piston_area * M22IN2 * piston_stroke_length * M2IN * A * cf / (29 * Cv)
     print(f"Actuation time using cv of valve: {actuation_time:.3f}s")
 
-Cv = 0.85 # assumption for now
+Cv = 6 # assumption for now
 actuation_time_valve(Cv, piston_diameter, piston_stroke_length)
-
-def actuation_time_vol_flow(piston_diameter, volumetric_flow_history, time_history, piston_stroke_length):
-    time = 0
-    time_history_vol_flow = []
-    distance_traveled_history = []
-    distance_traveled = 0
-    piston_area = np.pi * piston_diameter**2 / 4
-    time_step = time_history[1] - time_history[0]
-    for volumetric_flow in volumetric_flow_history:
-        piston_velocity = volumetric_flow / piston_area if volumetric_flow is not None else 0
-        distance_traveled = distance_traveled + piston_velocity * time_step
-        distance_traveled_history.append(distance_traveled)
-        time_history_vol_flow.append(time)
-        time = time + time_step
-        if distance_traveled >= piston_stroke_length:
-            return distance_traveled, time
-    else:
-        print('Ran out of volumetric flow values in volumetric flow history, something is broken :(')
-        return 0, 0
 
 def actuation_time_kinematics_real(F_net, rod_mass, piston_diameter, arm_length, plot = 1):
     time = 0
@@ -238,24 +217,3 @@ elif piston.lower() == "real":
 else:
     print('Invalid piston chosen')
 volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history)
-distance_travelled, time = actuation_time_vol_flow(piston_diameter, volumetric_flow_history, time_history, piston_stroke_length)
-print(f"Actuation time using volumetric flow: {time:.3f}s")
-
-braking_torque_history = []
-actuation_time_history = []
-braking_torque = 120 * LBI2NM
-while braking_torque <= 820 * LBI2NM:
-    required_torque, arm_length, torque = calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length)
-    force_valve = braking_torque * np.sqrt(2) / arm_length
-    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
-    volume_swept_history, time_history, angle_history, time = actuation_time_kinematics_real(f_net, rod_mass, piston_diameter, arm_length, 0)
-    braking_torque_history.append(braking_torque)
-    actuation_time_history.append(time)
-    braking_torque = braking_torque + 1 * LBI2NM
-
-braking_torque_history = np.array(braking_torque_history)
-plt.plot(actuation_time_history, braking_torque_history * NM2LBI)
-plt.xlabel("Actuation Time [s]")
-plt.ylabel("Braking torque [lb-in]")
-plt.title("Braking Torque vs Actuation Time")
-plt.show()
