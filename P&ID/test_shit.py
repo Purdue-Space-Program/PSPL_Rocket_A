@@ -8,6 +8,6 @@ ISP = vehicle.parameters.ISP
 print(f"ISP: {ISP}")
 # --> 162.21
 
-mass_distribution = vehicle.mass_distribution
+mass_distribution = vehicle.wet_mass_distribution
 for mass in mass_distribution:
     print(mass)
