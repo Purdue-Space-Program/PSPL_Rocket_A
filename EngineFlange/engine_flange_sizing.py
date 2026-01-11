@@ -52,8 +52,8 @@ def main ():
 
     #Pathfinder
     tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
-    tensile_force_from_outer_o_ring = tensile_from_o_ring(5.19301,70)
-    tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.19302,70)
+    tensile_force_from_outer_o_ring = tensile_from_o_ring(5.44301,70)
+    tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.44302,70)
     tensile_force_from_film_o_ring = 0 #tensile_from_o_ring(3.984,70)
     tensile_force_from_manifold_o_ring = 0 #tensile_from_o_ring(3.512,70)
 
