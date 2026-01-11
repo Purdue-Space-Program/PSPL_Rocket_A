@@ -29,7 +29,8 @@ def diameter(ratio, bolt, nut, ID, wall):
 def main ():
     proof_stress_safety_factor = 0.8
     steel_tensile_strength = 42100
-    proof_stress = proof(proof_stress_safety_factor,steel_tensile_strength)
+    # proof_stress = proof(proof_stress_safety_factor,steel_tensile_strength)
+    proof_stress = 120000
     safety_factor = 1.4
     #Pathfinder
     bolt_diameter_plates_major = 0.25#0.19
@@ -67,18 +68,18 @@ def main ():
     net_force_plates = sum_forces(forces_plates, safety_factor)
     lower_bound_preload_plates = lower_preload(bolt_diameter_plates_minor,proof_stress)
     number_of_bolts_plates = bolts(net_force_plates,lower_bound_preload_plates)
-    print(number_of_bolts_plates)
+    print(f"number_of_bolts_plates: {number_of_bolts_plates:.2f}")
 
     tensile_force_from_chamber_pintle = tensile_from_chamber(.98,500)
     tensile_force_from_pintle_o_ring = tensile_from_o_ring(1.25,70)
 
     flange_diameter = diameter(ED_ratio, bolt_diameter_plates_major, nut_diameter_plates, chamber_diameter, chamber_wall_thickness)
-    print(flange_diameter)
+    print(f"flange_diameter: {flange_diameter:.2f}")
 
     forces_pintle = {tensile_force_from_chamber_pintle,tensile_force_from_pintle_o_ring}
     net_force_pintle = sum_forces(forces_pintle, safety_factor)
     lower_bound_preload_pintle = lower_preload(bolt_diameter_pintle_minor,proof_stress)
     number_of_bolts_pintle = bolts(net_force_pintle,lower_bound_preload_pintle)
-    print(number_of_bolts_pintle)
+    print(f"number_of_bolts_pintle: {number_of_bolts_pintle:.2f}")
 
 main()
