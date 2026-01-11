@@ -1,4 +1,9 @@
 pi = 3.14159
+import sys
+import os
+import matplotlib.pyplot as plt
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from constants import *
 import vehicle_parameters as v
 
 def shearStrength(material, diameter):
