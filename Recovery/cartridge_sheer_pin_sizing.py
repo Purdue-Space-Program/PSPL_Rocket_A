@@ -3,6 +3,7 @@ R = 0.0821
 pi = 3.14159
 cuin_to_L = 0.0163871
 atm_to_psi = 14.6959
+m_to_in = 39.3701
 import sys
 import os
 import matplotlib.pyplot as plt
@@ -33,8 +34,8 @@ def main():
     cartridgeMass_g = 26
     roomTemperature_K = 298
     dropTemperature_K = -50
-    recoveryBayRadius_in = 5.75/2
-    recoveryBayLength_in = v.recovery_bay_length*39.3701
+    recoveryBayRadius_in = (v.parameters.tube_inner_diameter*m_to_in)/2
+    recoveryBayLength_in = v.recovery_bay_length*m_to_in
     recoveryBayPressure_psi = calculatePressure(cartridgeMass_g, roomTemperature_K, dropTemperature_K, recoveryBayRadius_in, recoveryBayLength_in)
     
     print(f"recoveryBayPressure_psi: {recoveryBayPressure_psi:.2f}")
