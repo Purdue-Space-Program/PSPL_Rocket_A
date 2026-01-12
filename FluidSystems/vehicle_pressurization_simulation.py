@@ -80,10 +80,10 @@ if vehicle_name == "Rocket_A":
     PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
     
     PRESS_GAS = "nitrogen"
-    P_COPV = vehicle.calculated_parameters.COPV_starting_pressure # [Pa] starting COPV pressure
+    P_COPV = vehicle.parameters.COPV_starting_pressure # [Pa] starting COPV pressure
     T_COPV = 300 # [K] starting COPV temperature (assumed)
     GRAVITY = vehicle.parameters.off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
-    V_COPV = vehicle.calculated_parameters.COPV_volume # [m^3] COPV volume
+    V_COPV = vehicle.parameters.COPV_volume # [m^3] COPV volume
     # Tanks
     D_TANK = vehicle.parameters.tank_outer_diameter # [m] tank outer diameter
     T_TANK = vehicle.parameters.tank_wall_thickness # [m] tank wall thickness

@@ -2,24 +2,26 @@
 # Import this file into your script as a way to easily and reliably pull parameters. 
 # Author: David Gustafsson
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 from typing import Iterator
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
+from pathlib import Path
 
 import constants as c
+from dataclasses import fields, is_dataclass
 
-
-
-# @dataclass(frozen=True)
+@dataclass
 class VehicleParameters:
 
+    # General Parameters
     fuel_name: str = "isopropyl alcohol" 
     oxidizer_name: str = "liquid oxygen"
     tube_outer_diameter: float = 6.0 * c.IN2M         # Outer diameter of tube used in some sections of the rocket
     tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of tube used in some sections of the rocket
     
-    
+    # Engine Parameters
     chamber_pressure: float = 250 * c.PSI2PA                                    # The target combustion pressure in the engine [Pascals]
     jet_thrust: float = 668.0 * c.LBF2N                                         # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
     ISP: float = 175.0                                                          # The estimated ISP of the engine [seconds]
@@ -35,8 +37,8 @@ class VehicleParameters:
     chamber_inner_diameter: float = 4.9 * c.IN2M                                # The design combustion chamber diameter [meters]
     chamber_throat_diameter: float = 1.852 * c.IN2M                             # The design throat diameter [meters]
     
+    # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
-
     tank_outer_diameter: float = tube_outer_diameter  # Outer diameter of both tanks of the rocket
     tank_inner_diameter: float = tube_inner_diameter  # Inner diameter of both tanks of the rocket
     tank_wall_thickness: float = (tube_outer_diameter - tube_inner_diameter)/2  # Inner diameter of both tanks of the rocket
@@ -57,37 +59,56 @@ class VehicleParameters:
     total_propellant_mass: float = fuel_total_mass + oxidizer_total_mass # The total mass of propellant put on the vehicle [kilograms]
     total_used_propellant_mass: float = fuel_used_mass + oxidizer_used_mass # The total mass of propellant needed for the burn time [kilograms]
     total_residual_mass: float = fuel_residual_mass + oxidizer_residual_mass # The total mass of propellant put on the vehicle [kilograms]
+    
+    # COPV Parameters
+    COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
+    COPV_starting_pressure: float =  4300 * c.PSI2PA # [Pa]
 
+    # Flight Parameters
     off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravity]
+    off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravities]
     off_the_rail_velocity: float = 27.64          # The target velocity of the rocket off the launch rail [meters/second]
     
-    # 1 DOF Results:
-    estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DOF altitude [meters]
-    max_acceleration: float = 6.96 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
-    max_mach: float = 0.395                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    max_velocity: float = max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
-    total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
-    # 6 DOF results:
-    # estimated_apogee: float = ? * c.FT2M       # The estimated 1-DOF altitude [meters]
-    # max_acceleration: float = ? # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravity]
-    # max_mach: float = ?                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    # max_velocity: float = max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
-    # total_impulse: float = ?                   # The total impulse of the rocket over the duration of flight [newton seconds]
+    # 1-DoF Results:
+    one_DoF_estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DoF altitude [meters]
+    one_DoF_max_acceleration: float = 6.96 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravities]
+    one_DoF_max_mach: float = 0.395                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    one_DoF_max_velocity: float = one_DoF_max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
+    one_DoF_total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
+
+    # 6-DoF results:
+    six_DoF_estimated_apogee: float = 1090.60             # The estimated 6-DoF altitude [meters]
+    # six_DoF_max_acceleration: float = ? # (upwards!)    # The maximum acceleration of the rocket during flight [standard gravities]
+    six_DoF_max_mach: float = 0.419                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    six_DoF_max_velocity: float = six_DoF_max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
+    # six_DoF_total_impulse: float = ?                    # The total impulse of the rocket over the duration of flight [newton seconds]
     
+    
+        # late-calculated values (now they will show up in fields())
+    wet_mass: float = np.nan
+    dry_mass: float = np.nan
+    total_length: float = np.nan
+
+
+    # internal freeze flag
+    _frozen: bool = field(default=False, init=False, repr=False)
+
+    def __post_init__(self):
+        object.__setattr__(self, "_frozen", False)
+
+    def freeze(self):
+        object.__setattr__(self, "_frozen", True)
+
+    def __setattr__(self, name, value):
+        if getattr(self, "_frozen", False) and name != "_frozen":
+            raise AttributeError("The vehicle parameters are frozen, you cannot change values, ask David how to change these values")
+        super().__setattr__(name, value)
+
 parameters = VehicleParameters()
 
 
-# vehicle parameters that did not come from the Rocket A sizing code
-@dataclass(frozen=True)
-class CalculatedVehicleParameters:
-    COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
-    COPV_starting_pressure: float =  4300 * c.PSI2PA # [Pa]
-    
-
-calculated_parameters = CalculatedVehicleParameters()
-
+  
 # Center of mass !
 # - 5:53 AM, 10/25/2025
 
@@ -107,6 +128,7 @@ def CalcTubeVolume(OD, ID, length):
     volume = CalcCylinderVolume(OD, length) - CalcCylinderVolume(ID, length)
     return volume
     
+
 engine_length =         10.179 * c.IN2M
 injector_length =       0.475 * c.IN2M
 lower_length =          12 * c.IN2M
@@ -126,13 +148,13 @@ fucked_length = engine_length + injector_length + lower_length + (4*bulkhead_len
 propellant_tank_outer_diameter = parameters.tube_outer_diameter
 propellant_tank_inner_diameter = parameters.tube_inner_diameter
 panels_outer_diameter = parameters.tube_outer_diameter
-panels_thickness = 0.002 * c.IN2M
 
 panel_type = "foil"
 
 if panel_type == "tube":
     panels_inner_diameter = parameters.tube_inner_diameter
 elif panel_type == "foil":
+    panels_thickness = 0.002 * c.IN2M
     panels_inner_diameter = panels_outer_diameter - (2 * panels_thickness)
 
 # engine_wall_thickness = 0.25 * c.IN2M
@@ -211,8 +233,6 @@ class MassDistribution:
 
     def __iter__(self):
         return iter(self.components)
-
-
 
 engine =                  MassComponent(name = 'engine',                      mass = engine_mass,            bottom_distance_from_aft = 0,                                                length = engine_length)
 injector =                MassComponent(name = 'injector',                    mass = injector_mass,          bottom_distance_from_aft = engine.StartAfter(),                              length = injector_length)
@@ -370,10 +390,12 @@ if max(length_along_rocket_linspace) != length_along_rocket_linspace[-1]:
 rocket_length = max(length_along_rocket_linspace)
 
 
-parameters.wet_mass = vehicle_wet_mass    # The estimated dry mass of the rocket [kilograms]
-parameters.dry_mass = vehicle_dry_mass    # The estimated dry mass of the rocket [kilograms]
-parameters.total_length = rocket_length   # The estimated length of the rocket [meters]
-    
+parameters.wet_mass = vehicle_wet_mass # The estimated dry mass of the rocket [kilograms]
+parameters.dry_mass = vehicle_dry_mass # The estimated dry mass of the rocket [kilograms]
+parameters.total_length = rocket_length # The estimated length of the rocket [meters]
+parameters.freeze()
+
+# parameters.wet_mass = 9999999999999999999999999999999999999999
 
 
 if __name__ == "__main__":
@@ -396,10 +418,10 @@ if __name__ == "__main__":
     dry_COM_location_from_top = rocket_length - dry_COM_location_from_bottom
     
     print(f"Wet CoM location distance from bottom: {wet_COM_location_from_bottom * c.M2IN:.2f} in, {wet_COM_location_from_bottom:.3f} m")
-    print(f"wet CoM location distance from top: {wet_COM_location_from_top * c.M2IN:.2f} in, {wet_COM_location_from_top:.3f} m")
-    
     print(f"Dry CoM location distance from bottom: {dry_COM_location_from_bottom * c.M2IN:.2f} in, {dry_COM_location_from_bottom:.3f} m")
-    print(f"Dry CoM location distance from top: {dry_COM_location_from_top * c.M2IN:.2f} in, {dry_COM_location_from_top:.3f} m")
+    
+    print(f"\nWet CoM location distance from top:    {wet_COM_location_from_top * c.M2IN:.2f} in, {wet_COM_location_from_top:.3f} m")
+    print(f"Dry CoM location distance from top:    {dry_COM_location_from_top * c.M2IN:.2f} in, {dry_COM_location_from_top:.3f} m")
     
     
     plt.vlines(wet_COM_location_from_bottom * c.M2FT, min(wet_linear_density_array * (c.KG2LBM / c.M2FT)), max(wet_linear_density_array * (c.KG2LBM / c.M2FT)), color="red", linestyles="dotted", label="Center of Gravity")
@@ -443,3 +465,35 @@ if __name__ == "__main__":
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
     # plt.show()
+    
+
+    python_file_dir = Path(__file__).resolve().parent
+
+    Six_DoF_csv_file_path = (
+        python_file_dir
+        / ".."          # up from PSPL_Rocket_A
+        / "PSPL-6DOF"
+        / "TheSixDoF"
+        / "Inputs"
+        / "Saved Rockets"
+        / "FUCK_MATLAB"
+        / "vehicle_parameters.csv"
+    ).resolve()
+
+    # write to CSV for 6DOF to read since 6DOF is in matlabese
+    Six_DoF_csv_file_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # also output here for reference
+    PSPL_ROCKET_A_file_path = "vehicle_parameters.csv"
+
+    for export_file_path in [Six_DoF_csv_file_path, PSPL_ROCKET_A_file_path]:
+        with open(export_file_path, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["parameter_name", "value"])
+
+            for field_object in fields(parameters):
+                if field_object.name.startswith("_"):
+                    continue
+                w.writerow([field_object.name, getattr(parameters, field_object.name)])
+            
+            print(f"Vehicle Parameters CSV Exported to {export_file_path} ✅")
