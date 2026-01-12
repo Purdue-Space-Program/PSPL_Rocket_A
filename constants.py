@@ -17,6 +17,7 @@ ATM2PA = 101325  # [Pa/atm] Conversion factor from atm to Pa
 PA2ATM = 1 / ATM2PA  # [atm/Pa] Conversion factor from Pa to atm
 
 PA2BAR = 1e-5  # [bar/Pa] Conversion factor from Pa to bar
+PSI2BAR = PSI2PA * PA2BAR  # [bar/psi] Conversion factor from psi to bar
 BAR2PA = 1 / PA2BAR  # [Pa/bar] Conversion factor from bar to Pa
 
 ## Temperature
@@ -27,8 +28,8 @@ T_AMBIENT = 290  # [K] Ambient temperature (62 F)
 
 ## Mass
 
-LB2KG = 0.453592  # [kg/lbm] Conversion factor from lbm to kg
-KG2LB = 1 / LB2KG  # [lbm/kg] Conversion factor from kg to lbm
+LBM2KG = 0.453592  # [kg/lbm] Conversion factor from lbm to kg
+KG2LBM = 1 / LBM2KG  # [lbm/kg] Conversion factor from kg to lbm
 
 G2KG = 0.001  # [kg/g] Conversion factor from g to kg
 KG2G = 1 / G2KG  # [g/kg] Conversion factor from kg to g
@@ -62,6 +63,11 @@ FT32M3 = 1 / M32FT3  # [m^3/ft^3] Conversion factor from ft^3 to m^3
 N2LBF = 0.224809  # [lbf/N] Conversion factor from N to lbf
 LBF2N = 1 / N2LBF  # [N/lbf] Conversion factor from lbf to N
 
+## Torque
+
+NM2LBI = 8.8507457676 # Conversion factor from N to in-lbf
+LBI2NM = 1 / NM2LBI # Conversion factor from in-lbf to N
+
 # Speed
 
 RPM2RADS = (2 * np.pi) / 60
@@ -78,11 +84,11 @@ POISSON_RATIO_AL = 0.33  # [1] Poisson's ratio
 
 # Inconel 718 (https://asm.matweb.com/search/specificmaterial.asp?bassnum=ninc34)
 
-DENSITY_INCO = 8190  # [kg/m^3] Density
+DENSITY_INCONEL = 8190  # [kg/m^3] Density
 
 ## Carbon Fiber
 
-DENSITY_CF = 1790  # [kg/m^3] HexTow AS4 Carbon Fiber Density
+DENSITY_CARBON_FIBER = 1790  # [kg/m^3] HexTow AS4 Carbon Fiber Density
 
 ## 316 Stainless Steel
 
@@ -119,21 +125,6 @@ N2_GAS_CONSTANT = 296.80  # [J/kgK] Nitrogen gas constant
 
 FILL_PRESSURE = 60  # [psi] Tank pressure during fill, based on CMS fill ops
 
-# Prop Constants
-
-CHAMBER_WALL_THICKNESS = 0.125 * IN2M  # [in] chamber wall thickness
-CHAMBER_FLANGE_WIDTH = 1 * IN2M  # [m] chamber flange thickness
-
-INJECTOR_DP_CHAMBER = (
-    0.2  # [1] pressure drop / chamber pressure, based on past rockets & RPE
-)
-REGEN_DP_CHAMBER = (
-    0.5  # [1] pressure drop / chamber pressure, conservatively based on RPE
-)
-
-RUNLINE_OD = 0.75 * IN2M
-RUNLINE_WALL_THICKNESS = 0.065 * IN2M
-
 # Propellant Properties
 
 WATER_PERCENTAGE = 0  # [1] Percentage of water in the ethanol & IPA mixtures
@@ -147,10 +138,6 @@ DENSITY_GASOLINE = 703  # [kg/m^3] Gasoline density at STP (https://www.engineer
 DENSITY_E98 = 794
 # DENSITY_ETHANOL = PropsSI("D", "T", 290, "P", 101325, "ethanol")
 
-MAX_POWER = 12000  # max pump power [W]
-
-
-
 # Indiana Constants 🧑‍🌾
 INDIANA_ALTITUDE = 216 # [m] altitude at ACRE https://ag.purdue.edu/indiana-state-climate/purdue-mesonet/site-metadata/
 TRAILER_RAIL_HEIGHT = 20 * FT2M # [m] height of launch trailer rail https://arc.aiaa.org/doi/epdf/10.2514/6.2009-4842 (what a fucking find)
@@ -159,16 +146,5 @@ TRAILER_RAIL_HEIGHT = 20 * FT2M # [m] height of launch trailer rail https://arc.
 FAR_ALTITUDE = 615.09  # [m] altitude of FAR launch site
 FAR_RAIL_HEIGHT = 18.29  # [m] height of the rail
 
-# Components
-
-# LIPO Battery Constants
-
-LIPO_CELL_MASS = 0.400  # [kg] mass of a LiPo cell
-LIPO_CELL_VOLTAGE = 22.2  # [V] nominal voltage of a LiPo cell
-LIPO_CELL_DISCHARGE_CURRENT = 80  # [A] maximum discharge current of a LiPo cell
-
 # Misc
 GRAVITY = 9.81  # [m/s^2] acceleration due to gravity
-
-# Fins
-FIN_THICKNESS = 0.16 * IN2M  # not sure if this is valid, should discuss further [m]
