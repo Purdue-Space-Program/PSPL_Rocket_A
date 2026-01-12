@@ -358,7 +358,7 @@ item_sum = 0
 # print(rocket_dict_recovery)
 # print(f"Mass of rocket dict recovery: {sum(component['mass'] for component in rocket_dict_recovery.values())} kg")
 
-num_points = 500
+num_points = 2000
 length_along_rocket_linspace = np.linspace(wet_mass_distribution.components[0].bottom_distance_from_aft, wet_mass_distribution.components[-1].StartAfter(), num_points)
 
 wet_linear_density_array = np.zeros(num_points)
@@ -406,7 +406,6 @@ if __name__ == "__main__":
     panels_mass = lower_panels_mass + mid_panels_mass
     # print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
 
-    plt.plot(length_along_rocket_linspace * c.M2FT, (wet_linear_density_array * (c.KG2LBM / c.M2FT)))
     
     print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
     print(f"Rocket Length: {rocket_length:.2f} m\n")
@@ -424,10 +423,13 @@ if __name__ == "__main__":
     print(f"Dry CoM location distance from top:    {dry_COM_location_from_top * c.M2IN:.2f} in, {dry_COM_location_from_top:.3f} m")
     
     
+    plt.plot(length_along_rocket_linspace * c.M2FT, (wet_linear_density_array * (c.KG2LBM / c.M2FT)))
     plt.vlines(wet_COM_location_from_bottom * c.M2FT, min(wet_linear_density_array * (c.KG2LBM / c.M2FT)), max(wet_linear_density_array * (c.KG2LBM / c.M2FT)), color="red", linestyles="dotted", label="Center of Gravity")
     plt.legend()
     
     plt.xlabel("Length from Bottom [feet]")
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(1))
+    
     plt.ylabel("Wet Mass Density [lbs/feet]")
     plt.title("Rocket Wet Mass Distribution")
         
@@ -464,7 +466,7 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    # plt.show()
+    plt.show()
     
 
     python_file_dir = Path(__file__).resolve().parent
