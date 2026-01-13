@@ -47,9 +47,7 @@ def main():
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
 
-        #chamber_pressure = vp.parameters.chamber_pressure * c.PA2BAR#chamber pressure (Pa)
-
-        cea_results = RunCEA(vp.parameters.chamber_pressure, "ethanol", "liquid oxygen", vp.parameters.OF_ratio)
+        cea_results = RunCEA(vp.parameters.chamber_pressure, "ipa", "liquid oxygen", vp.parameters.OF_ratio)
         gamma_loc = cea_results["gamma"] #specific heat ratio
         Pr_loc = cea_results["pran"] #prandtl number
         cp_loc = cea_results["cp"] * 1000 #specific heat J/(kg * K)
@@ -108,8 +106,6 @@ def main():
             )
         h_total[station_index] = h_local
 
-        #T_static_loc = t_loc/(1 + (((gamma_loc - 1)/2) * M_local**2)) #static temperature (K)
-
 
         Temp_surface_total[station_index] = temperature_surface_calculation(
             heat_transfer_coefficient_value = h_total[station_index],
@@ -140,6 +136,8 @@ def main():
 
     print("max temp in Kelvin:", max(Temp_surface_total))
     print("max heat transfer coefficient:", max(h_total))
+
+    '''
     print("specific heat ratio", cea_results["gamma"])
     print("prandtl number", cea_results["pran"])
     print("dynamic viscosity:", cea_results["visc"])
@@ -152,6 +150,7 @@ def main():
     print("Throat h:", h_total[throat_index])
     print("Throat Ts:", Temp_surface_total[throat_index])
     print("Chamber pressure input (Pa):", vp.parameters.chamber_pressure)
+    '''
 
     
 
