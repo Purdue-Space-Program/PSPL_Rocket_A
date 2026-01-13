@@ -64,32 +64,39 @@ class VehicleParameters:
     COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
     COPV_starting_pressure: float =  4300 * c.PSI2PA # [Pa]
 
-    # Flight Parameters
-    off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravities]
-    off_the_rail_velocity: float = 27.64          # The target velocity of the rocket off the launch rail [meters/second]
     
     
     # 1-DoF Results:
-    one_DoF_estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DoF altitude [meters]
+
+    one_DoF_off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
+    one_DoF_off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravities]
+    one_DoF_off_the_rail_velocity: float = 27.64          # The target velocity of the rocket off the launch rail [meters/second]
+
     one_DoF_max_acceleration: float = 6.96 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravities]
     one_DoF_max_mach: float = 0.395                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
     one_DoF_max_velocity: float = one_DoF_max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
     one_DoF_total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
 
+    one_DoF_estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DoF altitude [meters]
+
     # 6-DoF results:
-    six_DoF_estimated_apogee: float = 1090.60             # The estimated 6-DoF altitude [meters]
-    # six_DoF_max_acceleration: float = ? # (upwards!)    # The maximum acceleration of the rocket during flight [standard gravities]
-    six_DoF_max_mach: float = 0.419                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    # six_DoF_off_the_rail_TWR: float = ?                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
+    six_DoF_off_the_rail_acceleration: float = 58.264 / c.GRAVITY       # The target acceleration of the rocket off the launch rail [standard gravities]
+    six_DoF_off_the_rail_velocity: float = 28.70          # The target velocity of the rocket off the launch rail [meters/second]
+
+    # six_DoF_max_acceleration: float = ? # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravities]
+    six_DoF_max_mach: float = 0.368                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
     six_DoF_max_velocity: float = six_DoF_max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
-    # six_DoF_total_impulse: float = ?                    # The total impulse of the rocket over the duration of flight [newton seconds]
+    # six_DoF_total_impulse: float = ?                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
+    six_DoF_estimated_apogee: float = 747.60       # The estimated 6-DoF altitude [meters]
+
     
-        # late-calculated values (now they will show up in fields())
+    # later-calculated values that need to be here so it can still be added for a frozen data class
     wet_mass: float = np.nan
     dry_mass: float = np.nan
     total_length: float = np.nan
-
+    
 
     # internal freeze flag
     _frozen: bool = field(default=False, init=False, repr=False)
@@ -213,7 +220,7 @@ recovery_bay_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_dia
 parachute_mass = 2.25 * c.LBM2KG  # [kg] https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-144-compact-chute-114lbs-20fps-64lbs-15fps
 recovery_bay_mass = recovery_bay_airframe_tube_mass + parachute_mass
 
-nose_cone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) # guess
+nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) # guess
 
 # structures = 15 * c.LBM2KG # structures ! funny
 
@@ -253,7 +260,7 @@ upper_oxidizer_bulkhead = MassComponent(name = 'upper_oxidizer_bulkhead',     ma
 upper =                   MassComponent(name = 'upper',                       mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.StartAfter(),       length = upper_length)
 recovery_bay =            MassComponent(name = 'recovery_bay',                mass = recovery_bay_mass,      bottom_distance_from_aft = upper.StartAfter(),                         length = recovery_bay_length)
 
-nosecone =                MassComponent(name = 'nosecone',                    mass = nose_cone_mass,         bottom_distance_from_aft = recovery_bay.StartAfter(),                  length=nosecone_length)
+nosecone =                MassComponent(name = 'nosecone',                    mass = nosecone_mass,         bottom_distance_from_aft = recovery_bay.StartAfter(),                  length=nosecone_length)
 
 
 wet_mass_distribution = MassDistribution(components=
@@ -466,7 +473,7 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    plt.show()
+    # plt.show()
     
 
     python_file_dir = Path(__file__).resolve().parent
