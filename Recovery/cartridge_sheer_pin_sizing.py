@@ -27,15 +27,15 @@ def calculateFrictionForce(pressure_psi, radius_in, coefficient):
 def calculateNetForce(positiveForce, negativeForce):
     return positiveForce - negativeForce
 
-#def sizeSheerPins():
-    #return
+def calculateSheerPinMOS(calculated, accepted):
+    return (calculated - accepted)/accepted
 
 def main():
     cartridgeMass_g = 26
-    roomTemperature_K = 298
+    roomTemperature_K = 273
     dropTemperature_K = -50
     recoveryBayRadius_in = (v.parameters.tube_inner_diameter*m_to_in)/2
-    recoveryBayLength_in = v.recovery_bay_length*m_to_in
+    recoveryBayLength_in = v.recovery_bay_length*m_to_in + (v.nosecone_length*m_to_in)/2
     recoveryBayPressure_psi = calculatePressure(cartridgeMass_g, roomTemperature_K, dropTemperature_K, recoveryBayRadius_in, recoveryBayLength_in)
     
     print(f"recoveryBayPressure_psi: {recoveryBayPressure_psi:.2f}")
@@ -44,13 +44,18 @@ def main():
     upwardPressureForce_lbs = calculateUpwardForce(recoveryBayPressure_psi, parachuteRadius_in)
     print(f"upwardPressureForce_lbs: {upwardPressureForce_lbs:.2f}")
 
-    coefficientOfFriction = 0.2
+    coefficientOfFriction = 0.2 
+    #suspect coefficient of friction
+    #no bulkhead nosecone friction?
     frictionForce_lbs = calculateFrictionForce(recoveryBayPressure_psi, parachuteRadius_in, coefficientOfFriction)
     print(f"frictionForce_lbs: {frictionForce_lbs:.2f}")
     
     netForce_lbs = calculateNetForce(upwardPressureForce_lbs, frictionForce_lbs)
     print(f"netForce_lbs: {netForce_lbs:.2f}")
+    #figure out what forces shear pins see, and make sure they dont come off when you don't want them too 
 
-    #sizeSheerPins()
+    acceptedForce_lbs = 119.2
+    MOS = calculateSheerPinMOS(netForce_lbs, acceptedForce_lbs)
+    print(f"Margin of Safety: {MOS:.2f}")
 
 main()
