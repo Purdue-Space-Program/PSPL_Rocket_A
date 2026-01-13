@@ -6,44 +6,70 @@ C#, OCaml, VB, Swift, Pascal, Fortran, Haskell, Objective-C, Assembly, HTML, CSS
 Code, Compile, Run and Debug online from anywhere in world.
 
 '''
+
+import numpy as np
+
 import math
-''' Fruity Chutes specs '''
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import constants as c
+import vehicle_parameters as vehicle
 
-rocket_mass = 69
-gravity = 9.81
-air_density = 1.81
-drag_coefficent = 2.2
-canopy_area = 24.6677824063
-max_height = 3500
+def main():
+    max_height = vehicle.parameters.estimated_apogee # [m]
+    rocket_mass = vehicle.parameters.dry_mass # [kg]
+    air_density = 1.229 # [kg/m^3] https://www.grc.nasa.gov/www/k-12/VirtualAero/BottleRocket/airplane/rktvrecv.html
 
-weight_force = gravity*rocket_mass # W=mg calc 
+    parachute_name = "Fruity Chutes"
+    # parachute_name = "Spherachutes"
 
-terminal_velocity = math.sqrt((2*rocket_mass*gravity)/(canopy_area*drag_coefficent*air_density)) # solving for velocity setting weight and Drag equal
+    if parachute_name == "Fruity Chutes":
+        drag_coefficient = 2.2 # https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-120-standard-parachute-79lbs-20fps
+        # effective_parachute_area = 24.6677824063 abhi?
+        outer_parachute_diameter = 192 * c.IN2M # i think this is wrong but!!! https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-120-standard-parachute-79lbs-20fps
+        spill_hole_diameter = 15.76 * c.IN2M # guess
+        effective_parachute_area = CalculateEffectiveParachuteArea(outer_parachute_diameter, spill_hole_diameter)
+          
+        outer_parachute_diameter = 122.23 * c.IN2M # https://spherachutes.com/products/192-inch-spherachute
+        spill_hole_diameter = 15.76 * c.IN2M # https://spherachutes.com/products/192-inch-spherachute
+    elif parachute_name == "Spherachutes":
+        drag_coefficient = 0.75 # https://spherachutes.com/pages/decent-rate-chart
+        outer_parachute_diameter = 122.23 * c.IN2M # https://spherachutes.com/products/192-inch-spherachute
+        spill_hole_diameter = 15.76 * c.IN2M # https://spherachutes.com/products/192-inch-spherachute
+        effective_parachute_area = CalculateEffectiveParachuteArea(outer_parachute_diameter, spill_hole_diameter)
+        print(f"effective_parachute_area: {effective_parachute_area:.2f}")
+        # canopy_area = 15.029593683 abhi?
+    else:
+        raise ValueError("!!parachute does not exist!!")
 
-drag_force = drag_coefficent*air_density*canopy_area*((terminal_velocity**2)/2) # Formula from NASA website
+    weight_force = c.GRAVITY * rocket_mass
+    terminal_velocity = math.sqrt((2*weight_force)/(effective_parachute_area*drag_coefficient*air_density)) # solving for velocity setting weight and Drag equal
+    drag_force = 0.5 * drag_coefficient * air_density * effective_parachute_area *(terminal_velocity**2) # https://www.grc.nasa.gov/www/k-12/VirtualAero/BottleRocket/airplane/rktvrecv.html
+    descent_time = max_height/terminal_velocity
 
-decent_time = max_height/terminal_velocity
+    print("\nVehicle:")
+    print(f"\tMass:{rocket_mass * c.KG2LBM:.2f} lbm")
+    print(f"\tDrag Force: {drag_force:.2f} N")
+    print(f"\tWeight Force: {weight_force:.2f} N")
+    
+    print(f"\nParachute: {parachute_name}")
+    print(f"\tCd: {drag_coefficient:.2f}")
+    print(f"\tArea: {effective_parachute_area:.2f} m^2")
+    print(f"\tTerminal Velocity: {terminal_velocity * c.M2FT:.2f} ft/s")
+    print(f"\tDescent Time: {descent_time:.2f} seconds")
 
-print ('Termial Velocity: ', terminal_velocity, 'm/s')
-print ("Decent Time: ", decent_time, 'seconds')
-print ('Drag Force: ', drag_force, 'N')
-print ('Weight Force: ', weight_force, 'N')
+# account for parachute spill hole
+def CalculateEffectiveParachuteArea(outer_diameter, spill_hole_diameter):
+    total_area = CalculateCircleArea(outer_diameter)
+    spill_hole_area = CalculateCircleArea(spill_hole_diameter)
+    effective_parachute_area = total_area - spill_hole_area
+    return(effective_parachute_area)
+    
+def CalculateCircleArea(diameter):
+    radius = diameter/2
+    area = np.pi * (radius**2)
+    return(area)
 
-
-''' Sphereacutes specs '''
-rocket_mass = 69
-gravity = 9.81
-air_density = 1.81
-drag_coefficent1 = .75
-canopy_area1 = 15.029593683
-max_height = 3500
-
-terminal_velocity1 = math.sqrt((2*rocket_mass*gravity)/(canopy_area1*drag_coefficent1*air_density))
-decent_time1 = max_height/terminal_velocity1
-
-print('Terminal Velocity: ', terminal_velocity1, 'm/s')
-print('Decent Time: ',decent_time1, 'seconds')
-
-
-
-
+if __name__ == "__main__":
+    main()

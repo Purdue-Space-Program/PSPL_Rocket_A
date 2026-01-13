@@ -91,7 +91,7 @@ pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
 desired_pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]
 m_dot_ideal_lox = m_dot - m_dot_ipa # [Kg/s]
-D_s = 1 * IN2M # Diameter of pintle shaft
+D_s = D_c / 5 # Diameter of pintle shaft
 R_s = D_s / 2 # Radius of pintle shaft
 skip_dist = D_s # This means that the skip distance ratio = 1. This is a good rule of thumb.
 total_target_area_orifice_lox = CalculateAreaFromMassFlowRate(m_dot_ideal_lox, C_D_lox, rho_lox, desired_pressure_drop)

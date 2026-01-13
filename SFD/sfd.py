@@ -199,7 +199,7 @@ def updateCG(vehicle, burn_time, total_time):
         # print(f"{float(t)}, {float(vehicle_length - cg[-1])}")
     
     cg_max_q = cg[-1]
-    x = int(0.4 / dt)
+    x = int(0.4 / dt) # Hardcoded off the rail time at 0.4s
     cg_off_the_rail = cg[x]
     return cg, cg_max_q, cg_off_the_rail
 

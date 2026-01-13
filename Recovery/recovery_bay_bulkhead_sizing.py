@@ -1,5 +1,13 @@
+pi = 3.14159
+import sys
+import os
+import matplotlib.pyplot as plt
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from constants import *
+import vehicle_parameters as v
+
 def shearStrength(material, diameter):
-    return (material)*(3.14159*diameter*diameter*0.25)
+    return (material)*(pi*diameter*diameter*0.25)
 
 def bearingStrength(material, diameter, thickness):
     return (material)*(diameter)*(thickness)
@@ -31,7 +39,7 @@ def main():
     print(f"boltBearingStrengthYield: {boltBearingStrengthYield}")
 
     netAxialForce = 300
-    numberOfBolts = 6
+    numberOfBolts = 12
     shearForcePerBolt = netAxialForce/numberOfBolts
     ultimateFOS = 2.0
     yieldFOS = 1.5

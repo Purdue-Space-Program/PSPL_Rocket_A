@@ -19,6 +19,9 @@ cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_tim
 # plt.plot(cg_array)
 # plt.show()
 
+off_the_rail_time = vehicle.parameters.off_the_rail_velocity / (vehicle.parameters.off_the_rail_acceleration * 9.81) # [s]
+max_q_time = burn_time # [s]
+
 max_q_inputs = {"velocity": vehicle.parameters.max_velocity, "ax": vehicle.parameters.max_acceleration, "total_mass": vehicle.parameters.dry_mass}
 off_the_rail_inputs = {"velocity": vehicle.parameters.off_the_rail_velocity, "ax": vehicle.parameters.off_the_rail_acceleration, "total_mass": vehicle.parameters.wet_mass}
 
@@ -29,13 +32,13 @@ if location == "max_q":
     ax = max_q_inputs["ax"]
     total_mass = max_q_inputs["total_mass"]
     mach = vehicle.parameters.max_mach
-    cg = cg_max_q
+    cg = cg_array[-1]
 elif location == "off_the_rail":
     velocity = off_the_rail_inputs["velocity"]
     ax = off_the_rail_inputs["ax"]
     total_mass = off_the_rail_inputs["total_mass"]
     mach = velocity / 343 # Speed of sound near sea level ~343 m/s
-    cg = cg_off_the_rail
+    cg = cg_array[int(off_the_rail_time / 0.005)] # Assuming dt = 0.005s
 
 # Inputs
 air_density = 1.81 # [kg / m^3] NEED
@@ -83,7 +86,7 @@ print(f"noseconeToFin: {noseconeToFin} m")
 
 # Calculated inputs
 Q = sfd.calcQ(air_density, velocity)
-AOA = 4 * np.pi / 180 # NEED
+AOA = 1.02331 * np.pi / 180 # NEED
 S = sfd.calcS(diameter)
 
 # Calculated values
@@ -142,11 +145,11 @@ print(f"finCP {finCP:.2f} m")
 print(f"total_length {total_length:.2f} m")
 print(f"Wet mass: {vehicle.parameters.wet_mass:.2f} kg")
 print(f"Dry mass: {vehicle.parameters.dry_mass:.2f} kg")
-print(f"Total mass using vehicle mass distribution: {np.sum(component.mass for component in vehicle.mass_distribution):.2f} kg")
+print(f"Total mass using vehicle mass distribution: {np.sum(component.mass for component in vehicle.wet_mass_distribution):.2f} kg")
 print(f"Total mass using linear density array: {np.sum(linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0])):.2f} kg")
-print(vehicle.oxidizer_tank.bottom_distance_from_aft)
-print(linear_density_array)
-print(length_along_rocket_linspace)
+print(vehicle.wet_oxidizer_tank.bottom_distance_from_aft)
+# print(linear_density_array)
+# print(length_along_rocket_linspace)
 print(f"ax: {ax} m/s^2")
 print(f"rho: {air_density} kg/m^3")
 print(f"V: {velocity} m/s")
