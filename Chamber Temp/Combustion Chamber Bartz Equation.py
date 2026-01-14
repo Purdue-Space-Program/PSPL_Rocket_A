@@ -137,20 +137,9 @@ def main():
     print("max temp in Kelvin:", max(Temp_surface_total))
     print("max heat transfer coefficient:", max(h_total))
 
-    '''
-    print("specific heat ratio", cea_results["gamma"])
-    print("prandtl number", cea_results["pran"])
-    print("dynamic viscosity:", cea_results["visc"])
-    print("specific heat:", cea_results["cp"] * 1000)
-    print("characteristic exhaust velocity:", cea_results["c_star"])
-    print("stagnation temperature:", cea_results["t"])
-    print("chamber pressure:", cea_results["p"])
+    temp_array = np.transpose(np.array([Temp_surface_total]))
+    np.savetxt("chamber_temp.csv", temp_array, delimiter=',')
 
-    print("Throat Mach:", Mach_total[throat_index])
-    print("Throat h:", h_total[throat_index])
-    print("Throat Ts:", Temp_surface_total[throat_index])
-    print("Chamber pressure input (Pa):", vp.parameters.chamber_pressure)
-    '''
 
     
 
@@ -267,6 +256,8 @@ def thermal_diffusivity_calc(k = 51.9): #thermal diffusivity of 1018 Stainless S
 
     alpha = k / (rho * C_p)
     return alpha
+
+
 
 
 
