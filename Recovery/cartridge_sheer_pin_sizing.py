@@ -44,16 +44,14 @@ def main():
     upwardPressureForce_lbs = calculateUpwardForce(recoveryBayPressure_psi, parachuteRadius_in)
     print(f"upwardPressureForce_lbs: {upwardPressureForce_lbs:.2f}")
 
-    coefficientOfFriction = 0.2 
-    #suspect coefficient of friction
-    #no bulkhead nosecone friction?
+    coefficientOfFriction = 0.4
+    #Does not take into account bulkhead-nosecone friction - hard to calculate, will figure out during testing.
     frictionForce_lbs = calculateFrictionForce(recoveryBayPressure_psi, parachuteRadius_in, coefficientOfFriction)
     print(f"frictionForce_lbs: {frictionForce_lbs:.2f}")
     
     netForce_lbs = calculateNetForce(upwardPressureForce_lbs, frictionForce_lbs)
     print(f"netForce_lbs: {netForce_lbs:.2f}")
-    #figure out what forces shear pins see, and make sure they dont come off when you don't want them too 
-
+    
     acceptedForce_lbs = 119.2
     MOS = calculateSheerPinMOS(netForce_lbs, acceptedForce_lbs)
     print(f"Margin of Safety: {MOS:.2f}")
