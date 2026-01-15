@@ -24,7 +24,8 @@ def bearingYMOS(max, actual, yFOS, fFOS):
 def main():
     fSU_SS_316_U = 66000.0
     #boltDiameter = 0.2075
-    boltDiameter = 0.32
+    boltDiameter = 0.2614
+    #boltDiameter = 0.32
     boltShearStrength = shearStrength(fSU_SS_316_U, boltDiameter)
     print(f"boltShearStrength: {boltShearStrength}")
 
@@ -40,7 +41,7 @@ def main():
     #netAxialForce = 300
     netAxialForce = 16230
     #numberOfBolts = 12
-    numberOfBolts = 20
+    numberOfBolts = 16
     shearForcePerBolt = netAxialForce/numberOfBolts
     ultimateFOS = 2.0
     yieldFOS = 1.5
