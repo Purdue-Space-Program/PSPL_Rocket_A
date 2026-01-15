@@ -18,15 +18,13 @@ def shearUMOS(max, actual, uFOS, fFOS):
 def bearingUMOS(max, actual, uFOS, fFOS):
     return (max/(actual*uFOS*fFOS)) - 1
 
-def bearingYMOS(max, actual, sUMOS, bUMOS, uFOS, yFOS, fFOS):
-    if (sUMOS > bUMOS):
-        return (max/(actual*yFOS*fFOS)) - 1
-    else:
-        return (max/(actual*uFOS*fFOS)) - 1
+def bearingYMOS(max, actual, yFOS, fFOS):
+    return (max/(actual*yFOS*fFOS)) - 1
 
 def main():
     fSU_SS_316_U = 66000.0
-    boltDiameter = 0.2075
+    #boltDiameter = 0.2075
+    boltDiameter = 0.32
     boltShearStrength = shearStrength(fSU_SS_316_U, boltDiameter)
     print(f"boltShearStrength: {boltShearStrength}")
 
@@ -39,16 +37,24 @@ def main():
     print(f"boltBearingStrengthYield: {boltBearingStrengthYield}")
 
     #Need to update axial force.
-    netAxialForce = 300
-    numberOfBolts = 12
+    #netAxialForce = 300
+    netAxialForce = 16230
+    #numberOfBolts = 12
+    numberOfBolts = 20
     shearForcePerBolt = netAxialForce/numberOfBolts
     ultimateFOS = 2.0
     yieldFOS = 1.5
-    fittingFOS = 1.15
+
+    if (boltShearStrength > boltBearingStrengthUltimate):
+        print("Bearing Critical!")
+        fittingFOS = 1.15
+    else: 
+        print("Sheer Critical!")
+        fittingFOS = 2.0
 
     shearUltimateMOS = shearUMOS(boltShearStrength, shearForcePerBolt, ultimateFOS, fittingFOS)
     bearingUltimateMOS = bearingUMOS(boltBearingStrengthUltimate, shearForcePerBolt, ultimateFOS, fittingFOS)
-    bearingYieldMOS = bearingYMOS(boltBearingStrengthYield, shearForcePerBolt, shearUltimateMOS, bearingUltimateMOS, ultimateFOS, yieldFOS, fittingFOS)
+    bearingYieldMOS = bearingYMOS(boltBearingStrengthYield, shearForcePerBolt, yieldFOS, fittingFOS)
     print(f"shearUltimateMOS: {shearUltimateMOS}")
     print(f"bearingUltimateMOS: {bearingUltimateMOS}")
     print(f"bearingYieldMOS: {bearingYieldMOS}")
