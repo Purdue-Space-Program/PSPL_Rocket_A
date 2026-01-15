@@ -16,6 +16,7 @@ def calculatePressure(mass_g, initialTemperature_K, deltaTemperature_K, radius_i
     moles = mass_g/molesMassCO2_g
     temperature_K = initialTemperature_K + deltaTemperature_K
     volume_L = (pi*radius_in*radius_in)*(length_in)*(cuin_to_L)
+    print(volume_L)
     return (((moles)*(R)*(temperature_K))/(volume_L))*atm_to_psi
 
 def calculateUpwardForce(pressure_psi, radius_in):
@@ -31,7 +32,7 @@ def calculateSheerPinMOS(calculated, accepted):
     return (calculated - accepted)/accepted
 
 def main():
-    cartridgeMass_g = 26
+    cartridgeMass_g = 33
     roomTemperature_K = 273
     dropTemperature_K = -50
     recoveryBayRadius_in = (v.parameters.tube_inner_diameter*m_to_in)/2
