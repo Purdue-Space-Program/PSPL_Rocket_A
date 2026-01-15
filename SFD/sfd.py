@@ -163,9 +163,7 @@ def updateCG(vehicle, burn_time, total_time):
     vehicle: imported vehicle
     burn_time: burn time [s]
     '''
-    length_along_rocket_linspace = vehicle.length_along_rocket_linspace
-    vehicle_length = max(length_along_rocket_linspace)
-    
+    length_along_rocket_linspace = vehicle.length_along_rocket_linspace    
     cg = []
     dt = 0.005
     times = np.arange(0.0, total_time, dt)
@@ -173,8 +171,6 @@ def updateCG(vehicle, burn_time, total_time):
     #OF_ratio = vehicle.parameters.OF_ratio
     ox_flow_rate = vehicle.parameters.oxidizer_mass_flow_rate #mass_flow_rate * OF_ratio / (1 + OF_ratio)
     fuel_flow_rate = vehicle.parameters.fuel_mass_flow_rate #mass_flow_rate * 1 / (1 + OF_ratio)
-    ox_location, ox_length = vehicle.oxidizer_tank.bottom_distance_from_aft, vehicle.oxidizer_tank.length
-    fuel_location, fuel_length = vehicle.fuel_tank.bottom_distance_from_aft, vehicle.fuel_tank.length
     # print(times) # TEST
     for t in times:
         if t > burn_time: 

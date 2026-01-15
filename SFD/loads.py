@@ -12,54 +12,52 @@ LB2KG = 0.453592
 FT2M = 0.3048
 IN2M = 0.0254
 
+location = "max_q" # Change to "max_q" or "off_the_rail"
+
 burn_time = vehicle.parameters.burn_time # [s]
 total_time = burn_time # [s]
-cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_time) # Center of gravity over time
+# cg_array, cg_max_q, cg_off_the_rail = sfd.updateCG(vehicle, burn_time, total_time) # Center of gravity over time
 
 # plt.plot(cg_array)
 # plt.show()
-
-off_the_rail_time = vehicle.parameters.off_the_rail_velocity / (vehicle.parameters.off_the_rail_acceleration * 9.81) # [s]
-max_q_time = burn_time # [s]
-
-max_q_inputs = {"velocity": vehicle.parameters.max_velocity, "ax": vehicle.parameters.max_acceleration, "total_mass": vehicle.parameters.dry_mass}
-off_the_rail_inputs = {"velocity": vehicle.parameters.off_the_rail_velocity, "ax": vehicle.parameters.off_the_rail_acceleration, "total_mass": vehicle.parameters.wet_mass}
-
-location = "max_q" # Change to "max_q" or "off_the_rail"
-
-if location == "max_q":
-    velocity = max_q_inputs["velocity"]
-    ax = max_q_inputs["ax"]
-    total_mass = max_q_inputs["total_mass"]
-    mach = vehicle.parameters.max_mach
-    cg = cg_array[-1]
-elif location == "off_the_rail":
-    velocity = off_the_rail_inputs["velocity"]
-    ax = off_the_rail_inputs["ax"]
-    total_mass = off_the_rail_inputs["total_mass"]
-    mach = velocity / 343 # Speed of sound near sea level ~343 m/s
-    cg = cg_array[int(off_the_rail_time / 0.005)] # Assuming dt = 0.005s
 
 # Inputs
 air_density = 1.81 # [kg / m^3] NEED
 max_q_wind_gust = 13.4112 # [m / s] about 30 mph NEED
 off_the_rail_rail_whip = 5 # [m / s] about 11 mph NEED
-diameter = vehicle.parameters.tube_outer_diameter # [m]
+
+# off_the_rail_time = vehicle.parameters.off_the_rail_velocity / (vehicle.parameters.off_the_rail_acceleration * 9.81) # [s]
+# max_q_time = burn_time # [s]
+
+max_q_inputs = {"velocity": vehicle.parameters.six_DoF_max_velocity, "ax": vehicle.parameters.one_DoF_max_acceleration * 9.81, "total_mass": vehicle.parameters.dry_mass}
+off_the_rail_inputs = {"velocity": vehicle.parameters.six_DoF_off_the_rail_velocity, "ax": vehicle.parameters.six_DoF_off_the_rail_acceleration * 9.81, "total_mass": vehicle.parameters.wet_mass}
 
 if location == "max_q":
+    velocity = max_q_inputs["velocity"]
+    ax = max_q_inputs["ax"]
+    total_mass = max_q_inputs["total_mass"]
+    mach = vehicle.parameters.six_DoF_max_mach
+    cg = vehicle.parameters.dry_COM_location_from_bottom
     linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle.rocket_dict_dry)
-    velocity = vehicle.parameters.max_velocity
-    ax = vehicle.parameters.max_acceleration * 9.81
-    mach = vehicle.parameters.max_mach
-    cg = cg_max_q
+    velocity = max_q_inputs["velocity"]
+    ax = max_q_inputs["ax"]
+    total_mass = max_q_inputs["total_mass"]
+    print(total_mass) # TEST
     wind_gust = max_q_wind_gust
 elif location == "off_the_rail":
-    linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle.rocket_dict_wet)
-    velocity = vehicle.parameters.off_the_rail_velocity
-    ax = vehicle.parameters.off_the_rail_acceleration * 9.81
+    velocity = off_the_rail_inputs["velocity"]
+    ax = off_the_rail_inputs["ax"]
+    total_mass = off_the_rail_inputs["total_mass"]
     mach = velocity / 343 # Speed of sound near sea level ~343 m/s
-    cg = cg_off_the_rail
+    cg = vehicle.parameters.wet_COM_location_from_bottom
+    linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle.rocket_dict_wet)
+    velocity = off_the_rail_inputs["velocity"]
+    ax = off_the_rail_inputs["ax"]
+    total_mass = off_the_rail_inputs["total_mass"]
     wind_gust = off_the_rail_rail_whip
+
+diameter = vehicle.parameters.tube_outer_diameter # [m]
+
 total_length = length_along_rocket_linspace[-1] # [m]
 total_mass = np.sum(linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0])) # [kg]
 print(f"Mass used: {total_mass} kg")

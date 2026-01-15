@@ -38,6 +38,7 @@ def main():
     print(f"boltBearingStrengthUltimate: {boltBearingStrengthUltimate}")
     print(f"boltBearingStrengthYield: {boltBearingStrengthYield}")
 
+    #Need to update axial force.
     netAxialForce = 300
     numberOfBolts = 12
     shearForcePerBolt = netAxialForce/numberOfBolts

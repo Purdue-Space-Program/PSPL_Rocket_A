@@ -96,7 +96,10 @@ class VehicleParameters:
     wet_mass: float = np.nan
     dry_mass: float = np.nan
     total_length: float = np.nan
-    
+    dry_COM_location_from_bottom: float = np.nan
+    dry_COM_location_from_top: float = np.nan
+    wet_COM_location_from_bottom: float = np.nan
+    wet_COM_location_from_top: float = np.nan
 
     # internal freeze flag
     _frozen: bool = field(default=False, init=False, repr=False)
@@ -335,21 +338,14 @@ for item in wet_mass_distribution.components:
     }
 
 rocket_dict_dry = {} # Rocket dictionary for dry mass
-for item in rocket_dict_wet:
-    if item == "fuel_tank":
-        rocket_dict_dry[item] = {
-            "mass": rocket_dict_wet[item]["mass"] - parameters.fuel_total_mass,
-            "bottom_distance_from_aft": rocket_dict_wet[item]["bottom_distance_from_aft"],
-            "length": rocket_dict_wet[item]["length"]
-        }
-    elif item == "oxidizer_tank":
-        rocket_dict_dry[item] = {
-            "mass": rocket_dict_wet[item]["mass"] - parameters.oxidizer_total_mass,
-            "bottom_distance_from_aft": rocket_dict_wet[item]["bottom_distance_from_aft"],
-            "length": rocket_dict_wet[item]["length"]
-        }
-    else:
-        rocket_dict_dry[item] = rocket_dict_wet[item]
+for item in dry_mass_distribution.components:
+    rocket_dict_dry[item.name] = {
+        "mass": item.mass,
+        "bottom_distance_from_aft": item.bottom_distance_from_aft,
+        "length": item.length
+    }
+print(rocket_dict_wet)
+print(rocket_dict_dry)
 item_sum = 0
 # for item in rocket_dict_wet: item_sum += rocket_dict_wet[item]['mass']; print(f"{item}: {rocket_dict_wet[item]['mass']*c.KG2LBM} lbm")
 # print(f"Mass of rocket dict wet: {item_sum * c.KG2LBM} lbm")
@@ -400,6 +396,13 @@ rocket_length = max(length_along_rocket_linspace)
 parameters.wet_mass = vehicle_wet_mass # The estimated dry mass of the rocket [kilograms]
 parameters.dry_mass = vehicle_dry_mass # The estimated dry mass of the rocket [kilograms]
 parameters.total_length = rocket_length # The estimated length of the rocket [meters]
+
+parameters.wet_COM_location_from_bottom = calcCG(wet_linear_density_array, length_along_rocket_linspace)
+parameters.wet_COM_location_from_top = rocket_length - parameters.wet_COM_location_from_bottom
+
+parameters.dry_COM_location_from_bottom = calcCG(dry_linear_density_array, length_along_rocket_linspace)
+parameters.dry_COM_location_from_top = rocket_length - parameters.dry_COM_location_from_bottom
+
 parameters.freeze()
 
 # parameters.wet_mass = 9999999999999999999999999999999999999999
@@ -417,21 +420,15 @@ if __name__ == "__main__":
     print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
     print(f"Rocket Length: {rocket_length:.2f} m\n")
     
-    wet_COM_location_from_bottom = calcCG(wet_linear_density_array, length_along_rocket_linspace)
-    wet_COM_location_from_top = rocket_length - wet_COM_location_from_bottom
-
-    dry_COM_location_from_bottom = calcCG(dry_linear_density_array, length_along_rocket_linspace)
-    dry_COM_location_from_top = rocket_length - dry_COM_location_from_bottom
+    print(f"Wet CoM location distance from bottom: {parameters.wet_COM_location_from_bottom * c.M2IN:.2f} in, {parameters.wet_COM_location_from_bottom:.3f} m")
+    print(f"Dry CoM location distance from bottom: {parameters.dry_COM_location_from_bottom * c.M2IN:.2f} in, {parameters.dry_COM_location_from_bottom:.3f} m")
     
-    print(f"Wet CoM location distance from bottom: {wet_COM_location_from_bottom * c.M2IN:.2f} in, {wet_COM_location_from_bottom:.3f} m")
-    print(f"Dry CoM location distance from bottom: {dry_COM_location_from_bottom * c.M2IN:.2f} in, {dry_COM_location_from_bottom:.3f} m")
-    
-    print(f"\nWet CoM location distance from top:    {wet_COM_location_from_top * c.M2IN:.2f} in, {wet_COM_location_from_top:.3f} m")
-    print(f"Dry CoM location distance from top:    {dry_COM_location_from_top * c.M2IN:.2f} in, {dry_COM_location_from_top:.3f} m")
+    print(f"\nWet CoM location distance from top:    {parameters.wet_COM_location_from_top * c.M2IN:.2f} in, {parameters.wet_COM_location_from_top:.3f} m")
+    print(f"Dry CoM location distance from top:    {parameters.dry_COM_location_from_top * c.M2IN:.2f} in, {parameters.dry_COM_location_from_top:.3f} m")
     
     
     plt.plot(length_along_rocket_linspace * c.M2FT, (wet_linear_density_array * (c.KG2LBM / c.M2FT)))
-    plt.vlines(wet_COM_location_from_bottom * c.M2FT, min(wet_linear_density_array * (c.KG2LBM / c.M2FT)), max(wet_linear_density_array * (c.KG2LBM / c.M2FT)), color="red", linestyles="dotted", label="Center of Gravity")
+    plt.vlines(parameters.wet_COM_location_from_bottom * c.M2FT, min(wet_linear_density_array * (c.KG2LBM / c.M2FT)), max(wet_linear_density_array * (c.KG2LBM / c.M2FT)), color="red", linestyles="dotted", label="Center of Gravity")
     plt.legend()
     
     plt.xlabel("Length from Bottom [feet]")
