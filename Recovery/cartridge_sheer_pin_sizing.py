@@ -47,8 +47,8 @@ def main():
 
     coefficientOfFriction = 0.4
     #Bulkhead-nosecone friction is hard to calculate, will figure out during testing.
-    bulkheadFrictionForce_lbs = 25
-    frictionForce_lbs = calculateFrictionForce(recoveryBayPressure_psi, parachuteRadius_in, coefficientOfFriction) + bulkheadFrictionForce_lbs
+    #bulkheadFrictionForce_lbs = 25
+    frictionForce_lbs = calculateFrictionForce(recoveryBayPressure_psi, parachuteRadius_in, coefficientOfFriction) #+ bulkheadFrictionForce_lbs
     print(f"frictionForce_lbs: {frictionForce_lbs:.2f}")
     
     netForce_lbs = calculateNetForce(upwardPressureForce_lbs, frictionForce_lbs)

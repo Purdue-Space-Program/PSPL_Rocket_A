@@ -22,12 +22,12 @@ def bearingYMOS(max, actual, yFOS, fFOS):
     return (max/(actual*yFOS*fFOS)) - 1
 
 def main():
-    #fSU_SS_316_U = 66000.0
-    fSU_AS_U = 180000.0
+    fSU_SS_316_U = 66000.0
+    #fSU_AS_U = 180000.0
     #boltDiameter = 0.2075
     boltDiameter = 0.2614
     #boltDiameter = 0.32
-    boltShearStrength = shearStrength(fSU_AS_U, boltDiameter)
+    boltShearStrength = shearStrength(fSU_SS_316_U, boltDiameter)
     print(f"boltShearStrength: {boltShearStrength}")
 
     fBRU_A_6061_U = 88000.0
