@@ -39,10 +39,10 @@ class VehicleParameters:
     
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
+    tank_pressure: float = 416.67 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
     tank_outer_diameter: float = tube_outer_diameter  # Outer diameter of both tanks of the rocket
     tank_inner_diameter: float = tube_inner_diameter  # Inner diameter of both tanks of the rocket
     tank_wall_thickness: float = (tube_outer_diameter - tube_inner_diameter)/2  # Inner diameter of both tanks of the rocket
-    tank_pressure: float = 416.67 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
     
     fuel_tank_length: float = 6 * c.IN2M      # The length of the fuel tank that needs to be filled with fuel (the actual tank may be longer) [meters]
     fuel_tank_usable_volume: float = 2.55 * c.L2M3     # The required loaded volume of fuel needed for the burn time [meter^3]
@@ -344,8 +344,7 @@ for item in dry_mass_distribution.components:
         "bottom_distance_from_aft": item.bottom_distance_from_aft,
         "length": item.length
     }
-print(rocket_dict_wet)
-print(rocket_dict_dry)
+
 # print(rocket_dict_wet)
 # print(rocket_dict_dry)
 item_sum = 0
@@ -447,7 +446,7 @@ if __name__ == "__main__":
     # print(f"total oxidizer tank length: {oxidizer_tank.length + lower_oxidizer_bulkhead.length + upper_oxidizer_bulkhead.length:.2f} m\n")
 
 
-    print_components = False
+    print_components = True
     
     if print_components == True:
         for component in wet_mass_distribution.components:
@@ -472,7 +471,7 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    # plt.show()
+    plt.show()
     
 
     python_file_dir = Path(__file__).resolve().parent
