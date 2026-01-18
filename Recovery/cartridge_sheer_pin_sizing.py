@@ -16,6 +16,7 @@ def calculatePressure(mass_g, initialTemperature_K, deltaTemperature_K, radius_i
     moles = mass_g/molesMassCO2_g
     temperature_K = initialTemperature_K + deltaTemperature_K
     volume_L = (pi*radius_in*radius_in)*(length_in)*(cuin_to_L)
+    print(volume_L)
     return (((moles)*(R)*(temperature_K))/(volume_L))*atm_to_psi
 
 def calculateUpwardForce(pressure_psi, radius_in):
@@ -31,7 +32,7 @@ def calculateSheerPinMOS(calculated, accepted):
     return (calculated - accepted)/accepted
 
 def main():
-    cartridgeMass_g = 26
+    cartridgeMass_g = 33
     roomTemperature_K = 273
     dropTemperature_K = -50
     recoveryBayRadius_in = (v.parameters.tube_inner_diameter*m_to_in)/2
@@ -44,16 +45,15 @@ def main():
     upwardPressureForce_lbs = calculateUpwardForce(recoveryBayPressure_psi, parachuteRadius_in)
     print(f"upwardPressureForce_lbs: {upwardPressureForce_lbs:.2f}")
 
-    coefficientOfFriction = 0.2 
-    #suspect coefficient of friction
-    #no bulkhead nosecone friction?
-    frictionForce_lbs = calculateFrictionForce(recoveryBayPressure_psi, parachuteRadius_in, coefficientOfFriction)
+    coefficientOfFriction = 0.4
+    #Bulkhead-nosecone friction is hard to calculate, will figure out during testing.
+    #bulkheadFrictionForce_lbs = 25
+    frictionForce_lbs = calculateFrictionForce(recoveryBayPressure_psi, parachuteRadius_in, coefficientOfFriction) #+ bulkheadFrictionForce_lbs
     print(f"frictionForce_lbs: {frictionForce_lbs:.2f}")
     
     netForce_lbs = calculateNetForce(upwardPressureForce_lbs, frictionForce_lbs)
     print(f"netForce_lbs: {netForce_lbs:.2f}")
-    #figure out what forces shear pins see, and make sure they dont come off when you don't want them too 
-
+    
     acceptedForce_lbs = 119.2
     MOS = calculateSheerPinMOS(netForce_lbs, acceptedForce_lbs)
     print(f"Margin of Safety: {MOS:.2f}")

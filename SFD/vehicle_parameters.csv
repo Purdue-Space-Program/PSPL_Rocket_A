@@ -16,10 +16,10 @@ exit_pressure,103421.40000000001
 chamber_outer_diameter,0.15239999999999998
 chamber_inner_diameter,0.12446
 chamber_throat_diameter,0.0470408
-tank_pressure,2872839.6492000003
 tank_outer_diameter,0.15239999999999998
 tank_inner_diameter,0.14604999999999999
 tank_wall_thickness,0.0031749999999999973
+tank_pressure,2872839.6492000003
 fuel_tank_length,0.15239999999999998
 fuel_tank_usable_volume,0.0025499999999999997
 fuel_total_mass,2.00487664

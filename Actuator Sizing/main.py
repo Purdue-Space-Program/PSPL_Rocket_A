@@ -15,7 +15,7 @@ piston = "real" # test or real
 ###############################
 if piston == "test":
     piston_stroke_length = 2.5 * IN2M
-    rod_mass = 1.6 * LBM2KG # Estimated from CAD
+    rod_mass =  1 * LBM2KG # Estimated from CAD
     piston_diameter = 3/4 * IN2M
     piston_retracted_length = 5.97 * IN2M
     piston_extended_length = piston_retracted_length + piston_stroke_length

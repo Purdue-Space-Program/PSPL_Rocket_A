@@ -16,10 +16,9 @@ FT2M = 0.3048  # Feet to Meters
 rocket_dict_dry = vehicle.rocket_dict_dry
 parachute_mass = vehicle.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
-max_q_velocity = vehicle.parameters.max_velocity  # [m / s]
+max_q_velocity = vehicle.parameters.six_DoF_max_velocity  # [m / s]
 AOA = loads.AOA  # [radians] # NEED
 velocity = max_q_velocity * np.sin(AOA) # [m / s]
-
 
 def mass_model(rocket_dict, parachute_mass):
     '''
@@ -61,7 +60,7 @@ gravity = 9.81
 air_density = 1.81
 drag_coefficent = 2.2
 canopy_area = (10 * FT2M / 2)**2 * np.pi # [m^2]
-max_height = vehicle.parameters.estimated_apogee  # meters
+max_height = vehicle.parameters.six_DoF_estimated_apogee  # meters
 
 ''' Sphereacutes specs '''
 '''
@@ -196,6 +195,7 @@ terminal_velocity = calcTerminalVelocity(total_mass, gravity, drag_coefficent, a
 drag_force = calcDragForce(drag_coefficent, air_density, velocity, canopy_area) # Formula from NASA website
 descent_time = max_height/terminal_velocity
 
+print("Horizontal velocity: ", velocity) # TEST
 print ('Terminal Velocity: ', terminal_velocity, 'm/s')
 print ("Descent Time: ", descent_time, 'seconds')
 print ('Drag Force: ', drag_force, 'N')
