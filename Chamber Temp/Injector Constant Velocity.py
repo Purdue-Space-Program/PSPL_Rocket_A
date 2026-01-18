@@ -1,4 +1,10 @@
 import numpy as np
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import constants as c
 
 '''
 Using mass flow rate: 
@@ -14,51 +20,44 @@ m_dot = rho * A * V
 
 '''
 
-mdot_0 = 1 # mass flow rate entering the manifold (kg/s)
-rho = 1 # fuel density (kg/m^3)
-velocity = 5.0 # constant velocity (m/s)
+initial_area = (1 * c.IN2M) * (0.125 * c.IN2M) * np.pi #initial area of the manifold (m^2)
+rho = c.DENSITY_IPA # fuel density (kg/m^3) of IPA
+mdot_0 = 1.91 * c.LBM2KG # mass flow rate entering the manifold (kg/s) #initial IPA Mass flow rate
+
 radius = 1 # manifold radius (m)
-n_steps = 20 # number of angular steps around teh ring
+n_steps = 30 # number of angular steps around teh ring
 
-circumference = 2.0 * np.pi * radius
-dtheta = 2.0 * np.pi / n_steps
+mdot_half = mdot_0 / 2.0 # flow in each direction
+velocity = mdot_half / (rho * initial_area) #constant velocity in the manifold (m/s)
 
-'''
-mass flow rate decreases linearly with angle theta:
-Over the full circle, the mass flow rate decreases from mdot_0 to 0:
-'''
+dtheta = np.pi / n_steps # only half the ring
 
-# mass flow loss per radian
-dmdot_dtheta = -mdot_0 / (2.0 * np.pi)
+# mass flow decrease per radian (per side)
+dmdot_dtheta = -mdot_half / np.pi
 
-# arrays to store values at each step
+#array initialization
 theta = np.zeros(n_steps + 1)
-mdot = np.zeros(n_steps + 1)
-area = np.zeros(n_steps + 1)
+mdot  = np.zeros(n_steps + 1)
+area  = np.zeros(n_steps + 1)
 
-# initial conditions
-theta[0] = 0
-mdot[0] = mdot_0
-area[0] = mdot[0] / (rho * velocity)
+#initial conditions
+theta[0] = 0.0
+mdot[0]  = mdot_half
+area[0]  = mdot[0] / (rho * velocity)
 
-'''
-Euler's method:
 
-increase angle
-reduce mass flow rate by dmdot_dtheta
-new area calculate
-'''
 for i in range(n_steps):
-    theta[i+1] = theta[i] + dtheta
-    mdot[i+1]  = mdot[i] + (dmdot_dtheta * dtheta)
-    area[i+1]  = mdot[i+1] / (rho * velocity)
+    theta[i + 1] = theta[i] + dtheta
+    mdot[i + 1]  = mdot[i] + dmdot_dtheta * dtheta
 
-# output
+    area[i + 1] = mdot[i + 1] / (rho * velocity)
+
 print("Step | theta (rad) | mdot (kg/s) | Area (m^2)")
 print("----------------------------------------------")
 
 for i in range(n_steps + 1):
     print(f"{i:>4} | "
           f"{theta[i]:>10.4f} | "
-          f"{mdot[i]:>11.4f} | "
-          f"{area[i]:>10.6e}")
+          f"{mdot[i]:>11.6f} | "
+          f"{area[i]:>12.6e}) | "
+          f"{area[i] * c.M22IN2:>12.6e}")
