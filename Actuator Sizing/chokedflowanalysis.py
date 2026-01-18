@@ -81,6 +81,10 @@ while stroke_length <= piston_stroke_length:
     stroke_length, v2, time, piston_velocity = calc_dist_vol(F_net, rod_mass, piston_diameter, time, piston_velocity, stroke_length, shaft_area)
     p1 = p2
     p2 = calc_p2(p1, v1, v2, gamma)
+    
+    if t1 <= 0:
+        raise ValueError("fuck")
+    
     t1 = t2
     t2 = calc_t2(t1, p1, p2, gamma)
     v1 = v2
