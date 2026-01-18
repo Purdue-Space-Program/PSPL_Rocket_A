@@ -79,7 +79,7 @@ def calcAOA(wind_gust, velocity):
     velocity: rocket velocity [m/s]
     AOA: Angle of attack [radians]
     '''
-    print(f"AOA: {degrees(atan(wind_gust / velocity))} degrees")
+    # print(f"AOA: {degrees(atan(wind_gust / velocity))} degrees")
     return atan(wind_gust / velocity)
 
 # Calculate cross sectional area
