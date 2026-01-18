@@ -51,16 +51,14 @@ def calc_counter_force(p2):
 def mach_func(mach):
     return (piston_area * p1 / np.sqrt(t1)) * np.sqrt(gamma / R) * mach * (1 + ((gamma - 1) / 2) * mach**2)**(-1 * (gamma + 1) / (2 * (gamma - 1)))
 
-def calc_dist_vol(F_net, rod_mass, piston_diameter, time):
+def calc_dist_vol(F_net, rod_mass, piston_diameter, time, piston_velocity, dist_travelled, shaft_area):
     time_step = 0.0001
-    piston_velocity = 0
-    dist_travelled = 0
     dist_travelled = dist_travelled + piston_velocity * time_step + 0.5 * (F_net / rod_mass) * time_step**2
     piston_velocity_new = piston_velocity + (F_net * time_step) / (rod_mass)
     piston_velocity = piston_velocity_new
-    volume_swept = dist_travelled * np.pi * (piston_diameter / 2)**2
+    volume_swept = dist_travelled * (np.pi * (piston_diameter / 2)**2 - shaft_area)
     time += time_step
-    return dist_travelled, volume_swept, time
+    return dist_travelled, volume_swept, time, piston_velocity
 
 def calc_F_net(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve):
     fc_piston = (4 * piston_seal_length * M2IN) * LBF2N # assuming 4, worst case, for now
@@ -73,18 +71,19 @@ def calc_F_net(piston_force, piston_seal_length, shaft_seal_length, piston_seal_
     return f_net
 
 i = 1
+piston_velocity = 0
 while stroke_length <= piston_stroke_length:
     #mach = fsolve(mach_func, 0) # 0 is an initial guess
-    rho = PropsSI('D', 'P', p2, 'T', t2, 'air')
+    #rho = PropsSI('D', 'P', p2, 'T', t2, 'air')
     #mdot = calc_mdot(piston_area, rho, cd, p2)
     piston_force = (pressure - p1) * np.pi * ((piston_diameter**2) / 4)
     F_net = calc_F_net(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, 0) # assuming no force by valve for now
-    stroke_length, v2, time = calc_dist_vol(F_net, rod_mass, piston_diameter, time)
-    p2 = p1
+    stroke_length, v2, time, piston_velocity = calc_dist_vol(F_net, rod_mass, piston_diameter, time, piston_velocity, stroke_length, shaft_area)
+    p1 = p2
     p2 = calc_p2(p1, v1, v2, gamma)
-    t2 = t1
+    t1 = t2
     t2 = calc_t2(t1, p1, p2, gamma)
-    v2 = v1
+    v1 = v2
     i+=1
     force_history.append(piston_force)
     time_history.append(time)
@@ -93,4 +92,3 @@ plt.xlabel("Force [N]")
 plt.ylabel("Time")
 plt.title("Force vs Time")
 plt.show()
-print(pressure)
