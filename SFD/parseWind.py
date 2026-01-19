@@ -18,9 +18,9 @@ plot_on = False # Set to True to plot results, False to not plot
 file_path  = 'USW00094881-data.txt'
 df = pd.read_csv(file_path, sep='\s+', comment='#')
 array_2d = df.values
-print(array_2d)
-print(array_2d[0:10])
-print(array_2d[: , 8]) # Array of wind speeds
+# print(array_2d) # TEST
+# print(array_2d[0:10]) # TEST
+# print(array_2d[: , 8]) # Array of wind speeds TEST
 wspd_array = array_2d[: , 8] / 10 # Convert to m/s
 max_wind_speed = max(wspd_array) # Max wind speed in m/s
 avg_wind_speed = np.mean(wspd_array) # Average wind speed in m/s
