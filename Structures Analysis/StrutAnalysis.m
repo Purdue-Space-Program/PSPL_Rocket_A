@@ -1,4 +1,4 @@
-function StrutAnalysis(objectInQuestion)
+%function StrutAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
 
@@ -23,7 +23,7 @@ cd(currentDirectory)
 
 %% Object Properities
 
-%objectInQuestion = MidStrutValues;
+objectInQuestion = LowerStrutValues;
 
 %% ____________________
 %% Parameters
