@@ -1,4 +1,4 @@
-%function TankAnalysis(objectInQuestion)
+function TankAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
 
@@ -26,7 +26,7 @@ objectInQuestion = FuelTankValues;
 
 %% ____________________
 %% Parameters
-safetyFactor = [1.5, 1.5]; % Safety Factor [compression, tension] (randomly chosen fr fr)
+safetyFactorTension = 1.5; % Honest guess at a safety factor
 safetyFactorComp = 1.65; % Compression safety factor (ADM ASD)
 safetyFactorBending = 1.67; % Bending safety factor (ADM ASD)
 
@@ -88,13 +88,13 @@ area_total = (pi/4) * (oD^2 - iD^2);
 netLoadTakeoff = [axialLoadssfd(locationTakeOff) + 2 * momentLoadssfd(locationTakeOff) / radius, axialLoadssfd(locationTakeOff) - 2 * momentLoadssfd(locationTakeOff) / radius]; % Net force
 netLoadRecovery = [axialLoadsrfd(locationRecovery) + 2 * momentLoadsrfd(locationRecovery) / radius, axialLoadsrfd(locationRecovery) - 2 * momentLoadsrfd(locationTakeOff) / radius]; % Net force
 
-netLoad(1) = max([netLoadTakeoff(1), netLoadRecovery(1)]); % Compression max loads (lbs)
-netLoad(2) = abs(min([netLoadTakeoff(2), netLoadRecovery(2)])); % Tension max loads (lbs)
+netLoad(1) = max([netLoadTakeoff(1), netLoadRecovery(1)]) / 3; % Compression max loads (lbs)
+netLoad(2) = abs(min([netLoadTakeoff(2), netLoadRecovery(2)])) / 3; % Tension max loads (lbs)
 
 % === Tension Check ===
-tensileStress = abs(netLoad(2) / area_total);
-FoSCompression = pAllow / netLoad(1) - 1;
-FoSTension = material.yieldCompressionStrength / tensileStress - 1;
+tensileStress = abs(netLoad(2) / crossArea);
+MoSCompression = pAllow / netLoad(1) - 1;
+MoSTension = (area * material.yieldTensionStrength) / (tensileStress * safetyFactorTension) - 1;
 
 %% ____________________
 %% FORMATTED TEXT/FIGURE DISPLAYS
@@ -115,8 +115,8 @@ end
 % fprintf("Tension Load Limit: %.2f lbf\n", tensionLimit)
 fprintf("Available Axial Strength (ASD): %.2f lbs\n", pAllow);
 fprintf("Mass of %s: %.2f lbs\n", name, mass);
-fprintf("Compression FoS: %.2f\n", FoSCompression);
-fprintf("Tension FoS: %.2f\n", FoSTension);
+fprintf("Compression MoS: %.2f\n", MoSCompression);
+fprintf("Tension MoS: %.2f\n", MoSTension);
 fprintf("------------------------------------------------------\n")
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
 % fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))
