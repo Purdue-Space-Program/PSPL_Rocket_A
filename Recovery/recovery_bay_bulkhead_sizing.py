@@ -26,11 +26,16 @@ def main():
     F_bru_A_6061_T6 = 88_000 # [psi] from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
     F_bry_A_6061_T6 = 58_000 # [psi] from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
     plateThickness = 0.125
+    
+    print("Recovery Bay Connector Bolted Joint")
+
+    # Bolt dimensions
+    bolt_name = "5/16"
+    number_of_bolts = 18
+    E_d_ratio = 2
+    
     ultimateFOS = 2.0
     yieldFOS = 1.5
-
-
-
 
     print("Recovery Bulkhead Bolted Joint")
     boltDiameter = 0.2075
@@ -46,12 +51,32 @@ def main():
     numberOfBolts = 12
     shearForcePerBolt = netAxialForce/numberOfBolts
 
+<<<<<<< Updated upstream
     if (boltShearStrength > boltBearingStrengthUltimate):
         print("\tBearing Critical!")
         fittingFOS = 1.15
     else: 
         print("\tSheer Critical!")
         fittingFOS = 2.0
+=======
+    print(f"\tshearForcePerBolt: {shearForcePerBolt:.3f}")
+
+        
+    initial_fitting_factor = 1.15 # since we dont know if the joint is shear or bearing critical yet
+    
+    shearUltimateMOS = CalculateMOS(maximum_allowable_bolt_shear_ultimate_load, shearForcePerBolt, ultimateFOS, initial_fitting_factor)
+    bearingUltimateMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_ultimate_load, shearForcePerBolt, ultimateFOS, initial_fitting_factor)
+    
+    if (maximum_allowable_bolt_shear_ultimate_load > tank_wall_maximum_allowable_bearing_ultimate_load):
+        print("\tBearing Critical! 😄")
+        fitting_factor = 1.15
+    elif (maximum_allowable_bolt_shear_ultimate_load <= tank_wall_maximum_allowable_bearing_ultimate_load):
+        print("\tShear Critical!")
+        fitting_factor = 2.0
+    else:
+        raise ValueError("what")
+        
+>>>>>>> Stashed changes
 
     shearUltimateDesign = CalculateDesignLoad(shearForcePerBolt, ultimateFOS, fittingFOS)
     bearingUltimateDesign = CalculateDesignLoad(shearForcePerBolt, ultimateFOS, fittingFOS)

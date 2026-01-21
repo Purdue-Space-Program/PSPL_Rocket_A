@@ -116,8 +116,6 @@ class VehicleParameters:
         super().__setattr__(name, value)
 
 parameters = VehicleParameters()
-
-
   
 # Center of mass !
 # - 5:53 AM, 10/25/2025
@@ -138,7 +136,7 @@ def CalcTubeVolume(OD, ID, length):
     volume = CalcCylinderVolume(OD, length) - CalcCylinderVolume(ID, length)
     return volume
     
-
+# all from CAD
 engine_length =         10.179 * c.IN2M
 injector_length =       0.475 * c.IN2M
 lower_length =          12 * c.IN2M
