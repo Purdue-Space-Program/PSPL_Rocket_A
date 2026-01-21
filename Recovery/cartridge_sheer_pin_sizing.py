@@ -39,6 +39,7 @@ def main():
     recoveryBayLength_in = v.recovery_bay_length*m_to_in + (v.nosecone_length*m_to_in)/2
     recoveryBayPressure_psi = calculatePressure(cartridgeMass_g, roomTemperature_K, dropTemperature_K, recoveryBayRadius_in, recoveryBayLength_in)
     
+    print(recoveryBayLength_in)
     print(f"recoveryBayPressure_psi: {recoveryBayPressure_psi:.2f}")
     
     parachuteRadius_in = 2.45
