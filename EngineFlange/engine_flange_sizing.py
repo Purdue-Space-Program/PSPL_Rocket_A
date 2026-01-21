@@ -36,8 +36,8 @@ def main ():
     proof_stress = 140000
     safety_factor = 1.4
     #Pathfinder
-    bolt_diameter_plates_major = 0.25
-    bolt_diameter_plates_minor = 0.2075
+    bolt_diameter_plates_major = 0.19 #0.25
+    bolt_diameter_plates_minor = 0.1528 #0.2075
     bolt_diameter_pintle_major = 0.138
     bolt_diameter_pintle_minor = 0.1082
     chamber_diameter = 4.9
@@ -49,7 +49,7 @@ def main ():
     #chamber_diameter = 5.05
     #chamber_pressure = 200
 
-    nut_diameter_plates = bolt_diameter_plates_major*2.1
+    nut_diameter_plates = bolt_diameter_plates_major*2.5
     ED_ratio = 1.5
     chamber_wall_thickness = 0.25
 
@@ -73,7 +73,7 @@ def main ():
     calculated_number_of_bolts_plates = bolts(net_force_plates,lower_bound_preload_plates)
     print(f"calculated_number_of_bolts_plates: {calculated_number_of_bolts_plates:.2f}")
 
-    actual_number_bolts_plates = 12
+    actual_number_bolts_plates = 15
     MOS_plates = MOS(calculated_number_of_bolts_plates, actual_number_bolts_plates)
     print(f"MOS_plates: {MOS_plates:.2f}")
 

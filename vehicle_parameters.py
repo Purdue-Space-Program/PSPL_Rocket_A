@@ -148,7 +148,7 @@ mid_length =            5 * c.IN2M
 oxidizer_tank_length =  parameters.oxidizer_tank_length
 
 upper_length =          25 * c.IN2M
-recovery_bay_length =   16 * c.IN2M
+recovery_bay_length =   20 * c.IN2M
 nosecone_length =       15 * c.IN2M
 
 fucked_length = engine_length + injector_length + lower_length + (4*bulkhead_length) + fuel_tank_length + mid_length + oxidizer_tank_length + upper_length + recovery_bay_length + nosecone_length
