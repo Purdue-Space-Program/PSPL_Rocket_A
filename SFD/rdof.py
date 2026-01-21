@@ -24,9 +24,11 @@ rocket_dict_dry = vehicle.rocket_dict_dry
 parachute_mass = vehicle.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
 max_q_velocity = vehicle.parameters.six_DoF_max_velocity  # [m / s]
-AOA = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_velocity) # [radians] # NEED
+AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_velocity) # [radians] # NEED
+# AOA_recovery = 0 # [radians] Assumed angle of attack at recovery
+AOA_recovery_list = [np.pi / 4] # [radians] List of angles of attack at recovery for plotting
 wind_gust_speed = pw.percentile_75_wind_speed # [m/s]
-horizontal_velocity = max_q_velocity * np.sin(AOA) # [m / s] # NEED
+horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m / s] # NEED
 gravity = 9.81 # [m / s^2]
 air_density = 1.81 # [kg / m^3] at apogee # NEED
 drag_coefficent = 2.2 # []
@@ -141,32 +143,36 @@ def calcLateralAcceleration(drag_force, total_mass):
     return ay
 
 # Calculate angular acceleration
-def calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg):
+def calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, angle):
     '''
     drag_force: Parachute drag force [N]
     recovery_bay_start: Location of start of recovery bay [m]
     inertia: Rotational inertia around center of gravity [kg m^2]
     cg: Location of center of gravity of rocket [m]
+    angle: Angle of attack at recovery [radians]
     r: Angular acceleration [radians / s^2]
     '''
-    r = ((-1) * drag_force * (abs(recovery_bay_start - cg))) / inertia
+    r = ((-1) * (drag_force * np.cos(angle)) * (abs(recovery_bay_start - cg))) / inertia
     return r
 
 # Calculate shear forces
-def calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r, cg):
+def calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r, cg, angle):
     '''
     drag_force: Parachute drag force [N]
     ay: Lateral acceleration [m / s^2]
     linear_density_array: Array of linear density across rocket length [kg / m]
     length_along_rocket_linspace: Array of rocket lengths [m]
+    r: Angular acceleration [radians / s^2]
+    cg: Location of center of gravity of rocket [m]
+    angle: Angle of attack at recovery [radians]
     shear_array: Array of shear forces across rocket length [N]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
     cg_rel_lengths = np.array(-1 * length_along_rocket_linspace + cg)
     mass_model = np.cumsum(linear_density_array * dx) # aft to nose
     cumulative_moment_about_cg = np.cumsum(linear_density_array * dx * cg_rel_lengths) # aft to nose
-    shear_array = (-1) * ay * mass_model - r * cumulative_moment_about_cg
-    shear_array[int(recovery_bay_start / dx) - 1:] += drag_force
+    shear_array = (-1) * ay * np.cos(angle) * mass_model - r * cumulative_moment_about_cg
+    shear_array[int(recovery_bay_start / dx) - 1:] += (drag_force * np.cos(angle))
 
     return shear_array
 
@@ -182,15 +188,16 @@ def calcBending(shear_array, length_along_rocket_linspace):
     return bending_array
 
 # Calculate axial forces
-def calcAxial(drag_force, linear_density_array, length_along_rocket_linspace):
+def calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, angle):
     '''
     drag_force: Parachute drag force [N]
     linear_density_array: Array of linear density across rocket length [kg / m]
     length_along_rocket_linspace: Array of rocket lengths [m]
+    angle: Angle of attack at recovery [radians]
     axial_array: Array of axial forces across rocket length [N]
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
-    ax = drag_force / total_mass
+    ax = (drag_force * np.sin(angle)) / total_mass
     mass_model = np.cumsum(linear_density_array * dx) # aft to nose
     axial_array = ax * mass_model
 
@@ -206,26 +213,30 @@ descent_time = max_height/terminal_velocity # [s]
 cg = calcCG(linear_density_array, length_along_rocket_linspace) # [m] Center of gravity
 inertia = calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg) # [kg m^2] Rotational inertia
 ay = calcLateralAcceleration(drag_force, total_mass) # [m / s^2] Lateral acceleration
-r = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg) # [radians / s^2] Angular acceleration
-shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r, cg)) # [N] Shear force array
-bending_array = np.array(calcBending(shear_array, length_along_rocket_linspace)) # [N m] Bending moment array
-axial_array = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace)) # [N] Axial forces array
+
+worst_shear_angle = 0
+worst_axial_angle = np.pi / 2
+r_worst_shear = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, worst_shear_angle) # [radians / s^2] Angular acceleration for worst shear angle
+r_worst_axial = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, worst_axial_angle) # [radians / s^2] Angular acceleration for worst axial angle
+worst_shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r_worst_shear, cg, worst_shear_angle)) # [N] Shear force array
+worst_bending_array = np.array(calcBending(worst_shear_array, length_along_rocket_linspace)) # [N m] Bending moment array
+worst_axial_array = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, worst_axial_angle)) # [N] Axial forces array
 # ------------------------------------------------------------------------------
 
 # Converting to matlab file
-matlab_dict = {"axial_array": axial_array, "shear_array": shear_array, "bending_array": bending_array, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
-savemat("rfd_outputs_revcovery.mat", matlab_dict) # Save as .mat file for MATLAB
+# matlab_dict = {"axial_array": axial_array, "shear_array": shear_array, "bending_array": bending_array, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
+# savemat("rfd_outputs_revcovery.mat", matlab_dict) # Save as .mat file for MATLAB
 # ------------------------------------------------------------------------------
 
 # Print outputs
 print("Outputs at recovery:")
-print(f"Max axial force at recovery: {max(axial_array) * N2LBF:.2f} lbf")
-print(f"Max shear force at recovery: {max(shear_array) * N2LBF:.2f} lbf")
-print(f"Max bending moment at recovery: {max(bending_array) * N2LBF * M2FT:.2f} lbf-ft")
+print(f"Worst axial force at recovery (90 degrees): {max(worst_axial_array) * N2LBF:.2f} lbf")
+print(f"Worst shear force at recovery (0 degrees): {max(worst_shear_array) * N2LBF:.2f} lbf")
+print(f"Worst bending moment at recovery (0 degrees): {max(worst_bending_array) * N2LBF * M2FT:.2f} lbf-ft")
 print("-----------------------------------")
 
 print("Inputs:")
-print(f"Angle of attack from max_q: {AOA * (180 / np.pi):.2f} degrees")
+print(f"Angle of attack from max_q: {AOA_max_q * (180 / np.pi):.2f} degrees")
 print(f"Drag force: {drag_force:.2f} N")
 print(f"Wind gust at recovery: {wind_gust_speed:.2f} m/s")
 print(f"Horizontal velocity at recovery: {horizontal_velocity:.2f} m/s")
@@ -242,38 +253,40 @@ print(f"Descent time: {descent_time:.2f} seconds")
 print("-----------------------------------")
 # ------------------------------------------------------------------------------
 
-# Plotting
+# Plotting and converting to matlab file
+matlab_dict = {}
 plt.figure()
 plot_num = 1
-for variable in ["shear_array", "bending_array", "axial_array"]:
-    if variable == "shear_array":
-        plot = shear_array * N2LBF
-        ylabel = "Shear Force [lbf]"
-        title = f"Shear Forces at Recovery"
-    if variable == "bending_array":
-        plot = bending_array * N2LBF * M2FT
-        ylabel = "Bending Moment [lbf-ft]"
-        title = f"Bending Moments at Recovery"
-    if variable == "axial_array":
-        plot = axial_array * N2LBF
-        ylabel = "Axial Force [lbf]"
-        title = f"Axial Forces at Recovery"
-    plt.subplot(1,3, plot_num)
-    plt.plot(length_along_rocket_linspace * M2FT, plot)
-    plt.title(title)
-    plt.xlabel("Length from aft [ft]")
-    plt.ylabel(ylabel)
-    plt.grid()
-    plot_num += 1
-plt.show()
+for angle in AOA_recovery_list:
+    r_i = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, angle) # [radians / s^2] Angular acceleration if rocket at angle at recovery
+    shear_array_i = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r_i, cg, angle)) # [N] Shear force array if rocket at angle at recovery
+    bending_array_i = np.array(calcBending(shear_array_i, length_along_rocket_linspace)) # [N m] Bending moment array if rocket at angle at recovery
+    axial_array_i = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, angle)) # [N] Axial forces array if rocket at angle at recovery
+    matlab_dict[f"axial_array_{int(angle * (180 / np.pi))}_deg"] = axial_array_i
+    matlab_dict[f"shear_array_{int(angle * (180 / np.pi))}_deg"] = shear_array_i
+    matlab_dict[f"bending_array_{int(angle * (180 / np.pi))}_deg"] = bending_array_i
+    
+    plot_def = [
+        (shear_array_i, N2LBF, "Shear Force [lbf]", "Shear Forces"),
+        (bending_array_i, N2LBF * M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
+        (axial_array_i, N2LBF, "Axial Force [lbf]", "Axial Forces")
+    ]
+
+    for data, scale, ylabel, base_title in plot_def:
+        plot = data * scale
+        title = f"{base_title} at {angle * (180 / np.pi):.0f} deg"
+        plt.subplot(len(AOA_recovery_list), 3, plot_num)
+        plt.plot(length_along_rocket_linspace * M2FT, plot)
+        plt.title(title)
+        plt.xlabel("Length from aft [ft]")
+        plt.ylabel(ylabel)
+        plt.grid()
+        plot_num += 1
+matlab_dict["length_along_rocket_linspace"] = length_along_rocket_linspace
+savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB
 # ------------------------------------------------------------------------------
 
-
-'''
-plt.plot(length_along_rocket_linspace, bending_array)
-plt.title("Bending Moment vs Length Along Rocket")
-plt.xlabel("Length Along Rocket [m]")
-plt.ylabel("Bending Moment [Nm]")
-plt.grid()
+if len(AOA_recovery_list) > 1:
+    plt.tight_layout()
 plt.show()
-'''
+# ------------------------------------------------------------------------------
