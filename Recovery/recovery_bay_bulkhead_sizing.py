@@ -86,8 +86,11 @@ def main():
     #numberOfBolts = 12
     shearForcePerBolt = netAxialForce/number_of_bolts
 
-    shearUltimateMOS = CalculateMOS(maximum_allowable_bolt_shear_ultimate_load, shearForcePerBolt, ultimateFOS, fitting_factor)
-    bearingUltimateMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_ultimate_load, shearForcePerBolt, ultimateFOS, fitting_factor)
+        
+    initial_fitting_factor = 1.15 # since we dont know if the joint is shear or bearing critical yet
+    
+    shearUltimateMOS = CalculateMOS(maximum_allowable_bolt_shear_ultimate_load, shearForcePerBolt, ultimateFOS, initial_fitting_factor)
+    bearingUltimateMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_ultimate_load, shearForcePerBolt, ultimateFOS, initial_fitting_factor)
     
     if (maximum_allowable_bolt_shear_ultimate_load > tank_wall_maximum_allowable_bearing_ultimate_load):
         print("\tBearing Critical! 😄")
