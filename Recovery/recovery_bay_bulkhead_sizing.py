@@ -1,77 +1,109 @@
-pi = 3.14159
+import numpy as np
 import sys
 import os
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from constants import *
-import vehicle_parameters as v
+import constants as c
+from vehicle_parameters import parameters as parameters
 
-def shearStrength(material, diameter):
-    return (material)*(pi*diameter*diameter*0.25)
 
-def CalculateBearingStrength(material, diameter, thickness):
-    bearing_strength = material * diameter * thickness
-    return (bearing_strength)
+def CalculateCircleAreaWithDiameter(diameter):
+    circle_area = np.pi*(diameter/2)**2
+    return (circle_area)
 
-def CalculateMoS(maximum_allowable_load, limit_load, FOS, fitting_factor):
+def CalculateMaximumAllowableBoltShearLoad(material_strength, bolt_diameter):
+    maximum_allowable_shear_load = material_strength * CalculateCircleAreaWithDiameter(bolt_diameter)
+    return (maximum_allowable_shear_load)
+
+def CalculateMaximumAllowableBearingLoad(material_strength, bolt_hole_diameter, plate_thickness):
+    maximum_allowable_bearing_load = material_strength * bolt_hole_diameter * plate_thickness
+    return (maximum_allowable_bearing_load)
+
+def CalculateMOS(maximum_allowable_load, limit_load, FOS, fitting_factor):
     MoS = (maximum_allowable_load/(limit_load*FOS*fitting_factor)) - 1
     return (MoS)
-
-# these are not necessary to be their own functions
-# def shearUMOS(max, actual, uFOS, fitting_factor):
-#     return (max/(actual*uFOS*fitting_factor)) - 1
-
-# def bearingUMOS(max, actual, uFOS, fitting_factor):
-#     return (max/(actual*uFOS*fitting_factor)) - 1
-
-# def bearingYMOS(max, actual, sUMOS, bUMOS, uFOS, yFOS, fitting_factor):
-#     if (sUMOS > bUMOS):
-#         return (max/(actual*yFOS*fitting_factor)) - 1
-#     else:
-#         return (max/(actual*uFOS*fitting_factor)) - 1
 
 def main():
     print("Recovery Bay Connector Bolted Joint")
     
-    fSU_SS_316_U = 66000.0
-    #fSU_AS_U = 180000.0
-    #boltDiameter = 0.2075
-    boltDiameter = 0.2614
-    #boltDiameter = 0.32
-    boltShearStrength = shearStrength(fSU_SS_316_U, boltDiameter)
-    print(f"\tboltShearStrength: {boltShearStrength}")
-
-    F_bru_A_6061_T6 = 88_000 # [psi] from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
-    F_bry_A_6061_T6 = 58_000 # [psi] from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
-    plateThickness = 0.125
-    boltBearingStrengthUltimate = CalculateBearingStrength(F_bru_A_6061_T6, boltDiameter, plateThickness)
-    boltBearingStrengthYield = CalculateBearingStrength(F_bry_A_6061_T6, boltDiameter, plateThickness)
-    print(f"\tboltBearingStrengthUltimate: {boltBearingStrengthUltimate:.2f}")
-    print(f"\tboltBearingStrengthYield: {boltBearingStrengthYield:.2f}")
-
-
+    # bolt dimensions
+    bolt_name = "5/16"
+    number_of_bolts = 18
+    E_d_ratio = 1.5
+    
     ultimateFOS = 2.0
-    yieldFOS = 1.5
+    yieldFOS = 1.5    
+    proof_factor = 1.5
+    
+    # material properties
+    F_su_SS_316 = 66_000 * c.PSI2PA # [psi]
+    F_su_ALLOY_STEEL = 180_000 * c.PSI2PA # [psi]
+
+    
+    
+    match E_d_ratio:
+        case 1.5:
+            F_bry_A_6061_T6 = 50_000 * c.PSI2PA # [psi] from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
+            F_bru_A_6061_T6 = 67_000 * c.PSI2PA # [psi] from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
+        case 2.0:
+            F_bry_A_6061_T6 = 58_000 * c.PSI2PA # [psi] from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
+            F_bru_A_6061_T6 = 88_000 * c.PSI2PA # [psi] from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
+        case _:
+            raise ValueError("cock and ball torque")
+    
+    
+    match bolt_name:
+        case "1/4":
+            bolt_minor_diameter = 0.2075 * c.IN2M # [in]
+        case "5/16":
+            bolt_minor_diameter = 0.2614 * c.IN2M # [in]
+        case "3/8":
+            bolt_minor_diameter = 0.32 * c.IN2M # [in]
+        case _:
+            raise ValueError("balls")
+    
+    bolt_hole_diameter = bolt_minor_diameter
+
+    
+    print(f"Bolt Name: {bolt_name} UNF")
+    maximum_allowable_bolt_shear_ultimate_load = CalculateMaximumAllowableBoltShearLoad(F_su_SS_316, bolt_minor_diameter)
+    print(f"\tboltShearStrength: {maximum_allowable_bolt_shear_ultimate_load:.2f} ")
+
+    
+    tank_wall_thickness = 0.125 * c.IN2M
+    tank_wall_maximum_allowable_bearing_yield_load = CalculateMaximumAllowableBearingLoad(F_bry_A_6061_T6, bolt_hole_diameter, tank_wall_thickness)
+    tank_wall_maximum_allowable_bearing_ultimate_load = CalculateMaximumAllowableBearingLoad(F_bru_A_6061_T6, bolt_hole_diameter, tank_wall_thickness)
+    print(f"\tank_wall_maximum_allowable_bearing_yield_load: {tank_wall_maximum_allowable_bearing_yield_load:.2f}")
+    print(f"\tank_wall_maximum_allowable_bearing_ultimate_load: {tank_wall_maximum_allowable_bearing_ultimate_load * c.N2LBF:.2f} LBF, {tank_wall_maximum_allowable_bearing_ultimate_load:.2f} N")
+
+    bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
+    blowoff_load = parameters.tank_pressure * bulkhead_area * proof_factor
+    print(f"\tblowoff_load: {blowoff_load:.2f} N, {blowoff_load * c.N2LBF :.2f} LBF")
     
     #Need to update axial force.
     #netAxialForce = 300
-    netAxialForce = 16230
+    netAxialForce = blowoff_load
     #numberOfBolts = 12
-    numberOfBolts = 16
-    shearForcePerBolt = netAxialForce/numberOfBolts
+    shearForcePerBolt = netAxialForce/number_of_bolts
 
-    if (boltShearStrength > boltBearingStrengthUltimate):
-        print("\tBearing Critical!")
-        fittingFOS = 1.15
-    else: 
+    shearUltimateMOS = CalculateMOS(maximum_allowable_bolt_shear_ultimate_load, shearForcePerBolt, ultimateFOS, fitting_factor)
+    bearingUltimateMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_ultimate_load, shearForcePerBolt, ultimateFOS, fitting_factor)
+    
+    if (maximum_allowable_bolt_shear_ultimate_load > tank_wall_maximum_allowable_bearing_ultimate_load):
+        print("\tBearing Critical! 😄")
+        fitting_factor = 1.15
+    elif (maximum_allowable_bolt_shear_ultimate_load <= tank_wall_maximum_allowable_bearing_ultimate_load):
         print("\tSheer Critical!")
-        fittingFOS = 2.0
+        fitting_factor = 2.0
+    else:
+        raise ValueError("what")
+        
 
-    shearUltimateMOS = CalculateMoS(boltShearStrength, shearForcePerBolt, ultimateFOS, fittingFOS)
-    bearingUltimateMOS = CalculateMoS(boltBearingStrengthUltimate, shearForcePerBolt, ultimateFOS, fittingFOS)
-    bearingYieldMOS = CalculateMoS(boltBearingStrengthYield, shearForcePerBolt, yieldFOS, fittingFOS)
-    print(f"\tshearUltimateMOS: {shearUltimateMOS:.2f}")
-    print(f"\tbearingUltimateMOS: {bearingUltimateMOS:.2f}")
-    print(f"\tbearingYieldMOS: {bearingYieldMOS:.2f}")
+    shearUltimateMOS = CalculateMOS(maximum_allowable_bolt_shear_ultimate_load, shearForcePerBolt, ultimateFOS, fitting_factor)
+    bearingUltimateMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_ultimate_load, shearForcePerBolt, ultimateFOS, fitting_factor)
+    bearingYieldMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_yield_load, shearForcePerBolt, yieldFOS, fitting_factor)
+    print(f"\tshearUltimateMOS: {shearUltimateMOS:.3f}")
+    print(f"\tbearingUltimateMOS: {bearingUltimateMOS:.3f}")
+    print(f"\tbearingYieldMOS: {bearingYieldMOS:.3f}")
 
 main()
