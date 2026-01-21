@@ -190,7 +190,7 @@ def main():
 
     reading_ox = True    #The excel sheet will assume it is reading Ox until the 'Fu' keyword comes up. Then it will switch to Fuel.
 
-    file = pd.read_excel('rocketA_components.xlsx')
+    file = pd.read_excel("Pressure drop/rocketA_components.xlsx")
 
     print("\nLOx pressure drops:\n")
     for row in range(len(file)-1, -1, -1):
