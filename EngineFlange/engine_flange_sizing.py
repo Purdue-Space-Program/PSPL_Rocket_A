@@ -1,16 +1,17 @@
-pi = 3.14159
+import numpy as np
+np.pi
 
 def tensile_from_chamber(diameter, pressure):
-    return (diameter*diameter/4.0*pi) * pressure
+    return (diameter*diameter/4.0*np.pi) * pressure
 
 def tensile_from_o_ring(diameter, compression):
-    return (diameter*pi) * compression
+    return (diameter*np.pi) * compression
 
 def proof(safety, strength):
     return safety*strength
 
 def lower_preload(diameter, proof):
-    area = pi * (diameter*diameter/4)
+    area = np.pi * (diameter*diameter/4)
     return (((area*proof)*0.75)/1.25)*0.75
 
 def bolts(force, preload):
@@ -29,7 +30,17 @@ def diameter(ratio, bolt, nut, ID, wall):
 def MOS(calculated, actual):
     return (actual - calculated)/calculated
 
-def main ():
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    
     proof_stress_safety_factor = 0.8
     steel_tensile_strength = 42100
     # proof_stress = proof(proof_stress_safety_factor,steel_tensile_strength)
@@ -53,19 +64,21 @@ def main ():
     ED_ratio = 1.5
     chamber_wall_thickness = 0.25
 
-    #Pathfinder
-    tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
-    tensile_force_from_outer_o_ring = tensile_from_o_ring(5.44301,70)
-    tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.44302,70)
-    tensile_force_from_film_o_ring = 0 #tensile_from_o_ring(3.984,70)
-    tensile_force_from_manifold_o_ring = 0 #tensile_from_o_ring(3.512,70)
+    chamber_input_values = "Pathfinder"
+    if chamber_input_values == "Pathfinder":
+        tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
+        tensile_force_from_outer_o_ring = tensile_from_o_ring(5.44301,70)
+        tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.44302,70)
+        tensile_force_from_film_o_ring = 0 #tensile_from_o_ring(3.984,70)
+        tensile_force_from_manifold_o_ring = 0 #tensile_from_o_ring(3.512,70)
 
-    #CMS
-    #tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
-    #tensile_force_from_outer_o_ring = 0
-    #tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.19301,70)
-    #tensile_force_from_film_o_ring = 0 
-    #tensile_force_from_manifold_o_ring = 0 
+    elif chamber_input_values == "CMS":
+        
+        tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
+        tensile_force_from_outer_o_ring = 0
+        tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.19301,70)
+        tensile_force_from_film_o_ring = 0 
+        tensile_force_from_manifold_o_ring = 0 
 
     forces_plates = {tensile_force_from_chamber_plates,tensile_force_from_outer_o_ring,tensile_force_from_chamber_o_ring,tensile_force_from_film_o_ring,tensile_force_from_manifold_o_ring}
     net_force_plates = sum_forces(forces_plates, safety_factor)
@@ -92,5 +105,3 @@ def main ():
     actual_number_bolts_pintle = 6
     MOS_pintle = MOS(calculated_number_of_bolts_pintle, actual_number_bolts_pintle)
     print(f"MOS_pintle: {MOS_pintle:.2f}")
-
-main()
