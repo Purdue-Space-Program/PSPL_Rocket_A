@@ -1,6 +1,9 @@
-import numpy as np
+import sys
+import os
+import matplotlib.pyplot as plt
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from constants import *
 import vehicle_parameters as v
-np.pi
 
 def tensile_from_chamber(diameter, pressure):
     return (diameter*diameter/4.0*np.pi) * pressure
@@ -91,6 +94,7 @@ if __name__ == "__main__":
 
     actual_number_bolts_plates = 15
     MOS_plates = MOS(calculated_number_of_bolts_plates, actual_number_bolts_plates)
+    print(f"actual_number_bolts_plates: {actual_number_bolts_plates:.2f}")
     print(f"MOS_plates: {MOS_plates:.2f}")
 
     tensile_force_from_chamber_pintle = tensile_from_chamber(.98,500)
@@ -107,4 +111,5 @@ if __name__ == "__main__":
 
     actual_number_bolts_pintle = 6
     MOS_pintle = MOS(calculated_number_of_bolts_pintle, actual_number_bolts_pintle)
+    print(f"actual_number_bolts_pintle: {actual_number_bolts_pintle:.2f}")
     print(f"MOS_pintle: {MOS_pintle:.2f}")
