@@ -1,4 +1,5 @@
 import numpy as np
+import vehicle_parameters as v
 np.pi
 
 def tensile_from_chamber(diameter, pressure):
@@ -6,6 +7,8 @@ def tensile_from_chamber(diameter, pressure):
 
 def tensile_from_o_ring(diameter, compression):
     return (diameter*np.pi) * compression
+
+#def recovery_strut_force(mass, acceleration)
 
 def proof(safety, strength):
     return safety*strength
@@ -49,8 +52,8 @@ if __name__ == "__main__":
     #Pathfinder
     bolt_diameter_plates_major = 0.19 #0.25
     bolt_diameter_plates_minor = 0.1528 #0.2075
-    bolt_diameter_pintle_major = 0.138
-    bolt_diameter_pintle_minor = 0.1082
+    bolt_diameter_pintle_major = 0.125
+    bolt_diameter_pintle_minor = 0.0979
     chamber_diameter = 4.9
     chamber_wall_thickness = 0.25
     chamber_pressure = 250

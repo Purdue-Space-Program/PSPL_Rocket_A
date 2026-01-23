@@ -51,32 +51,12 @@ def main():
     numberOfBolts = 12
     shearForcePerBolt = netAxialForce/numberOfBolts
 
-<<<<<<< Updated upstream
     if (boltShearStrength > boltBearingStrengthUltimate):
         print("\tBearing Critical!")
         fittingFOS = 1.15
     else: 
         print("\tSheer Critical!")
         fittingFOS = 2.0
-=======
-    print(f"\tshearForcePerBolt: {shearForcePerBolt:.3f}")
-
-        
-    initial_fitting_factor = 1.15 # since we dont know if the joint is shear or bearing critical yet
-    
-    shearUltimateMOS = CalculateMOS(maximum_allowable_bolt_shear_ultimate_load, shearForcePerBolt, ultimateFOS, initial_fitting_factor)
-    bearingUltimateMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_ultimate_load, shearForcePerBolt, ultimateFOS, initial_fitting_factor)
-    
-    if (maximum_allowable_bolt_shear_ultimate_load > tank_wall_maximum_allowable_bearing_ultimate_load):
-        print("\tBearing Critical! 😄")
-        fitting_factor = 1.15
-    elif (maximum_allowable_bolt_shear_ultimate_load <= tank_wall_maximum_allowable_bearing_ultimate_load):
-        print("\tShear Critical!")
-        fitting_factor = 2.0
-    else:
-        raise ValueError("what")
-        
->>>>>>> Stashed changes
 
     shearUltimateDesign = CalculateDesignLoad(shearForcePerBolt, ultimateFOS, fittingFOS)
     bearingUltimateDesign = CalculateDesignLoad(shearForcePerBolt, ultimateFOS, fittingFOS)
