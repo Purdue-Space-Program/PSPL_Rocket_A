@@ -140,14 +140,14 @@ def CalcTubeVolume(OD, ID, length):
 # all from CAD
 engine_length =         10.179 * c.IN2M
 injector_length =       0.475 * c.IN2M
-lower_length =          12 * c.IN2M
+lower_length =          25 * c.IN2M
 bulkhead_length =       1.22 * c.IN2M
 fuel_tank_length =      parameters.fuel_tank_length
 mid_length =            5 * c.IN2M
 oxidizer_tank_length =  parameters.oxidizer_tank_length
 
 upper_length =          25 * c.IN2M
-recovery_bay_length =   20 * c.IN2M
+recovery_bay_length =   24 * c.IN2M
 nosecone_length =       15 * c.IN2M
 
 fucked_length = engine_length + injector_length + lower_length + (4*bulkhead_length) + fuel_tank_length + mid_length + oxidizer_tank_length + upper_length + recovery_bay_length + nosecone_length
