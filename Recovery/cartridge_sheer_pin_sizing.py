@@ -16,7 +16,7 @@ def calculatePressure(mass_g, initialTemperature_K, deltaTemperature_K, radius_i
     moles = mass_g/molesMassCO2_g
     temperature_K = initialTemperature_K + deltaTemperature_K
     volume_L = (pi*radius_in*radius_in)*(length_in)*(cuin_to_L)
-    print(volume_L)
+    #print(volume_L)
     return (((moles)*(R)*(temperature_K))/(volume_L))*atm_to_psi
 
 def calculateUpwardForce(pressure_psi, radius_in):
@@ -36,10 +36,10 @@ def main():
     roomTemperature_K = 273
     dropTemperature_K = -50
     recoveryBayRadius_in = (v.parameters.tube_inner_diameter*m_to_in)/2
-    recoveryBayLength_in = v.recovery_bay_length*m_to_in + (v.nosecone_length*m_to_in)/2
+    recoveryBayLength_in = v.recovery_bay_length*m_to_in + (v.nosecone_length*m_to_in)/3
     recoveryBayPressure_psi = calculatePressure(cartridgeMass_g, roomTemperature_K, dropTemperature_K, recoveryBayRadius_in, recoveryBayLength_in)
     
-    print(recoveryBayLength_in)
+    #print(recoveryBayLength_in)
     print(f"recoveryBayPressure_psi: {recoveryBayPressure_psi:.2f}")
     
     parachuteRadius_in = 2.45

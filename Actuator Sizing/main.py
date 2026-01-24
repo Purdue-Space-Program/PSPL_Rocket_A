@@ -7,7 +7,7 @@ from constants import *
 
 ###############################
 # CHOOSE MODE "test" or "real"
-piston = "real" # test or real
+piston = "test" # test or real
 ###############################
 
 ###############################
