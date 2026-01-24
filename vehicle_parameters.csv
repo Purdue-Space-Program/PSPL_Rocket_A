@@ -48,10 +48,10 @@ six_DoF_off_the_rail_velocity,28.7
 six_DoF_max_mach,0.368
 six_DoF_max_velocity,126.224
 six_DoF_estimated_apogee,747.6
-wet_mass,30.691780442140495
-dry_mass,27.070392632540496
-total_length,2.5169876
-dry_COM_location_from_bottom,0.766112467415402
-dry_COM_location_from_top,1.7508751325845981
-wet_COM_location_from_bottom,0.7753265511818155
-wet_COM_location_from_top,1.7416610488181847
+wet_mass,31.040892831255288
+dry_mass,27.41950502165529
+total_length,3.0503875999999996
+dry_COM_location_from_bottom,0.974259679891995
+dry_COM_location_from_top,2.0761279201080045
+wet_COM_location_from_bottom,0.9976229642859432
+wet_COM_location_from_top,2.0527646357140563

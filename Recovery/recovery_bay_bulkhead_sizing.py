@@ -8,7 +8,7 @@ from vehicle_parameters import parameters as parameters
 
 
 def CalculateCircleAreaWithDiameter(diameter):
-    circle_area = np.pi*(diameter/2)**2
+    circle_area = np.pi*((diameter/2)**2)
     return (circle_area)
 
 def CalculateMaximumAllowableBoltShearLoad(material_strength, bolt_diameter):
@@ -19,7 +19,7 @@ def CalculateMaximumAllowableBearingLoad(material_strength, bolt_hole_diameter, 
     maximum_allowable_bearing_load = material_strength * bolt_hole_diameter * plate_thickness
     return (maximum_allowable_bearing_load)
 
-def CalculateMOS(maximum_allowable_load, limit_load, FOS, fitting_factor):
+def CalculateMoS(maximum_allowable_load, limit_load, FOS, fitting_factor):
     MoS = (maximum_allowable_load/(limit_load*FOS*fitting_factor)) - 1
     return (MoS)
 
@@ -31,8 +31,8 @@ def main():
     number_of_bolts = 18
     E_d_ratio = 1.5
     
-    ultimateFOS = 2.0
-    yieldFOS = 1.5    
+    ultimate_FOS = 2.0
+    yield_FOS = 1.5    
     proof_factor = 1.5
     
     # material properties
@@ -52,13 +52,19 @@ def main():
             raise ValueError("cock and ball torque")
     
     
+    # source: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1838153742/magic+numbers
     match bolt_name:
+        case "#10":
+            bolt_minor_diameter = 0.1517 * c.IN2M
+            bolt_hole_clearance_diameter_tight = 0.1960 * c.IN2M
+            bolt_hole_clearance_diameter_loose = 0.2010 * c.IN2M
         case "1/4":
-            bolt_minor_diameter = 0.2075 * c.IN2M # [in]
+            bolt_minor_diameter = 0.2075 * c.IN2M
+            bolt_hole_clearance_diameter_tight = 0.2570 * c.IN2M
         case "5/16":
-            bolt_minor_diameter = 0.2614 * c.IN2M # [in]
+            bolt_minor_diameter = 0.2614 * c.IN2M
         case "3/8":
-            bolt_minor_diameter = 0.32 * c.IN2M # [in]
+            bolt_minor_diameter = 0.32 * c.IN2M
         case _:
             raise ValueError("balls")
     
@@ -66,8 +72,8 @@ def main():
 
     
     print(f"Bolt Name: {bolt_name} UNF")
-    maximum_allowable_bolt_shear_ultimate_load = CalculateMaximumAllowableBoltShearLoad(F_su_SS_316, bolt_minor_diameter)
-    print(f"\tboltShearStrength: {maximum_allowable_bolt_shear_ultimate_load:.2f} ")
+    bolt_maximum_allowable_shear_ultimate_load = CalculateMaximumAllowableBoltShearLoad(F_su_SS_316, bolt_minor_diameter)
+    print(f"\tboltShearStrength: {bolt_maximum_allowable_shear_ultimate_load:.2f} ")
 
     
     tank_wall_thickness = 0.125 * c.IN2M
@@ -82,31 +88,34 @@ def main():
     
     #Need to update axial force.
     #netAxialForce = 300
-    netAxialForce = blowoff_load
-    #numberOfBolts = 12
-    shearForcePerBolt = netAxialForce/number_of_bolts
+    net_axial_force = blowoff_load
+    shear_force_per_bolt = net_axial_force/number_of_bolts
 
         
-    initial_fitting_factor = 1.15 # since we dont know if the joint is shear or bearing critical yet
+    initial_fitting_factor = 1.15 # since we dont know if the joint is shear or bearing critical yet (idk if this is the right way to do it tbh)
     
-    shearUltimateMOS = CalculateMOS(maximum_allowable_bolt_shear_ultimate_load, shearForcePerBolt, ultimateFOS, initial_fitting_factor)
-    bearingUltimateMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_ultimate_load, shearForcePerBolt, ultimateFOS, initial_fitting_factor)
+    # bolt_shear_yield_MoS ?????????????????????????
+    bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, shear_force_per_bolt, ultimate_FOS, initial_fitting_factor)
+    tank_wall_bearing_ultimate_MoS = CalculateMoS(tank_wall_maximum_allowable_bearing_ultimate_load, shear_force_per_bolt, ultimate_FOS, initial_fitting_factor)
     
-    if (maximum_allowable_bolt_shear_ultimate_load > tank_wall_maximum_allowable_bearing_ultimate_load):
+    if (bolt_maximum_allowable_shear_ultimate_load > tank_wall_maximum_allowable_bearing_ultimate_load):
         print("\tBearing Critical! 😄")
         fitting_factor = 1.15
-    elif (maximum_allowable_bolt_shear_ultimate_load <= tank_wall_maximum_allowable_bearing_ultimate_load):
-        print("\tSheer Critical!")
+    elif (bolt_maximum_allowable_shear_ultimate_load <= tank_wall_maximum_allowable_bearing_ultimate_load):
+        print("\tShear Critical!")
         fitting_factor = 2.0
     else:
         raise ValueError("what")
         
 
-    shearUltimateMOS = CalculateMOS(maximum_allowable_bolt_shear_ultimate_load, shearForcePerBolt, ultimateFOS, fitting_factor)
-    bearingUltimateMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_ultimate_load, shearForcePerBolt, ultimateFOS, fitting_factor)
-    bearingYieldMOS = CalculateMOS(tank_wall_maximum_allowable_bearing_yield_load, shearForcePerBolt, yieldFOS, fitting_factor)
-    print(f"\tshearUltimateMOS: {shearUltimateMOS:.3f}")
-    print(f"\tbearingUltimateMOS: {bearingUltimateMOS:.3f}")
+    bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, shear_force_per_bolt, ultimate_FOS, fitting_factor)
+    tank_wall_bearing_ultimate_MoS = CalculateMoS(tank_wall_maximum_allowable_bearing_ultimate_load, shear_force_per_bolt, ultimate_FOS, fitting_factor)
+    bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, shear_force_per_bolt, ultimate_FOS, fitting_factor)
+    tank_wall_bearing_ultimate_MoS = CalculateMoS(tank_wall_maximum_allowable_bearing_ultimate_load, shear_force_per_bolt, ultimate_FOS, fitting_factor)
+    bearingYieldMOS = CalculateMoS(tank_wall_maximum_allowable_bearing_yield_load, shear_force_per_bolt, yield_FOS, fitting_factor)
+    
+    print(f"\tshearUltimateMOS: {bolt_shear_ultimate_MoS:.3f}")
+    print(f"\tbearingUltimateMOS: {tank_wall_bearing_ultimate_MoS:.3f}")
     print(f"\tbearingYieldMOS: {bearingYieldMOS:.3f}")
 
 main()
