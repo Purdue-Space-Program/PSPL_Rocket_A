@@ -93,69 +93,64 @@ def CalculateTubeBendPressureDrop(angle, bend_radius, tube_outer_diameter, tube_
     )
     
 
-    drop = core.dP_from_K(K, rho=oxidizer_density.to(u.kilogram / u.meter**3).magnitude, V=fluid_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
+    drop = core.dP_from_K(K, rho=fluid_density.to(u.kilogram / u.meter**3).magnitude, V=fluid_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
     drop = drop.to(u.psi)
     return drop
 
-def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness, absolute_roughness, fluid_density, fluid_mass_flow_rate, fluid_kinetic_viscosity):
+def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density):
     tube_outer_diameter = valve_inner_diameter + (2*tube_wall_thickness)
     (inner_dia, fluid_line_velocity, fluid_Reynolds_number, fluid_friction_factor, rel_rough) = CalculateFluidInPipe(tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)
         
     valve_inner_diameter = valve_inner_diameter.to(u.meter)
-
-    # CalculateFluidInPipe(tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity):
-    # return (inner_dia, fluid_line_velocity, fluid_Reynolds_number, fluid_friction_factor, rel_rough)
-
-
 
     K = fittings.Cv_to_K(Cv=Cv, D=valve_inner_diameter.magnitude)
     pressure_drop = core.dP_from_K(K, rho=fluid_density.to(u.kilogram / u.meter**3).magnitude, V=fluid_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
     pressure_drop = pressure_drop.to(u.psi)
     return pressure_drop
 
-def sharp_contraction_ox(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
-    (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
+# def sharp_contraction_ox(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
+#     (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
     
-    inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
+#     inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
 
-    # Calculation of loss coefficient
-    K = fittings.contraction_sharp(inner_dia_one, inner_dia_two, friction_factor_oxidizer, reynold_ox, rel_rough, "Rennels")
-    drop = core.dP_from_K(K, rho=oxidizer_density.to(u.kilogram / u.meter**3).magnitude, V=oxidizer_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
-    drop = drop.to(u.psi)
-    return drop
+#     # Calculation of loss coefficient
+#     K = fittings.contraction_sharp(inner_dia_one, inner_dia_two, friction_factor_oxidizer, reynold_ox, rel_rough, "Rennels")
+#     drop = core.dP_from_K(K, rho=oxidizer_density.to(u.kilogram / u.meter**3).magnitude, V=oxidizer_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
+#     drop = drop.to(u.psi)
+#     return drop
 
-def sharp_contraction_ipa(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
-    (inner_diameter_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
+# def sharp_contraction_ipa(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
+#     (inner_diameter_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
     
-    inner_diameter_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
+#     inner_diameter_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
 
-    # Calculation of loss coefficient
-    K = fittings.contraction_sharp(inner_diameter_one, inner_diameter_two, friction_factor_ipa, reynold_ipa, rel_rough, "Rennels")
-    drop = core.dP_from_K(K, rho=fuel_density.to(u.kilogram / u.meter**3).magnitude, V=fuel_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
-    drop = drop.to(u.psi)
-    return drop
+#     # Calculation of loss coefficient
+#     K = fittings.contraction_sharp(inner_diameter_one, inner_diameter_two, friction_factor_ipa, reynold_ipa, rel_rough, "Rennels")
+#     drop = core.dP_from_K(K, rho=fuel_density.to(u.kilogram / u.meter**3).magnitude, V=fuel_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
+#     drop = drop.to(u.psi)
+#     return drop
 
-def sharp_expansion_ox(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
-    (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
+# def sharp_expansion_ox(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
+#     (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
     
-    inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
+#     inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
 
-    # Calculation of loss coefficient
-    K = fittings.diffuser_sharp(inner_dia_one, inner_dia_two, friction_factor_oxidizer, reynold_ox, rel_rough, "Rennels")
-    drop = core.dP_from_K(K, rho=oxidizer_density.to(u.kilogram / u.meter**3).magnitude, V=oxidizer_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
-    drop = drop.to(u.psi)
-    return drop
+#     # Calculation of loss coefficient
+#     K = fittings.diffuser_sharp(inner_dia_one, inner_dia_two, friction_factor_oxidizer, reynold_ox, rel_rough, "Rennels")
+#     drop = core.dP_from_K(K, rho=oxidizer_density.to(u.kilogram / u.meter**3).magnitude, V=oxidizer_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
+#     drop = drop.to(u.psi)
+#     return drop
 
-def sharp_expansion_ipa(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
-    (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
+# def sharp_expansion_ipa(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
+#     (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
     
-    inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
+#     inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
 
-    # Calculation of loss coefficient
-    K = fittings.diffuser_sharp(inner_dia_one, inner_dia_two, friction_factor_ipa, reynold_ipa, rel_rough, "Rennels")
-    drop = core.dP_from_K(K, rho=fuel_density.to(u.kilogram / u.meter**3).magnitude, V=fuel_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
-    drop = drop.to(u.psi)
-    return drop
+#     # Calculation of loss coefficient
+#     K = fittings.diffuser_sharp(inner_dia_one, inner_dia_two, friction_factor_ipa, reynold_ipa, rel_rough, "Rennels")
+#     drop = core.dP_from_K(K, rho=fuel_density.to(u.kilogram / u.meter**3).magnitude, V=fuel_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
+#     drop = drop.to(u.psi)
+#     return drop
     
 
 # Majority of this code is by Keshav Narayanan and Isaiah Jarvis from Rocket 4
@@ -170,11 +165,11 @@ number_of_parts = len(file)
 current_fuel_pressure = chamber_pressure
 current_oxidizer_pressure = chamber_pressure
    
-oxidizer_pressure_array = [current_fuel_pressure.to(u.psi).magnitude]
-fuel_pressure_array = [current_oxidizer_pressure.to(u.psi).magnitude]
+fuel_pressure_array = [current_fuel_pressure.to(u.psi)]
+oxidizer_pressure_array = [current_oxidizer_pressure.to(u.psi)]
 
-fuel_part_names = ["Chamber"]
-oxidizer_part_names = ["Chamber"]
+fuel_part_names = ["Fuel in Chamber"]
+oxidizer_part_names = ["Oxidizer in Chamber"]
 
 
 reading_ox = True    #The excel sheet will assume it is reading Ox until the 'Fuel' keyword comes up. Then it will switch to Fuel.
@@ -182,7 +177,8 @@ print("\n--------LOx pressure drops--------:")
 
 for row in range(number_of_parts-1, -1, -1):
 
-    part_name = file.loc[row, 'Name']
+    part_name = file.loc[row, "Part Name"]
+    part_type = file.loc[row, "Part Type"]
     
     is_nan = isinstance(part_name, (int, float, np.floating)) and np.isnan(part_name)
     
@@ -191,8 +187,8 @@ for row in range(number_of_parts-1, -1, -1):
         reading_ox = False
         print("\n--------Fuel pressure drops--------:")
 
-    elif pd.notna(part_name):
-        tube_length = file.loc[row, 'Tube Length [in]'] * u.inch
+    elif isinstance(part_name, str) and part_name.strip() != "":
+        tube_length = file.loc[row, "Tube Length [in]"] * u.inch
         inner_diameter = file.loc[row, "Inner Diameter [in]"] * u.inch
         tube_outer_diameter = file.loc[row, "Outer Diameter [in]"] * u.inch
         tube_wall_thickness = file.loc[row, "Wall Thickness [in]"] * u.inch
@@ -213,7 +209,7 @@ for row in range(number_of_parts-1, -1, -1):
             fluid_density = fuel_density
             current_fluid_pressure = current_fuel_pressure
 
-        match part_name:
+        match part_type:
             case "Straight Tube":
                 part_pressure_drop = CalculateStraightTubePressureDrop(tube_length, tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)
             
@@ -221,11 +217,11 @@ for row in range(number_of_parts-1, -1, -1):
                 part_pressure_drop = CalculateTubeBendPressureDrop(angle, bend_radius, tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)
 
             case "Ball Valve":
-                part_pressure_drop = CalculateBallValvePressureDrop(Cv, inner_diameter, tube_wall_thickness, absolute_roughness, oxidizer_density, oxidizer_mass_flow_rate, oxidizer_kinetic_viscosity)    
+                part_pressure_drop = CalculateBallValvePressureDrop(Cv, inner_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)    
 
             case "Venturi":
                 venturi_inlet_pressure = current_fluid_pressure / venturi_pressure_drop_percent
-                venturi_pressure_drop = venturi_inlet_pressure - current_fluid_pressure
+                part_pressure_drop = venturi_inlet_pressure - current_fluid_pressure
             
             case "Injector":
                 injector_inlet_pressure = current_fluid_pressure / injector_pressure_drop_percent
@@ -234,17 +230,17 @@ for row in range(number_of_parts-1, -1, -1):
             case _:
                 raise ValueError(f"Unknown part type: {part_name}")
 
-        print(f"Part Name: {part_name}\nPressure Drop: {part_pressure_drop.to(u.psi):.2f}\n")
+        print(f"Part Type: {part_type}\nPart Name: {part_name}\nPressure Drop: {part_pressure_drop.to(u.psi):.2f}\n")
 
 
 
         if reading_ox == True:
             current_oxidizer_pressure += part_pressure_drop
             oxidizer_part_names.append(part_name)
-            oxidizer_pressure_array.append(current_oxidizer_pressure.to(u.psi).magnitude)
+            oxidizer_pressure_array.append(current_oxidizer_pressure.to(u.psi))
         else:
             current_fuel_pressure += part_pressure_drop
-            fuel_pressure_array.append(current_fuel_pressure.to(u.psi).magnitude)
+            fuel_pressure_array.append(current_fuel_pressure.to(u.psi))
             fuel_part_names.append(part_name)
         
             
@@ -264,11 +260,49 @@ print(f"LOx: \n\tTotal pressure drop: {oxidizer_total_pressure_drop.to(u.psi):.2
 
 if __name__ == "__main__":
     
+    # go from left to right
+    fuel_part_names.reverse()
+    fuel_pressure_array.reverse()
+    oxidizer_part_names.reverse()
+    oxidizer_pressure_array.reverse()
     
-    plt.plot(fuel_part_names, fuel_pressure_array, "r")
-    # plt.plot(oxidizer_part_names, oxidizer_pressure_array, "b")
-    plt.xlabel("Part")
-    plt.ylabel("Fluid Pressure [psi]")
-    plt.legend(["Fuel", "Oxidizer"])
-    plt.grid()
+    
+    
+    use_subplots = True
+    
+    for count, fluid_pressure_array in enumerate([fuel_pressure_array, oxidizer_pressure_array]):
+        
+        if fluid_pressure_array is fuel_pressure_array:
+            fluid_part_names = fuel_part_names
+            fluid_color = "r"
+            fluid_name = "Fuel"
+        elif fluid_pressure_array is oxidizer_pressure_array:
+            fluid_part_names = oxidizer_part_names
+            fluid_color = "b"
+            fluid_name = "Oxidizer"
+        
+        if use_subplots == True:
+            plt.subplot(1, 2, count+1)
+            plt.title(fluid_name)
+            
+            # make go in between ticks
+            fluid_point_indices = np.arange(len(fluid_pressure_array))          
+            fluid_label_positions = fluid_point_indices[:-1] + 0.5
+            plt.xlim(-0.5, len(fluid_point_indices) - 0.5)
+            plt.xticks(
+                ticks=fluid_label_positions,
+                labels=fluid_part_names[:-1],
+                rotation=45,
+                ha="right"
+            )  
+            plt.grid(True)
+        else:
+            plt.legend(["Fuel", "Oxidizer"])
+
+
+        
+        plt.plot(fluid_point_indices, list(float(fluid_pressure.to(u.psi).magnitude) for fluid_pressure in fluid_pressure_array), fluid_color)
+        plt.xlabel("Part Name")
+        plt.ylabel("Fluid Pressure [psi]")
+    
     plt.show()
