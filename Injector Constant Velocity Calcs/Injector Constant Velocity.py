@@ -70,10 +70,20 @@ for i in range(n_steps + 1):
 constant_velocity_array = np.transpose(np.array([area, area * c.M22IN2]))
 np.savetxt("injector_constant_velocity_area.csv", constant_velocity_array, delimiter=',', header="Area_m2, Area_in2")
 
-#plotting
 plt.figure()
-plt.plot(n_steps, area * c.M22IN2)
-plt.xlabel("Steps")
-plt.ylabel("Cross-Sectional Area (in^2)")
+plt.plot(steps, area)
+plt.xlabel("n_steps")
+plt.ylabel("Cross-Sectional Area (m²)")
+plt.title("Area vs n_steps (m²)")
 plt.grid(True)
 plt.show()
+
+plt.figure()
+plt.plot(steps, area * c.M22IN2)
+plt.xlabel("n_steps")
+plt.ylabel("Cross-Sectional Area (in²)")
+plt.title("Area vs n_steps (in²)")
+plt.grid(True)
+plt.show()
+
+print("Velocity in manifold (ft/s): ", velocity * c.M2FT)
