@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import sys
+import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -25,7 +26,7 @@ initial_area = a * b * np.pi #initial cross-sectional area (m^2)
 rho = c.DENSITY_IPA # fuel density (kg/m^3) of IPA
 mdot_0 = 1.91 * c.LBM2KG # mass flow rate entering the manifold (kg/s) #initial IPA Mass flow rate
 
-n_steps = 30 # number of angular steps around teh ring
+n_steps = 200 # number of angular steps around the ring
 
 mdot_half = mdot_0 / 2.0 # flow in each direction
 velocity = mdot_half / (rho * initial_area) #constant velocity in the manifold (m/s)
@@ -39,6 +40,7 @@ dmdot_dtheta = -mdot_half / np.pi
 theta = np.zeros(n_steps + 1)
 mdot  = np.zeros(n_steps + 1)
 area  = np.zeros(n_steps + 1)
+steps = np.zeros(n_steps + 1)
 
 #initial conditions
 theta[0] = 0.0
@@ -50,6 +52,9 @@ for i in range(n_steps):
     theta[i + 1] = theta[i] + dtheta
     mdot[i + 1]  = mdot[i] + dmdot_dtheta * dtheta
     area[i + 1] = mdot[i + 1] / (rho * velocity)
+    steps[i + 1] = i + 1
+    
+
 
 print("Step | theta (rad) | mdot (kg/s) | Area (m^2) | Area (in^2)")
 print("----------------------------------------------")
@@ -64,3 +69,21 @@ for i in range(n_steps + 1):
 
 constant_velocity_array = np.transpose(np.array([area, area * c.M22IN2]))
 np.savetxt("injector_constant_velocity_area.csv", constant_velocity_array, delimiter=',', header="Area_m2, Area_in2")
+
+plt.figure()
+plt.plot(steps, area)
+plt.xlabel("n_steps")
+plt.ylabel("Cross-Sectional Area (m²)")
+plt.title("Area vs n_steps (m²)")
+plt.grid(True)
+plt.show()
+
+plt.figure()
+plt.plot(steps, area * c.M22IN2)
+plt.xlabel("n_steps")
+plt.ylabel("Cross-Sectional Area (in²)")
+plt.title("Area vs n_steps (in²)")
+plt.grid(True)
+plt.show()
+
+print("Velocity in manifold (ft/s): ", velocity * c.M2FT)
