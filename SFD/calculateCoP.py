@@ -19,7 +19,7 @@ def getCoM():
                 return float(row["value"])*m_to_in
 
 def calculateCoP():
-    target_stability_caliber = 1.75
+    target_stability_caliber = 2
     diameter = getDiameter()
     center_of_gravity = getCoM()
 
