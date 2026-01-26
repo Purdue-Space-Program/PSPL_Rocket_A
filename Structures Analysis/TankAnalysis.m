@@ -13,10 +13,10 @@ shearLoadssfd = sfdData.shear_array / 4.448; % Shear loads converted to pounds
 momentLoadssfd = sfdData.bending_array * 8.85; % Moment loads converted to inch-pounds
 lengthLoadssfd = sfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
 
-rfdData = load('rfd_outputs_revcovery.mat');
-axialLoadsrfd = rfdData.axial_array / 4.448; % Axial loads converted to pounds
-shearLoadsrfd = rfdData.shear_array / 4.448; % Shear loads converted to pounds
-momentLoadsrfd = rfdData.bending_array * 8.85; % Moment loads conevrted to inch-pounds
+rfdData = load('rfd_outputs_recovery.mat');
+axialLoadsrfd = rfdData.axial_array_45_deg / 4.448; % Axial loads converted to pounds
+shearLoadsrfd = rfdData.shear_array_45_deg / 4.448; % Shear loads converted to pounds
+momentLoadsrfd = rfdData.bending_array_45_deg * 8.85; % Moment loads conevrted to inch-pounds
 lengthLoadsrfd = rfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
 
 cd(currentDirectory)
@@ -58,7 +58,7 @@ compressionLimit = material.yieldCompressionStrength * crossArea; % Compressive 
 tensionLimit = material.yieldTensionStrength * crossArea; % Tension limit
 eulerLimit = (pi ^ 2 * material.youngs / ((K * effectiveLength / radiusGyration) ^ 2)) * crossArea;
 
-%% Buckling Constants?
+%% Buckling Stolen Computations
 if wtRatio <= ((0.11 * material.youngs) / material.yieldCompressionStrength)
     area = crossArea;
     Fe = (pi^2 * material.youngs) / (slendernessRatio ^ 2);
