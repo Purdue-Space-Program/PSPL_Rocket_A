@@ -82,7 +82,7 @@ if vehicle_name == "Rocket_A":
     PRESS_GAS = "nitrogen"
     P_COPV = parameters.COPV_starting_pressure # [Pa] starting COPV pressure
     T_COPV = 300 # [K] starting COPV temperature (assumed)
-    GRAVITY = parameters.off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
+    GRAVITY = parameters.one_DoF_off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
     V_COPV = parameters.COPV_volume # [m^3] COPV volume
     # Tanks
     D_TANK = parameters.tank_outer_diameter # [m] tank outer diameter
