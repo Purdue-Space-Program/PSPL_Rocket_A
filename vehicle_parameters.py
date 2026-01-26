@@ -39,7 +39,7 @@ class VehicleParameters:
     
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
-    tank_pressure: float = 416.67 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
+    tank_pressure: float = 425 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
     tank_outer_diameter: float = tube_outer_diameter  # Outer diameter of both tanks of the rocket
     tank_inner_diameter: float = tube_inner_diameter  # Inner diameter of both tanks of the rocket
     tank_wall_thickness: float = (tube_outer_diameter - tube_inner_diameter)/2  # Inner diameter of both tanks of the rocket
@@ -65,9 +65,7 @@ class VehicleParameters:
     COPV_starting_pressure: float =  4300 * c.PSI2PA # [Pa]
 
     
-    
     # 1-DoF Results:
-
     one_DoF_off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     one_DoF_off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravities]
     one_DoF_off_the_rail_velocity: float = 27.64          # The target velocity of the rocket off the launch rail [meters/second]
@@ -140,7 +138,7 @@ def CalcTubeVolume(OD, ID, length):
 # all from CAD
 engine_length =         10.179 * c.IN2M
 injector_length =       0.475 * c.IN2M
-lower_length =          25 * c.IN2M
+lower_length =          20 * c.IN2M
 bulkhead_length =       1.22 * c.IN2M
 fuel_tank_length =      parameters.fuel_tank_length
 mid_length =            5 * c.IN2M
@@ -445,7 +443,7 @@ if __name__ == "__main__":
     # print(f"total oxidizer tank length: {oxidizer_tank.length + lower_oxidizer_bulkhead.length + upper_oxidizer_bulkhead.length:.2f} m\n")
 
 
-    print_components = True
+    print_components = False
     
     if print_components == True:
         for component in wet_mass_distribution.components:
@@ -470,7 +468,7 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    plt.show()
+    # plt.show()
     
 
     python_file_dir = Path(__file__).resolve().parent
