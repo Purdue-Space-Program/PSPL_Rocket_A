@@ -64,6 +64,8 @@ class VehicleParameters:
     COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
     COPV_starting_pressure: float =  4300 * c.PSI2PA # [Pa]
 
+    # fin parameters
+
     
     # 1-DoF Results:
     one_DoF_off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
@@ -220,7 +222,7 @@ recovery_bay_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_dia
 parachute_mass = 2.25 * c.LBM2KG  # [kg] https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-144-compact-chute-114lbs-20fps-64lbs-15fps
 recovery_bay_mass = recovery_bay_airframe_tube_mass + parachute_mass
 
-nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) # guess
+nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) + (5 * c.LBM2KG) # guess
 
 # structures = 15 * c.LBM2KG # structures ! funny
 
