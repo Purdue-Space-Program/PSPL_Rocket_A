@@ -38,17 +38,11 @@ bottomLocation = min(location);
 [~, locationRecovery(1)] = min(abs(lengthLoadsrfd - topLocation));
 [~, locationRecovery(2)] = min(abs(lengthLoadsrfd - bottomLocation));
 
-if radius == 0
-    netCompressionTakeoff = axialLoadssfd; 
-    netTensionTakeoff = axialLoadssfd; 
-    netCompressionRecovery = axialLoadsrfd; 
-    netTensionRecovery = axialLoadsrfd;
-else
+
 netCompressionTakeoff = axialLoadssfd + 2 .* momentLoadssfd ./ radius; 
 netTensionTakeoff = axialLoadssfd - 2 .* momentLoadssfd / radius; 
 netCompressionRecovery = axialLoadsrfd + 2 .* momentLoadsrfd ./ radius; 
 netTensionRecovery = axialLoadsrfd - 2 .* momentLoadsrfd / radius;
-end
 
 maxCompression = max([netCompressionTakeoff(locationTakeOff(1)), netCompressionRecovery(locationRecovery(1)), netCompressionTakeoff(locationTakeOff(2)), netCompressionRecovery(locationRecovery(2))]);
 maxTension = min([netTensionTakeoff(locationTakeOff(1)), netTensionRecovery(locationRecovery(1)), netTensionTakeoff(locationTakeOff(2)), netTensionRecovery(locationRecovery(2))]);
