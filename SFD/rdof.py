@@ -36,6 +36,9 @@ canopy_area = (14 * FT2M / 2)**2 * np.pi # [m^2]
 max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
 # ------------------------------------------------------------------------------
 
+# Calculate AOA_recovery
+
+
 # Mass Model
 def mass_model(rocket_dict, parachute_mass):
     '''
@@ -262,9 +265,10 @@ for angle in AOA_recovery_list:
     shear_array_i = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r_i, cg, angle)) # [N] Shear force array if rocket at angle at recovery
     bending_array_i = np.array(calcBending(shear_array_i, length_along_rocket_linspace)) # [N m] Bending moment array if rocket at angle at recovery
     axial_array_i = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, angle)) # [N] Axial forces array if rocket at angle at recovery
-    matlab_dict[f"axial_array_{int(angle * (180 / np.pi))}_deg"] = axial_array_i
-    matlab_dict[f"shear_array_{int(angle * (180 / np.pi))}_deg"] = shear_array_i
-    matlab_dict[f"bending_array_{int(angle * (180 / np.pi))}_deg"] = bending_array_i
+    matlab_dict[f"axial_array_recovery"] = axial_array_i
+    matlab_dict[f"shear_array_recovery"] = shear_array_i
+    matlab_dict[f"bending_array_recovery"] = bending_array_i
+    matlab_dict[f"AOA_recovery_deg"] = angle * (180 / np.pi)
     
     plot_def = [
         (shear_array_i, N2LBF, "Shear Force [lbf]", "Shear Forces"),

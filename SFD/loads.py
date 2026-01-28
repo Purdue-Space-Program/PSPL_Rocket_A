@@ -88,7 +88,7 @@ axial_array = np.array(sfd.calcAxial(thrust, ax, linear_density_array, length_al
 # ------------------------------------------------------------------------------
 
 # Converting to matlab file
-matlab_dict = {"axial_array": axial_array, "shear_array": shear_array, "bending_array": bending_array, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
+matlab_dict = {f"axial_array": axial_array, f"shear_array": shear_array, f"bending_array": bending_array, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
 if location == "max_q":
     savemat("sfd_outputs_max_q.mat", matlab_dict) # Save as .mat file for MATLAB
 elif location == "off_the_rail":
