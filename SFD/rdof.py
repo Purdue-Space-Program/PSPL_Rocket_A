@@ -26,7 +26,7 @@ recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]
 max_q_velocity = vehicle.parameters.six_DoF_max_velocity  # [m / s]
 AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_velocity) # [radians] # NEED
 # AOA_recovery = 0 # [radians] Assumed angle of attack at recovery
-AOA_recovery_list = [np.pi / 4] # [radians] List of angles of attack at recovery for plotting
+AOA_recovery_list = [np.pi / 6] # [radians] List of angles of attack at recovery for plotting
 wind_gust_speed = pw.percentile_75_wind_speed # [m/s]
 horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m / s] # NEED
 gravity = 9.81 # [m / s^2]
@@ -274,7 +274,7 @@ for angle in AOA_recovery_list:
 
     for data, scale, ylabel, base_title in plot_def:
         plot = data * scale
-        title = f"{base_title} at {angle * (180 / np.pi):.0f} deg"
+        title = f"{base_title} at {angle * (180 / np.pi):.0f} deg at recovery"
         plt.subplot(len(AOA_recovery_list), 3, plot_num)
         plt.plot(length_along_rocket_linspace * M2FT, plot)
         plt.title(title)
