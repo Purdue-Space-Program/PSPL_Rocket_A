@@ -6,7 +6,6 @@ function [maxCompression, maxTension] = NetAxialLoad(location, radius, graphStat
 % STRUTS. This function works for any point on the rocket.This function
 % returns the maximum force that could appear at that location according to
 % the latest running of the SFD and RFD. 
-%
 
 
 %% Importing SFD and RFD
@@ -21,9 +20,9 @@ momentLoadssfd = sfdData.bending_array * 8.85; % Moment loads converted to inch-
 lengthLoadssfd = sfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
 
 rfdData = load('rfd_outputs_recovery.mat');
-axialLoadsrfd = rfdData.axial_array_45_deg / 4.448; % Axial loads converted to pounds
-shearLoadsrfd = rfdData.shear_array_45_deg / 4.448; % Shear loads converted to pounds
-momentLoadsrfd = rfdData.bending_array_45_deg * 8.85; % Moment loads conevrted to inch-pounds
+axialLoadsrfd = rfdData.axial_array_29_deg / 4.448; % Axial loads converted to pounds
+shearLoadsrfd = rfdData.shear_array_29_deg / 4.448; % Shear loads converted to pounds
+momentLoadsrfd = rfdData.bending_array_29_deg * 8.85; % Moment loads conevrted to inch-pounds
 lengthLoadsrfd = rfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
 
 cd(currentDirectory)
@@ -61,6 +60,9 @@ if timeToGraph
     figure(1)
     subplot(1,3,1)
     plot(lengthLoadssfd, axialLoadssfd);
+    hold on;
+    plot([lengthLoadssfd(locationTakeOff(1)), lengthLoadssfd(locationTakeOff(2))], [axialLoadssfd(locationTakeOff(1)), axialLoadssfd(locationTakeOff(2))], '*r')
+    hold off;
     grid on;
     title('Axial Loads at Takeoff');
     xlabel('Length along Rocket (inches)');
@@ -68,6 +70,9 @@ if timeToGraph
 
     subplot(1,3,2)
     plot(lengthLoadssfd, shearLoadssfd);
+    hold on;
+    plot([lengthLoadssfd(locationTakeOff(1)), lengthLoadssfd(locationTakeOff(2))], [shearLoadssfd(locationTakeOff(1)), shearLoadssfd(locationTakeOff(2))], '*r')
+    hold off;
     grid on;
     title('Shear Loads at Takeoff');
     xlabel('Length along Rocket (inches)');
@@ -75,6 +80,9 @@ if timeToGraph
 
     subplot(1,3,3)
     plot(lengthLoadssfd, momentLoadssfd);
+    hold on;
+    plot([lengthLoadssfd(locationTakeOff(1)), lengthLoadssfd(locationTakeOff(2))], [momentLoadssfd(locationTakeOff(1)), momentLoadssfd(locationTakeOff(2))], '*r')
+    hold off;
     grid on;
     title('Moment Loads at Takeoff');
     xlabel('Length along Rocket (inches)');
@@ -84,6 +92,9 @@ if timeToGraph
     figure(2)
     subplot(1,3,1)
     plot(lengthLoadsrfd, axialLoadsrfd);
+    hold on;
+    plot([lengthLoadsrfd(locationRecovery(1)), lengthLoadsrfd(locationRecovery(2))], [axialLoadsrfd(locationTakeOff(1)), axialLoadsrfd(locationTakeOff(2))], '*r')
+    hold off;
     grid on;
     title('Axial Loads during Recovery');
     xlabel('Length along Rocket (inches)');
@@ -91,6 +102,9 @@ if timeToGraph
 
     subplot(1,3,2)
     plot(lengthLoadsrfd, shearLoadsrfd);
+    hold on;
+    plot([lengthLoadsrfd(locationRecovery(1)), lengthLoadsrfd(locationRecovery(2))], [shearLoadsrfd(locationTakeOff(1)), shearLoadsrfd(locationTakeOff(2))], '*r')
+    hold off;
     grid on;
     title('Shear Loads at Recovery');
     xlabel('Length along Rocket (inches)');
@@ -98,6 +112,9 @@ if timeToGraph
 
     subplot(1,3,3)
     plot(lengthLoadsrfd, momentLoadsrfd);
+    hold on;
+    plot([lengthLoadsrfd(locationRecovery(1)), lengthLoadsrfd(locationRecovery(2))], [momentLoadsrfd(locationTakeOff(1)), momentLoadsrfd(locationTakeOff(2))], '*r')
+    hold off;
     grid on;
     title('Moment Loads at Recovery');
     xlabel('Length along Rocket (inches)');
