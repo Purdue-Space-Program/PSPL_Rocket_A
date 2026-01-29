@@ -202,7 +202,7 @@ plt.show()
 ########### Film cooling orifices sizing ##########
 
 C_D_film = 0.6
-m_dot_ideal_film = 0.25 * m_dot_ipa / 0.75
+m_dot_ideal_film = 0.15 * m_dot_ipa / 0.85
 #print(m_dot_ideal_film)
 total_target_area_orifice_film = CalculateAreaFromMassFlowRate(m_dot_ideal_film, C_D_film, rho_ipa, desired_pressure_drop)
 N_film_max = 100
