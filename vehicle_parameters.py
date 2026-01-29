@@ -15,10 +15,15 @@ import sys
 from datetime import datetime
 
 import constants as c
-from dataclasses import fields, is_dataclass
 
 @dataclass
 class VehicleParameters:
+
+    # Structural Parameters
+    yield_FOS: float = 1.5
+    ultimate_FOS: float = 2.0
+    proof_factor: float = 1.5
+
 
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 
