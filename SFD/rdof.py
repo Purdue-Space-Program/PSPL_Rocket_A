@@ -26,7 +26,6 @@ recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]
 max_q_velocity = vehicle.parameters.six_DoF_max_velocity  # [m / s]
 AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_velocity) # [radians] # NEED
 # AOA_recovery = 0 # [radians] Assumed angle of attack at recovery
-AOA_recovery_list = [np.pi / 6] # [radians] List of angles of attack at recovery for plotting
 wind_gust_speed = pw.percentile_75_wind_speed # [m/s]
 horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m / s] # NEED
 gravity = 9.81 # [m / s^2]
@@ -37,7 +36,14 @@ max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
 # ------------------------------------------------------------------------------
 
 # Calculate AOA_recovery
-
+AOA_start = np.pi / 2 # [radians] Starting angle of attack at apogee, assume 90 degrees (fully horizontal)
+time_before_deployment = 2 # [s] Time from apogee to parachute deployment
+vertical_velocity_deploy = gravity * time_before_deployment # [m / s] Vertical velocity at parachute deployment
+velocity_deploy = np.sqrt(vertical_velocity_deploy**2 + (horizontal_velocity + wind_gust_speed)**2) # [m / s] Total relative velocity at parachute deployment
+angle_rocket_parachute_deploy = np.arctan(vertical_velocity_deploy / (horizontal_velocity + wind_gust_speed)) # [radians] Angle of rocket vs parachute velocity vector at parachute deployment
+AOA_recovery = np.pi / 2 - angle_rocket_parachute_deploy # [radians] Angle of attack at parachute deployment
+AOA_recovery_list = [0] # [radians] List of angles of attack at recovery for plotting
+# ------------------------------------------------------------------------------
 
 # Mass Model
 def mass_model(rocket_dict, parachute_mass):
@@ -210,7 +216,7 @@ def calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, an
 
 # Calculations
 terminal_velocity = calcTerminalVelocity(total_mass, gravity, drag_coefficent, air_density, canopy_area) # [m/s] solving for velocity setting weight and Drag equal
-drag_force = calcDragForce(drag_coefficent, air_density, horizontal_velocity + wind_gust_speed, canopy_area) # [N]
+drag_force = calcDragForce(drag_coefficent, air_density, velocity_deploy, canopy_area) # [N]
 descent_time = max_height/terminal_velocity # [s]
 
 cg = calcCG(linear_density_array, length_along_rocket_linspace) # [m] Center of gravity
@@ -240,10 +246,13 @@ print("-----------------------------------")
 
 print("Inputs:")
 print(f"Angle of attack from max_q: {AOA_max_q * (180 / np.pi):.2f} degrees")
+print(f"Angle of attack at recovery: {AOA_recovery * (180 / np.pi):.2f} degrees")
+print(f"Angle of rocket vs parachute velocity vector at recovery: {angle_rocket_parachute_deploy * (180 / np.pi):.2f} degrees")
 print(f"Drag force: {drag_force:.2f} N")
 print(f"Wind gust at recovery: {wind_gust_speed:.2f} m/s")
 print(f"Horizontal velocity at recovery: {horizontal_velocity:.2f} m/s")
-print(f"Total velocity used for drag force at recovery: {(horizontal_velocity + wind_gust_speed):.2f} m/s")
+print(f"Vertical velocity at recovery: {vertical_velocity_deploy:.2f} m/s")
+print(f"Total velocity used for drag force at recovery: {velocity_deploy:.2f} m/s")
 print(f"Air density at apogee: {air_density:.2f} kg/m^3")
 print(f"Canopy area: {canopy_area:.2f} m^2")
 print(f"Drag coefficient at recovery: {drag_coefficent:.2f}")
