@@ -6,6 +6,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import vehicle_parameters as vehicle
+import constants as c
 from scipy.io import savemat
 import parseWind as pw
 # ------------------------------------------------------------------------------
@@ -15,7 +16,6 @@ LB2KG = 0.453592 # Pounds to Kilograms
 FT2M = 0.3048 # Feet to Meters
 IN2M = 0.0254 # Inches to Meters
 N2LBF = 0.224809 # Newtons to Pounds force
-M2FT = 3.28084 # Meters to Feet
 gravity = 9.81 # [m / s^2]
 # ------------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ elif location == "off_the_rail":
 # Outputs
 print(f"Outputs at {location}:")
 print(f"Max shear force at {location}: {max(shear_array) * N2LBF:.2f} lbf")
-print(f"Max bending moment at {location}: {max(bending_array) * N2LBF * M2FT:.2f} lbf-ft")
+print(f"Max bending moment at {location}: {max(bending_array) * N2LBF * c.M2FT:.2f} lbf-ft")
 print(f"Max axial force at {location}: {max(axial_array) * N2LBF:.2f} lbf")
 print("-----------------------------------")
 
@@ -139,7 +139,7 @@ for variable in ["shear_array", "bending_array", "axial_array"]:
         ylabel = "Shear Force [lbf]"
         title = f"Shear Forces at {location}"
     if variable == "bending_array":
-        plot = bending_array * N2LBF * M2FT
+        plot = bending_array * N2LBF * c.M2FT
         ylabel = "Bending Moment [lbf-ft]"
         title = f"Bending Moments at {location}"
     if variable == "axial_array":
@@ -147,7 +147,7 @@ for variable in ["shear_array", "bending_array", "axial_array"]:
         ylabel = "Axial Force [lbf]"
         title = f"Axial Forces at {location}"
     plt.subplot(1,3, plot_num)
-    plt.plot(length_along_rocket_linspace * M2FT, plot)
+    plt.plot(length_along_rocket_linspace * c.M2FT, plot)
     plt.title(title)
     plt.xlabel("Length from aft [ft]")
     plt.ylabel(ylabel)

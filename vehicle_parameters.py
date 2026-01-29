@@ -466,14 +466,19 @@ Six_DoF_csv_file_path = (
 Six_DoF_csv_file_path.parent.mkdir(parents=True, exist_ok=True)
 
 # also output here for record keeping
-PSPL_ROCKET_A_records_file_path = Path("vehicle_parameters_records")
+PSPL_ROCKET_A_records_file_path = git_root / Path("vehicle_parameters_records")
 PSPL_ROCKET_A_records_file_path.mkdir(exist_ok=True)
 
 timestamp_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 PSPL_ROCKET_A_new_record_file_path = PSPL_ROCKET_A_records_file_path / f"vehicle_parameters_{timestamp_string}.csv"
 
 
-for export_file_path in [Six_DoF_csv_file_path, PSPL_ROCKET_A_new_record_file_path]:
+export_path_list = [PSPL_ROCKET_A_new_record_file_path]
+
+if __name__ == "__main__":
+    export_path_list.append(Six_DoF_csv_file_path)
+
+for export_file_path in export_path_list:
     with open(export_file_path, "w", newline="") as csv_file_handle:
         
         # fuck epoch
@@ -490,7 +495,7 @@ for export_file_path in [Six_DoF_csv_file_path, PSPL_ROCKET_A_new_record_file_pa
             csv_writer_handle.writerow([field_object.name, getattr(parameters, field_object.name)])
         
         print(f"Vehicle Parameters CSV Exported to {export_file_path} ✅")
-
+print("")
 
 if __name__ == "__main__":
     
