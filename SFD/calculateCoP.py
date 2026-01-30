@@ -11,22 +11,29 @@ m_to_in = 39.3701
 def getDiameter():
     return v.propellant_tank_outer_diameter*m_to_in
 
-def getCoM():
-    with open('vehicle_parameters.csv', mode = 'r') as file:
+def getwetCoM():
+    with open('vehicle_parameters_records/vehicle_parameters_2026-01-30_16-50-01.csv', mode = 'r') as file:
         reader = c.DictReader(file)
         for row in reader:
             if(row["parameter_name"] == "wet_COM_location_from_top"):
                 return float(row["value"])*m_to_in
+            
+def getdryCoM():
+    with open('vehicle_parameters_records/vehicle_parameters_2026-01-30_16-50-01.csv', mode = 'r') as file:
+        reader = c.DictReader(file)
+        for row in reader:
+            if(row["parameter_name"] == "dry_COM_location_from_top"):
+                return float(row["value"])*m_to_in
 
-def calculateCoP():
-    target_stability_caliber = 2
-    diameter = getDiameter()
-    center_of_gravity = getCoM()
-
-    return ((target_stability_caliber)*(diameter))+center_of_gravity
+def calculateCoP(target_cal, CoM, diameter):
+    return ((target_cal)*(diameter))+CoM
 
 def main():
-    center_of_pressure = calculateCoP()
-    print(center_of_pressure)
+    target_stability_caliber = 2.0
+    center_of_pressure_wet= calculateCoP(target_stability_caliber, getwetCoM(), getDiameter())
+    center_of_pressure_dry= calculateCoP(target_stability_caliber, getdryCoM(), getDiameter())
+
+    print(center_of_pressure_wet)
+    print(center_of_pressure_dry)
 
 main()
