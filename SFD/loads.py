@@ -53,10 +53,10 @@ total_mass = np.sum(linear_density_array * (length_along_rocket_linspace[1] - le
 dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]  # [m]
 
 # Fins
-root_chord = 11 * c.IN2M # [m]
-tip_chord = 2 * c.IN2M # [m]
-sweep_length = (11 - 2) * c.IN2M # [m]
-fin_height = 8 * c.IN2M # [m]
+root_chord = 16 * c.IN2M # [m]
+tip_chord = 6 * c.IN2M # [m]
+sweep_length = (16 - 6) * c.IN2M # [m]
+fin_height = 7.25 * c.IN2M # [m]
 numFins = 3 # [m]
 fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft # [m]
 noseconeToFin = total_length - fin_top # [m]

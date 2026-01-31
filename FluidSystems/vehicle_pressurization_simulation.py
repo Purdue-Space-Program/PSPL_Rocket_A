@@ -88,10 +88,10 @@ if vehicle_name == "Rocket_A":
     D_TANK = parameters.tank_outer_diameter # [m] tank outer diameter
     T_TANK = parameters.tank_wall_thickness # [m] tank wall thickness
     RHO_TANK = c.DENSITY_AL # [kg/m^3] tank material density (aluminum)
-    M_BULKHEAD = 1.5 * c.LBM2KG # [kg] bulkhead mass (single bulkhead)
+    M_BULKHEAD = 1.971 * c.LBM2KG # [kg] bulkhead mass (single bulkhead) # vehicle_parameters
     CP_TANK = 500 # [J/kgK] tank material specific heat
-    D_PRESS_LINE = (3/8) * c.IN2M # [m] fuel tank pressurization line outer diameter
-    T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
+    D_PRESS_LINE = (3/8) * c.IN2M # [m] fuel tank pressurization line outer diameter # vehicle_parameters
+    T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness # vehicle_parameters
     P_TANK = parameters.tank_pressure
     
     # Oxidizer
@@ -106,7 +106,7 @@ if vehicle_name == "Rocket_A":
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
-    ULLAGE_OX = 10 / 100 # [] oxidizer tank volume ullage fraction
+    ULLAGE_OX = 10 / 100 # [] oxidizer tank volume ullage fraction # vehicle_parameters
     RESIDUAL_OX = 10 / 100 # [] oxidizer tank volume residual fraction
     # note: drain time is based on oxidizer residuals since that's what we'll be sensing
     
