@@ -24,7 +24,6 @@ class VehicleParameters:
     ultimate_FOS: float = 2.0
     proof_factor: float = 1.5
 
-
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 
     oxidizer_name: str = "liquid oxygen"
@@ -100,7 +99,6 @@ class VehicleParameters:
     # six_DoF_total_impulse: float = ?                   # The total impulse of the rocket over the duration of flight [newton seconds]
     
     six_DoF_estimated_apogee: float = 747.60       # The estimated 6-DoF altitude [meters]
-
     
     # later-calculated values that need to be here so it can still be added for a frozen data class
     wet_mass: float = np.nan
