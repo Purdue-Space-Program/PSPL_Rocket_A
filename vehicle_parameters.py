@@ -568,5 +568,5 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    plt.show()
+    # plt.show()
     

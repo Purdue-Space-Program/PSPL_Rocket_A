@@ -1,22 +1,17 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import parseWind as pw
+from scipy.io import savemat
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import vehicle_parameters as vehicle
+import constants as c
+
 import sfd as sfd
 import loads as loads # This will cause plots of loads.py to show up when rdof.py is run
-import parseWind as pw
-from scipy.io import savemat
-# ------------------------------------------------------------------------------
-
-# Constants
-LBF2N = 4.44822  # Pounds force to Newtons
-FT2M = 0.3048  # Feet to Meters
-N2LBF = 0.224809 # Newtons to Pounds force
-M2FT = 3.28084 # Meters to Feet
 # ------------------------------------------------------------------------------
 
 # Input Parameters 
@@ -31,7 +26,7 @@ horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m / s] # NEED
 gravity = 9.81 # [m / s^2]
 air_density = 1.225 # [kg / m^3]
 drag_coefficient = 2.2 # [-]
-canopy_area = ((14 * FT2M) / 2)**2 * np.pi # [m^2]
+canopy_area = ((14 * c.FT2M) / 2)**2 * np.pi # [m^2]
 max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
 # ------------------------------------------------------------------------------
 
@@ -42,7 +37,7 @@ vertical_velocity_deploy = gravity * time_before_deployment # [m / s] Vertical v
 velocity_deploy = np.sqrt(vertical_velocity_deploy**2 + (horizontal_velocity + wind_gust_speed)**2) # [m / s] Total relative velocity at parachute deployment
 angle_rocket_parachute_deploy = np.arctan(vertical_velocity_deploy / (horizontal_velocity + wind_gust_speed)) # [radians] Angle of rocket vs parachute velocity vector at parachute deployment
 AOA_recovery = np.pi / 2 - angle_rocket_parachute_deploy # [radians] Angle of attack at parachute deployment
-AOA_recovery_list = [0] # [radians] List of angles of attack at recovery for plotting
+AOA_recovery_list = [0, (np.pi)/2] # [radians] List of angles of attack at recovery for plotting
 # ------------------------------------------------------------------------------
 
 # Mass Model
@@ -246,9 +241,9 @@ worst_axial_array = np.array(calcAxial(drag_force, linear_density_array, length_
 
 # Print outputs
 print("Outputs at recovery:")
-print(f"Worst axial force at recovery (90 degrees): {max(worst_axial_array) * N2LBF:.2f} lbf")
-print(f"Worst shear force at recovery (0 degrees): {max(worst_shear_array) * N2LBF:.2f} lbf")
-print(f"Worst bending moment at recovery (0 degrees): {max(worst_bending_array) * N2LBF * M2FT:.2f} lbf-ft")
+print(f"Worst axial force at recovery (90 degrees): {max(worst_axial_array) * c.N2LBF:.2f} lbf")
+print(f"Worst shear force at recovery (0 degrees): {max(worst_shear_array) * c.N2LBF:.2f} lbf")
+print(f"Worst bending moment at recovery (0 degrees): {max(worst_bending_array) * c.N2LBF * c.M2FT:.2f} lbf-ft")
 print("-----------------------------------")
 
 print("Inputs:")
@@ -287,19 +282,22 @@ for angle in AOA_recovery_list:
     matlab_dict[f"AOA_recovery_deg"] = angle * (180 / np.pi)
     
     plot_def = [
-        (shear_array_i, N2LBF, "Shear Force [lbf]", "Shear Forces"),
-        (bending_array_i, N2LBF * M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
-        (axial_array_i, N2LBF, "Axial Force [lbf]", "Axial Forces")
+        (shear_array_i, c.N2LBF, "Shear Force [lbf]", "Shear Forces"),
+        (bending_array_i, c.N2LBF * c.M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
+        (axial_array_i, c.N2LBF, "Axial Force [lbf]", "Axial Forces")
     ]
 
     for data, scale, ylabel, base_title in plot_def:
         plot = data * scale
         title = f"{base_title} at {angle * (180 / np.pi):.0f} deg at recovery"
         plt.subplot(len(AOA_recovery_list), 3, plot_num)
-        plt.plot(length_along_rocket_linspace * M2FT, plot)
+        plt.plot(length_along_rocket_linspace * c.M2FT, plot)
         plt.title(title)
         plt.xlabel("Length from aft [ft]")
         plt.ylabel(ylabel)
+        
+        plt.ylim(top = 1.2 * max(max(plot), 100), bottom = min(-abs(min(plot)) * 1.2, -100)) # to show low values when values are like 10^-13 
+        
         plt.grid()
         plot_num += 1
 matlab_dict["length_along_rocket_linspace"] = length_along_rocket_linspace
