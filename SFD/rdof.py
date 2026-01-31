@@ -29,9 +29,9 @@ AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_ve
 wind_gust_speed = pw.percentile_75_wind_gust_speed # [m/s]
 horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m / s] # NEED
 gravity = 9.81 # [m / s^2]
-air_density = 1.81 # [kg / m^3] at apogee # NEED
-drag_coefficent = 2.2 # []
-canopy_area = (14 * FT2M / 2)**2 * np.pi # [m^2]
+air_density = 1.225 # [kg / m^3]
+drag_coefficient = 2.2 # [-]
+canopy_area = ((14 * FT2M) / 2)**2 * np.pi # [m^2]
 max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
 # ------------------------------------------------------------------------------
 
@@ -126,6 +126,13 @@ def calcDragForce(cd, rho, velocity, area):
     drag_force: Parachute drag force [N]
     '''
     drag_force = 0.5 * cd * rho * (velocity ** 2) * area
+
+    print("*********************")
+    print(f"cd: {cd:.2f}")
+    print(f"rho: {rho:.2f}")
+    print(f"velocity: {velocity:.2f}")
+    print(f"area: {area:.2f}")
+
     return drag_force
 
 # Calculate terminal velocity
@@ -215,8 +222,8 @@ def calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, an
 # ------------------------------------------------------------------------------
 
 # Calculations
-terminal_velocity = calcTerminalVelocity(total_mass, gravity, drag_coefficent, air_density, canopy_area) # [m/s] solving for velocity setting weight and Drag equal
-drag_force = calcDragForce(drag_coefficent, air_density, velocity_deploy, canopy_area) # [N]
+terminal_velocity = calcTerminalVelocity(total_mass, gravity, drag_coefficient, air_density, canopy_area) # [m/s] solving for velocity setting weight and Drag equal
+drag_force = calcDragForce(drag_coefficient, air_density, velocity_deploy, canopy_area) # [N]
 descent_time = max_height/terminal_velocity # [s]
 
 cg = calcCG(linear_density_array, length_along_rocket_linspace) # [m] Center of gravity
@@ -255,7 +262,7 @@ print(f"Vertical velocity at recovery: {vertical_velocity_deploy:.2f} m/s")
 print(f"Total velocity used for drag force at recovery: {velocity_deploy:.2f} m/s")
 print(f"Air density at apogee: {air_density:.2f} kg/m^3")
 print(f"Canopy area: {canopy_area:.2f} m^2")
-print(f"Drag coefficient at recovery: {drag_coefficent:.2f}")
+print(f"Drag coefficient at recovery: {drag_coefficient:.2f}")
 print(f"Rocket mass at recovery: {total_mass:.2f} kg")
 print("-----------------------------------")
 

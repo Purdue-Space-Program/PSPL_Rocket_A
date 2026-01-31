@@ -17,7 +17,7 @@ gravity = 9.81 # [m / s^2]
 
 # Select location to analyze
 location = "max_q" # Change to "max_q" or "off_the_rail"
-plot_on = False # Set to True to plot results, False to not plot
+plot_on = True # Set to True to plot results, False to not plot
 # ------------------------------------------------------------------------------
 
 # Inputs
