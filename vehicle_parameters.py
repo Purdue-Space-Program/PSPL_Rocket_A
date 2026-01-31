@@ -434,16 +434,17 @@ else:
     if selected_path is None:
         selected_path = Path.cwd().resolve()
 
+repository_root_path = Path(
+    subprocess.check_output(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=selected_path.parent,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    ).strip()
+).resolve()
+
 try:
-    git_root = Path(
-        subprocess.check_output(
-            ["git", "rev-parse", "--show-toplevel"],
-            cwd=selected_path.parent,
-            stderr=subprocess.DEVNULL,
-            text=True,
-        ).strip()
-    ).resolve()
-    caller_file_path = Path(selected_path.relative_to(git_root).as_posix())
+    caller_file_path = Path(selected_path.relative_to(repository_root_path).as_posix())
 except Exception:
     caller_file_path = Path(selected_path.as_posix())
 
@@ -452,13 +453,13 @@ except Exception:
 python_file_dir = Path(__file__).resolve().parent
 
 # also output here for record keeping
-PSPL_ROCKET_A_records_file_path = git_root / Path("vehicle_parameters_records")
+PSPL_ROCKET_A_records_file_path = repository_root_path / Path("vehicle_parameters_records")
 PSPL_ROCKET_A_records_file_path.mkdir(exist_ok=True)
 
 timestamp_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 PSPL_ROCKET_A_new_record_file_path = PSPL_ROCKET_A_records_file_path / f"vehicle_parameters_{timestamp_string}.csv"
 
-PSPL_ROCKET_A = git_root / f"vehicle_parameters.csv"
+PSPL_ROCKET_A = repository_root_path / f"vehicle_parameters.csv"
 
 export_path_list = [PSPL_ROCKET_A, PSPL_ROCKET_A_new_record_file_path]
 
