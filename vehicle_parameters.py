@@ -525,7 +525,6 @@ if __name__ == "__main__":
     print(f"\nWet CoM location distance from top:    {parameters.wet_COM_location_from_top * c.M2IN:.2f} in, {parameters.wet_COM_location_from_top:.3f} m")
     print(f"Dry CoM location distance from top:    {parameters.dry_COM_location_from_top * c.M2IN:.2f} in, {parameters.dry_COM_location_from_top:.3f} m")
     
-    
     plt.plot(length_along_rocket_linspace * c.M2FT, (wet_linear_density_array * (c.KG2LBM / c.M2FT)))
     plt.vlines(parameters.wet_COM_location_from_bottom * c.M2FT, min(wet_linear_density_array * (c.KG2LBM / c.M2FT)), max(wet_linear_density_array * (c.KG2LBM / c.M2FT)), color="red", linestyles="dotted", label="Center of Gravity")
     plt.legend()
@@ -533,7 +532,7 @@ if __name__ == "__main__":
     plt.xlabel("Length from Bottom [feet]")
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(1))
     
-    plt.ylabel("Wet Mass Density [lbs/feet]")
+    plt.ylabel("Wet Mass Density [lbs/feet^3]")
     plt.title("Rocket Wet Mass Distribution")
         
     # print(f"Fuel mass: {parameters.fuel_total_mass:.2f} kg")
@@ -569,6 +568,5 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    # plt.show()
+    plt.show()
     
-
