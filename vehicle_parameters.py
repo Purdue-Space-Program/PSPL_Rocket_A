@@ -230,7 +230,9 @@ recovery_bay_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_dia
 parachute_mass = 2.25 * c.LBM2KG  # [kg] https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-144-compact-chute-114lbs-20fps-64lbs-15fps
 recovery_bay_mass = recovery_bay_airframe_tube_mass + parachute_mass
 
-nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) + (5 * c.LBM2KG) # guess
+tungsten_cube = 10 * c.LBM2KG
+
+nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) + tungsten_cube
 
 # structures = 15 * c.LBM2KG # structures ! funny
 
@@ -416,8 +418,6 @@ parameters.freeze()
 
 
 
-
-
 # for recording what file accesed this script
 main_module = sys.modules.get("__main__")
 if getattr(main_module, "__file__", None):
@@ -449,24 +449,7 @@ except Exception:
 
 # print(f"caller path: {caller_file_path}")
 
-
-
-
 python_file_dir = Path(__file__).resolve().parent
-
-Six_DoF_csv_file_path = (
-    python_file_dir
-    / ".."          # one directory up from PSPL_Rocket_A
-    / "PSPL-6DOF"
-    / "TheSixDoF"
-    / "Inputs"
-    / "Saved Rockets"
-    / "FUCK_MATLAB"
-    / "vehicle_parameters.csv"
-).resolve()
-
-# write to CSV for 6DOF to read since 6DOF is in matlabese
-Six_DoF_csv_file_path.parent.mkdir(parents=True, exist_ok=True)
 
 # also output here for record keeping
 PSPL_ROCKET_A_records_file_path = git_root / Path("vehicle_parameters_records")
@@ -475,11 +458,34 @@ PSPL_ROCKET_A_records_file_path.mkdir(exist_ok=True)
 timestamp_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 PSPL_ROCKET_A_new_record_file_path = PSPL_ROCKET_A_records_file_path / f"vehicle_parameters_{timestamp_string}.csv"
 
+PSPL_ROCKET_A = git_root / f"vehicle_parameters.csv"
 
-export_path_list = [PSPL_ROCKET_A_new_record_file_path]
+export_path_list = [PSPL_ROCKET_A, PSPL_ROCKET_A_new_record_file_path]
 
-if __name__ == "__main__":
+try:
+    Six_DoF_csv_file_path = (
+        python_file_dir
+        / ".."          # one directory up from PSPL_Rocket_A
+        / "PSPL-6DOF"
+        / "TheSixDoF"
+        / "Inputs"
+        / "Saved Rockets"
+        / "FUCK_MATLAB"
+        / "vehicle_parameters.csv"
+    ).resolve()
+
+    # write to CSV for 6DOF to read since 6DOF is in matlabese
+    Six_DoF_csv_file_path.parent.mkdir(parents=True, exist_ok=True)
     export_path_list.append(Six_DoF_csv_file_path)
+except:
+    pass
+
+# try:
+#     # this fails when matlab runs it
+#     if __name__ == "__main__":
+# except:
+#     print("Vehicle Parameters CSV Exported failed, skipping...")
+    
 
 for export_file_path in export_path_list:
     with open(export_file_path, "w", newline="") as csv_file_handle:
@@ -497,8 +503,9 @@ for export_file_path in export_path_list:
                 continue
             csv_writer_handle.writerow([field_object.name, getattr(parameters, field_object.name)])
         
-        print(f"Vehicle Parameters CSV Exported to {export_file_path} ✅")
-print("")
+        # print(f"Vehicle Parameters CSV Exported to {export_file_path}")
+# print("")
+
 
 if __name__ == "__main__":
     
