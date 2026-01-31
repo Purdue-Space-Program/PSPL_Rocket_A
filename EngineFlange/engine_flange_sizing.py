@@ -78,7 +78,7 @@ if __name__ == "__main__":
         tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
         tensile_force_from_outer_o_ring = tensile_from_o_ring(5.44301,70)
         tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.44302,70)
-        tensile_force_from_film_o_ring = 0 #tensile_from_o_ring(3.984,70)
+        tensile_force_from_film_o_ring = tensile_from_o_ring(3.859,90)
         tensile_force_from_manifold_o_ring = 0 #tensile_from_o_ring(3.512,70)
 
     elif chamber_input_values == "CMS":
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     print(f"MOS_plates: {MOS_plates:.2f}")
 
     tensile_force_from_chamber_pintle = tensile_from_chamber(.98,500)
-    tensile_force_from_pintle_o_ring = tensile_from_o_ring(1.25,70)
+    tensile_force_from_pintle_o_ring = tensile_from_o_ring(.762,90)
 
     flange_diameter = diameter(ED_ratio, bolt_major_diameter_plates, nut_diameter_plates, chamber_diameter, chamber_wall_thickness)
     print(f"flange_diameter: {flange_diameter:.2f}")

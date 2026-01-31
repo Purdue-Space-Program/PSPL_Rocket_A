@@ -1,4 +1,9 @@
+# Accessed: 2026-01-31_18-43-53 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed by: vehicle_parameters.py
 parameter_name,value
+yield_FOS,1.5
+ultimate_FOS,2.0
+proof_factor,1.5
 fuel_name,isopropyl alcohol
 oxidizer_name,liquid oxygen
 tube_outer_diameter,0.15239999999999998
@@ -48,10 +53,10 @@ six_DoF_off_the_rail_velocity,28.7
 six_DoF_max_mach,0.368
 six_DoF_max_velocity,126.224
 six_DoF_estimated_apogee,747.6
-wet_mass,33.225730833847
-dry_mass,29.604343024247004
+wet_mass,35.493690833847005
+dry_mass,31.872303024247007
 total_length,2.9233876
-dry_COM_location_from_bottom,1.0352016193602984
-dry_COM_location_from_top,1.8881859806397014
-wet_COM_location_from_bottom,1.0365210969413028
-wet_COM_location_from_top,1.886866503058697
+dry_COM_location_from_bottom,1.1553211098912488
+dry_COM_location_from_top,1.768066490108751
+wet_COM_location_from_bottom,1.1444105829658153
+wet_COM_location_from_top,1.7789770170341845
