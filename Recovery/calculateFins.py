@@ -13,8 +13,12 @@ def calculateCenterOfPressure(target_cal, center_of_mass, diameter):
 def calculateTaperRatio(tip_chord, root_chord):
     return tip_chord/root_chord
 
-def calculateCriticalMachNumber(shear_modulus, aspect_ratio, fin_thickness, c, C, pressure, taper_ratio,):
-    num = 2 * shear_modulus * (aspect_ratio + 2) * (fin_thickness/fin_thickness) * (fin_thickness/fin_thickness) * (fin_thickness/fin_thickness)
+def calculateAspectRatio(tip_chord, root_chord, span):
+    wing_area = (tip_chord*span) + (0.5*(root_chord-tip_chord)*span)
+    return (span*span)/wing_area
+
+def calculateCriticalMachNumber(shear_modulus, aspect_ratio, fin_thickness, root_chord, C, pressure, taper_ratio,):
+    num = 2 * shear_modulus * (aspect_ratio + 2) * (fin_thickness/root_chord) * (fin_thickness/root_chord) * (fin_thickness/root_chord)
     dem = C * aspect_ratio * aspect_ratio * aspect_ratio * pressure * (taper_ratio + 1)
     return np.sqrt(num/dem) 
 
@@ -25,5 +29,20 @@ def main():
 
     print(f"wet_target_center_of_pressure_from_top: {wet_target_center_of_pressure_from_top * c.M2IN:.2f} inches from top")
     print(f"dry_target_center_of_pressure_from_top: {dry_target_center_of_pressure_from_top * c.M2IN:.2f} inches from top")
+
+    shear_modulus = 3770000
+    fin_thickness = 0.1875
+    coefficient = 1.337
+    pressure = 14.6959 #13.66
+
+    tip_chord = 6
+    root_chord = 16 
+    span = 7.6
+    taper_ratio = calculateTaperRatio(tip_chord, root_chord)
+    aspect_ratio = calculateAspectRatio(tip_chord, root_chord, span)
+
+    critical_mach = calculateCriticalMachNumber(shear_modulus, aspect_ratio, fin_thickness, root_chord, coefficient, pressure, taper_ratio)
+    print(f"critical_mach: {critical_mach} M")
+
 
 main()
