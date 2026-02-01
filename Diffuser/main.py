@@ -12,7 +12,10 @@ g = GRAVITY
 n2_temperature = 0 # [K] Temperature of N2 at diffuser exit???
 n2_mdot = 0 # [kg/s]
 ullage_pressure = v.parameters.tank_pressure # [Pa] Diffuser exit pressure of N2 / Ullage Pressure
-
+temperature_wall = 0
+dTemp = abs(temperature_wall-n2_temperature)
+tank_height = v.parameters.fuel_tank_length # [m]
+tank_diameter = v.parameters.tank_inner_diameter # [m]
 
 ##### INPUT PARAMETERS #####
 desired_velocity = 1 # [m/s]
@@ -35,9 +38,10 @@ def check_choked(desired_velocity, n2_temperature, ullage_pressure):
 
 if __name__ == "__main__":
     
+    if tank_height >= tank_diameter:
     
 
-
+    charLength = 0
 
     M = check_choked(desired_velocity, n2_temperature, ullage_pressure)
     if M >=1:

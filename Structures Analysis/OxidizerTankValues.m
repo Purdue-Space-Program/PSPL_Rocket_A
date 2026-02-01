@@ -13,7 +13,7 @@ classdef OxidizerTankValues
         axialLoad % Axials load (lbf)
         torqueLoad % Moment load (lb-in)
         netLoad % Net load on strut (lbf)
-        material = AluminumMaterialProperities % Material of the
+        material = Aluminum6061T6MaterialProperities % Material of the
         mass % Mass of the strut
         safetyAllowance % Amount of safety factor
     end

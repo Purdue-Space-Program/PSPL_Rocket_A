@@ -1,4 +1,9 @@
+# Accessed: 2026-02-01_11-58-09 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed by: vehicle_parameters.py
 parameter_name,value
+yield_FOS,1.5
+ultimate_FOS,2.0
+proof_factor,1.5
 fuel_name,isopropyl alcohol
 oxidizer_name,liquid oxygen
 tube_outer_diameter,0.15239999999999998
@@ -16,7 +21,7 @@ exit_pressure,103421.40000000001
 chamber_outer_diameter,0.15239999999999998
 chamber_inner_diameter,0.12446
 chamber_throat_diameter,0.0470408
-tank_pressure,2872839.6492000003
+tank_pressure,2930273.0
 tank_outer_diameter,0.15239999999999998
 tank_inner_diameter,0.14604999999999999
 tank_wall_thickness,0.0031749999999999973
@@ -48,10 +53,10 @@ six_DoF_off_the_rail_velocity,28.7
 six_DoF_max_mach,0.368
 six_DoF_max_velocity,126.224
 six_DoF_estimated_apogee,747.6
-wet_mass,31.040892831255288
-dry_mass,27.41950502165529
-total_length,3.0503875999999996
-dry_COM_location_from_bottom,0.974259679891995
-dry_COM_location_from_top,2.0761279201080045
-wet_COM_location_from_bottom,0.9976229642859432
-wet_COM_location_from_top,2.0527646357140563
+wet_mass,35.493690833847005
+dry_mass,31.872303024247007
+total_length,2.9233876
+dry_COM_location_from_bottom,1.1553211098912488
+dry_COM_location_from_top,1.768066490108751
+wet_COM_location_from_bottom,1.1444105829658153
+wet_COM_location_from_top,1.7789770170341845

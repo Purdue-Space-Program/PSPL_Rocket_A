@@ -1,22 +1,17 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import parseWind as pw
+from scipy.io import savemat
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import vehicle_parameters as vehicle
+import constants as c
+
 import sfd as sfd
 import loads as loads # This will cause plots of loads.py to show up when rdof.py is run
-import parseWind as pw
-from scipy.io import savemat
-# ------------------------------------------------------------------------------
-
-# Constants
-LBF2N = 4.44822  # Pounds force to Newtons
-FT2M = 0.3048  # Feet to Meters
-N2LBF = 0.224809 # Newtons to Pounds force
-M2FT = 3.28084 # Meters to Feet
 # ------------------------------------------------------------------------------
 
 # Input Parameters 
@@ -26,14 +21,23 @@ recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]
 max_q_velocity = vehicle.parameters.six_DoF_max_velocity  # [m / s]
 AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_velocity) # [radians] # NEED
 # AOA_recovery = 0 # [radians] Assumed angle of attack at recovery
-AOA_recovery_list = [np.pi / 4] # [radians] List of angles of attack at recovery for plotting
-wind_gust_speed = pw.percentile_75_wind_speed # [m/s]
+wind_gust_speed = pw.percentile_75_wind_gust_speed # [m/s]
 horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m / s] # NEED
 gravity = 9.81 # [m / s^2]
-air_density = 1.81 # [kg / m^3] at apogee # NEED
-drag_coefficent = 2.2 # []
-canopy_area = (14 * FT2M / 2)**2 * np.pi # [m^2]
+air_density = 1.225 # [kg / m^3]
+drag_coefficient = 2.2 # [-]
+canopy_area = ((14 * c.FT2M) / 2)**2 * np.pi # [m^2]
 max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
+# ------------------------------------------------------------------------------
+
+# Calculate AOA_recovery
+AOA_start = np.pi / 2 # [radians] Starting angle of attack at apogee, assume 90 degrees (fully horizontal)
+time_before_deployment = 2 # [s] Time from apogee to parachute deployment
+vertical_velocity_deploy = gravity * time_before_deployment # [m / s] Vertical velocity at parachute deployment
+velocity_deploy = np.sqrt(vertical_velocity_deploy**2 + (horizontal_velocity + wind_gust_speed)**2) # [m / s] Total relative velocity at parachute deployment
+angle_rocket_parachute_deploy = np.arctan(vertical_velocity_deploy / (horizontal_velocity + wind_gust_speed)) # [radians] Angle of rocket vs parachute velocity vector at parachute deployment
+AOA_recovery = np.pi / 2 - angle_rocket_parachute_deploy # [radians] Angle of attack at parachute deployment
+AOA_recovery_list = [0, (np.pi)/2] # [radians] List of angles of attack at recovery for plotting
 # ------------------------------------------------------------------------------
 
 # Mass Model
@@ -117,6 +121,13 @@ def calcDragForce(cd, rho, velocity, area):
     drag_force: Parachute drag force [N]
     '''
     drag_force = 0.5 * cd * rho * (velocity ** 2) * area
+
+    print("*********************")
+    print(f"cd: {cd:.2f}")
+    print(f"rho: {rho:.2f}")
+    print(f"velocity: {velocity:.2f}")
+    print(f"area: {area:.2f}")
+
     return drag_force
 
 # Calculate terminal velocity
@@ -206,8 +217,8 @@ def calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, an
 # ------------------------------------------------------------------------------
 
 # Calculations
-terminal_velocity = calcTerminalVelocity(total_mass, gravity, drag_coefficent, air_density, canopy_area) # [m/s] solving for velocity setting weight and Drag equal
-drag_force = calcDragForce(drag_coefficent, air_density, horizontal_velocity + wind_gust_speed, canopy_area) # [N]
+terminal_velocity = calcTerminalVelocity(total_mass, gravity, drag_coefficient, air_density, canopy_area) # [m/s] solving for velocity setting weight and Drag equal
+drag_force = calcDragForce(drag_coefficient, air_density, velocity_deploy, canopy_area) # [N]
 descent_time = max_height/terminal_velocity # [s]
 
 cg = calcCG(linear_density_array, length_along_rocket_linspace) # [m] Center of gravity
@@ -230,20 +241,23 @@ worst_axial_array = np.array(calcAxial(drag_force, linear_density_array, length_
 
 # Print outputs
 print("Outputs at recovery:")
-print(f"Worst axial force at recovery (90 degrees): {max(worst_axial_array) * N2LBF:.2f} lbf")
-print(f"Worst shear force at recovery (0 degrees): {max(worst_shear_array) * N2LBF:.2f} lbf")
-print(f"Worst bending moment at recovery (0 degrees): {max(worst_bending_array) * N2LBF * M2FT:.2f} lbf-ft")
+print(f"Worst axial force at recovery (90 degrees): {max(worst_axial_array) * c.N2LBF:.2f} lbf")
+print(f"Worst shear force at recovery (0 degrees): {max(worst_shear_array) * c.N2LBF:.2f} lbf")
+print(f"Worst bending moment at recovery (0 degrees): {max(worst_bending_array) * c.N2LBF * c.M2FT:.2f} lbf-ft")
 print("-----------------------------------")
 
 print("Inputs:")
 print(f"Angle of attack from max_q: {AOA_max_q * (180 / np.pi):.2f} degrees")
+print(f"Angle of attack at recovery: {AOA_recovery * (180 / np.pi):.2f} degrees")
+print(f"Angle of rocket vs parachute velocity vector at recovery: {angle_rocket_parachute_deploy * (180 / np.pi):.2f} degrees")
 print(f"Drag force: {drag_force:.2f} N")
 print(f"Wind gust at recovery: {wind_gust_speed:.2f} m/s")
 print(f"Horizontal velocity at recovery: {horizontal_velocity:.2f} m/s")
-print(f"Total velocity used for drag force at recovery: {(horizontal_velocity + wind_gust_speed):.2f} m/s")
+print(f"Vertical velocity at recovery: {vertical_velocity_deploy:.2f} m/s")
+print(f"Total velocity used for drag force at recovery: {velocity_deploy:.2f} m/s")
 print(f"Air density at apogee: {air_density:.2f} kg/m^3")
 print(f"Canopy area: {canopy_area:.2f} m^2")
-print(f"Drag coefficient at recovery: {drag_coefficent:.2f}")
+print(f"Drag coefficient at recovery: {drag_coefficient:.2f}")
 print(f"Rocket mass at recovery: {total_mass:.2f} kg")
 print("-----------------------------------")
 
@@ -262,26 +276,31 @@ for angle in AOA_recovery_list:
     shear_array_i = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r_i, cg, angle)) # [N] Shear force array if rocket at angle at recovery
     bending_array_i = np.array(calcBending(shear_array_i, length_along_rocket_linspace)) # [N m] Bending moment array if rocket at angle at recovery
     axial_array_i = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, angle)) # [N] Axial forces array if rocket at angle at recovery
-    matlab_dict[f"axial_array_{int(angle * (180 / np.pi))}_deg"] = axial_array_i
-    matlab_dict[f"shear_array_{int(angle * (180 / np.pi))}_deg"] = shear_array_i
-    matlab_dict[f"bending_array_{int(angle * (180 / np.pi))}_deg"] = bending_array_i
+    matlab_dict[f"axial_array_recovery"] = axial_array_i
+    matlab_dict[f"shear_array_recovery"] = shear_array_i
+    matlab_dict[f"bending_array_recovery"] = bending_array_i
+    matlab_dict[f"AOA_recovery_deg"] = angle * (180 / np.pi)
     
     plot_def = [
-        (shear_array_i, N2LBF, "Shear Force [lbf]", "Shear Forces"),
-        (bending_array_i, N2LBF * M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
-        (axial_array_i, N2LBF, "Axial Force [lbf]", "Axial Forces")
+        (shear_array_i, c.N2LBF, "Shear Force [lbf]", "Shear Forces"),
+        (bending_array_i, c.N2LBF * c.M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
+        (axial_array_i, c.N2LBF, "Axial Force [lbf]", "Axial Forces")
     ]
 
     for data, scale, ylabel, base_title in plot_def:
         plot = data * scale
-        title = f"{base_title} at {angle * (180 / np.pi):.0f} deg"
+        title = f"{base_title} at {angle * (180 / np.pi):.0f} deg at recovery"
         plt.subplot(len(AOA_recovery_list), 3, plot_num)
-        plt.plot(length_along_rocket_linspace * M2FT, plot)
+        plt.plot(length_along_rocket_linspace * c.M2FT, plot)
         plt.title(title)
         plt.xlabel("Length from aft [ft]")
         plt.ylabel(ylabel)
+        
+        plt.ylim(top = 1.2 * max(max(plot), 100), bottom = min(-abs(min(plot)) * 1.2, -100)) # to show low values when values are like 10^-13 
+        
         plt.grid()
         plot_num += 1
+
 matlab_dict["length_along_rocket_linspace"] = length_along_rocket_linspace
 savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB
 # ------------------------------------------------------------------------------

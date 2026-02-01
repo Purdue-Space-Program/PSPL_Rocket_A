@@ -2,25 +2,6 @@ function TankAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
 
-%% SFD Importing
-currentDirectory = pwd;
-cd('C:../SFD')
-
-sfdData = load('sfd_outputs_max_q.mat');
-%sfdData = load('sfd_outputs_off_the_rail.mat');
-axialLoadssfd = sfdData.axial_array / 4.448; % Axial loads converted to pounds
-shearLoadssfd = sfdData.shear_array / 4.448; % Shear loads converted to pounds
-momentLoadssfd = sfdData.bending_array * 8.85; % Moment loads converted to inch-pounds
-lengthLoadssfd = sfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
-
-rfdData = load('rfd_outputs_revcovery.mat');
-axialLoadsrfd = rfdData.axial_array / 4.448; % Axial loads converted to pounds
-shearLoadsrfd = rfdData.shear_array / 4.448; % Shear loads converted to pounds
-momentLoadsrfd = rfdData.bending_array * 8.85; % Moment loads conevrted to inch-pounds
-lengthLoadsrfd = rfdData.length_along_rocket_linspace * 39.37; % Length along the rocket converted inches
-
-cd(currentDirectory)
-
 %% Object Properities
 objectInQuestion = FuelTankValues;
 
@@ -58,7 +39,7 @@ compressionLimit = material.yieldCompressionStrength * crossArea; % Compressive 
 tensionLimit = material.yieldTensionStrength * crossArea; % Tension limit
 eulerLimit = (pi ^ 2 * material.youngs / ((K * effectiveLength / radiusGyration) ^ 2)) * crossArea;
 
-%% Buckling Constants?
+%% Buckling Stolen Computations
 if wtRatio <= ((0.11 * material.youngs) / material.yieldCompressionStrength)
     area = crossArea;
     Fe = (pi^2 * material.youngs) / (slendernessRatio ^ 2);
@@ -80,27 +61,22 @@ pAllow = (Fcr * area) / safetyFactorComp; % Allowable axial load (lb)
 % === Combined Axial and Bending Check ===
 area_total = (pi/4) * (oD^2 - iD^2);
 
-%% SFD Properities
-[~, locationTakeOff] = min(abs(lengthLoadssfd - distance));
-[~, locationRecovery] = min(abs(lengthLoadsrfd - distance));
-
 %% Load Limit Properities
-netLoadTakeoff = [axialLoadssfd(locationTakeOff) + 2 * momentLoadssfd(locationTakeOff) / radius, axialLoadssfd(locationTakeOff) - 2 * momentLoadssfd(locationTakeOff) / radius]; % Net force
-netLoadRecovery = [axialLoadsrfd(locationRecovery) + 2 * momentLoadsrfd(locationRecovery) / radius, axialLoadsrfd(locationRecovery) - 2 * momentLoadsrfd(locationTakeOff) / radius]; % Net force
 
-netLoad(1) = max([netLoadTakeoff(1), netLoadRecovery(1)]) / 3; % Compression max loads (lbs)
-netLoad(2) = abs(min([netLoadTakeoff(2), netLoadRecovery(2)])) / 3; % Tension max loads (lbs)
+[maxCompression, maxTension] = NetAxialLoad(distance, radius); % Max compressive and tensionile cases, divided by the three struts
+maxCompression = maxCompression / 3;
+maxTension = abs(maxTension) / 3;
 
 % === Tension Check ===
-tensileStress = abs(netLoad(2) / crossArea);
-MoSCompression = pAllow / netLoad(1) - 1;
+tensileStress = abs(maxTension / crossArea);
+MoSCompression = pAllow / maxCompression - 1;
 MoSTension = (area * material.yieldTensionStrength) / (tensileStress * safetyFactorTension) - 1;
 
 %% ____________________
 %% FORMATTED TEXT/FIGURE DISPLAYS
 fprintf("Analysis of %s\n", name)
-fprintf("Max compression case: %.2f lbf\n", netLoad(1));
-fprintf("Max tension case: %.2f lbf\n\n", netLoad(2));
+fprintf("Max compression case: %.2f lbf\n", maxCompression);
+fprintf("Max tension case: %.2f lbf\n\n", maxTension);
 
 fprintf("Strut OD: %.2f in, ID: %.2f in\n", oD, iD);
 if consideringLocalBuckling == 1

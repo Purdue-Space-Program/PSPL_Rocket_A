@@ -35,4 +35,3 @@ print(f"Tank Pressure: {tank_pressure * PA2PSI:.2f} psi")
 
 print(f"\nYield stress MoS: {MoS_yield:.3f}")
 print(f"Ultimate stress MoS: {MoS_ultimate:.3f}")
-

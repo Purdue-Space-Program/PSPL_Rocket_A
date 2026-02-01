@@ -164,7 +164,7 @@ number_of_parts = len(file)
 # Works backwards from the chamber, so this is where we will start. All pressure drops will be added to this number
 current_fuel_pressure = chamber_pressure
 current_oxidizer_pressure = chamber_pressure
-   
+
 fuel_pressure_array = [current_fuel_pressure.to(u.psi)]
 oxidizer_pressure_array = [current_oxidizer_pressure.to(u.psi)]
 
@@ -281,9 +281,9 @@ if __name__ == "__main__":
             fluid_color = "b"
             fluid_name = "Oxidizer"
         
+        
         if use_subplots == True:
             plt.subplot(1, 2, count+1)
-            plt.title(fluid_name)
             
             # make go in between ticks
             fluid_point_indices = np.arange(len(fluid_pressure_array))          
@@ -296,6 +296,7 @@ if __name__ == "__main__":
                 ha="right"
             )  
             plt.grid(True)
+            plt.title(fluid_name)
         else:
             plt.legend(["Fuel", "Oxidizer"])
 
