@@ -1,12 +1,11 @@
-function [maxCompression, maxTension] = NetAxialLoad(location, radius, graphStatus, timeToPdr)
+%function [maxCompression, maxTension] = NetAxialLoad(location, radius, graphStatus)
 %
 %
 % THIS FUNCTION OUTPUTS THE FORCES RAW, YOU STILL NEED TO DIVIDE BY 3 FOR
 % STRUTS. This function works for any point on the rocket.This function
 % returns the maximum force that could appear at that location according to
 % the latest running of the SFD and RFD. 
-%radius = 1;
-%location = [60,70];
+
 
 %% Importing SFD and RFD
 currentDirectory = pwd;
@@ -124,26 +123,13 @@ end
 
 %% For PDR Display Purposes
 
-timeToPdr = exist('graphStatus');
-
-if timeToPdr
-
-for state = [1,2]
 for theta = [0, pi]
-
-    M = max([momentLoadssfd(locationTakeOff(1)) * (state == 1), momentLoadssfd(locationTakeOff(2)) * (state == 1), ...
-        momentLoadsrfd(locationRecovery(1)) * (state == 2), momentLoadsrfd(locationRecovery(2)) * (state == 2)]);
-
-    Fg = max([axialLoadssfd(locationTakeOff(1)) * (state == 1), axialLoadssfd(locationTakeOff(2)) * (state == 1), ...
-        axialLoadsrfd(locationRecovery(1)) * (state == 2), axialLoadsrfd(locationRecovery(2)) * (state == 2)]);
-
-    R = radius;
-
+    M = max([momentLoadssfd(locationTakeOff(1)) * (theta == 0), momentLoadssfd(locationTakeOff(2)) * (theta == 0), ...
+        momentLoadsrfd(locationTakeOff(1)) * (theta ~= 0), momentLoadsrfd(locationTakeOff(2)) * (theta ~= 0)]);
+    Fg = axialLoadsrfd * (theta == 0);
     F3 = (Fg - ((2 * M * cos(theta)) / R)) / 3;
     F1 = M * cos(theta) / (3 * R) + Fg / 3 - M * sin(theta) / (R * sqrt(3));
     F2 = M * cos(theta) / (3 * R) + Fg / 3 + M * sin(theta) / (R * sqrt(3));
-    fprintf("F1: %2.f\nF2: %2.f\nF3: %2.f\n\n", F1, F2, F3)
+    fprintf("F1: \nF2: \nF3: \n\n", F1, F2, F3)
 
-end
-end
 end
