@@ -37,11 +37,10 @@ def main():
 
     #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
     Mach_total = np.zeros_like(station_area_ratios) #mach number at each axial position
-    #Mach_total = np.full_like(station_area_ratios, np.nan, dtype = float)
     h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
-    #h_total = np.full_like(station_area_ratios, np.nan, dtype = float)
     Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
-    #Temp_surface_total = np.full_like(station_area_ratios, np.nan, dtype = float)
+    T_infinty_total = np.zeros_like(station_area_ratios) #ambient temperature at each axial position
+    Heat_flux_total = np.zeros_like(station_area_ratios) #heat flux at each axial position
 
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
@@ -63,24 +62,7 @@ def main():
         M_local = calculating_MachNumber(gamma = gamma_loc, area_ratio_value = A_ratio, initial_guess = initial_guess, branch = branch)
         Mach_total[station_index] = M_local 
         
-        
-        '''
-        if station_index > 0:
-            initial_guess = Mach_total[station_index - 1]
-        else:
-            initial_guess = 0.5
-        M_local = calculating_MachNumber(gamma = gamma_loc, area_ratio_value = A_ratio, initial_guess = initial_guess)
-        Mach_total[station_index] = M_local 
-        '''
         Dt = 2 * station_inner_radii[station_index]  # local diameter
-
-        '''
-        if Dt == 0:
-            Mach_total[station_index] = 0
-            h_total[station_index] = 0
-            Temp_surface_total[station_index] = 294 #K, initial temperature of the chamber wall
-            continue
-        '''
                 
         #updating initial guess for next iteration
         initial_guess = M_local  
@@ -114,7 +96,14 @@ def main():
             k = 51.9, #thermal conductivity of the chamber wall material (W/(m*K)) #1018 Steel
             t = vp.parameters.burn_time #s, burn time
         )
+
+        Heat_flux_total[station_index] = heat_flux_calc(
+            h = h_total[station_index], #Bartz heat transfer coefficient (W/m^2 K)
+            T_aw = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc), #adiabatic wall temperature (K)
+            T_w = Temp_surface_total[station_index] #surface temperature (K)
+        )
         
+        T_infinty_total[station_index] = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc)
             
 
         #plots
@@ -140,6 +129,11 @@ def main():
     temp_array = np.transpose(np.array([Temp_surface_total]))
     np.savetxt("chamber_temp.csv", temp_array, delimiter=',')
 
+    heat_flux_array = np.transpose(np.array([Heat_flux_total]))
+    np.savetxt("chamber_heat_flux.csv", heat_flux_array, delimiter=',')
+
+    ambient_temp_array = np.transpose(np.array([T_infinty_total]))
+    np.savetxt("chamber_ambient_temp.csv", ambient_temp_array, delimiter=',')
 
     
 
@@ -257,6 +251,9 @@ def thermal_diffusivity_calc(k = 51.9): #thermal diffusivity of 1018 Stainless S
     alpha = k / (rho * C_p)
     return alpha
 
+def heat_flux_calc(h, T_aw, T_w):
+    q = h * (T_aw - T_w)
+    return q
 
 
 
