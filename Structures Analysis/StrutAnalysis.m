@@ -15,7 +15,7 @@ safetyFactorBending = 1.67; % Bending safety factor (ADM ASD)
 K = 0.9; % Effective length factor Fixed-Fixed
 
 length = objectInQuestion.length; % Length (in)
-distance = objectInQuestion.distance; % Distance from Aft to top (in)
+distance = [objectInQuestion.distance, objectInQuestion.distance - length]; % Distance from Aft to top (in)
 radius = objectInQuestion.radius; % Distance from center axis (in)
 name = objectInQuestion.name; % Name of the objectin in question
 width = objectInQuestion.width; % Width of the object (in)
