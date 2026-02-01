@@ -3,20 +3,19 @@ function TankAnalysis(objectInQuestion)
 %% INITIALIZATION
 
 %% Object Properities
-objectInQuestion = FuelTankValues;
+% objectInQuestion = FuelTankValues;
 
 %% ____________________
 %% Parameters
 safetyFactorTension = 1.5; % Honest guess at a safety factor
-safetyFactorComp = 1.65; % Compression safety factor (ADM ASD)
-safetyFactorBending = 1.67; % Bending safety factor (ADM ASD)
+safetyFactorBending = 1.65; % Bending safety factor (ADM ASD)
 
 K = 0.9; % Effective length factor Fixed-Fixed
 
 iD = objectInQuestion.iD; % Inner diameter (in)
 oD = objectInQuestion.oD; % Outer diameter (in)
 length = objectInQuestion.length; % Length (in)
-distance = objectInQuestion.distance; % Distance from Aft to top (in)
+distance = [objectInQuestion.distance, objectInQuestion.distance - length]; % Distance from Aft to top (in)
 radius = objectInQuestion.radius; % Distance from center axis (in)
 name = objectInQuestion.name; % Name of the objectin in question
 
@@ -39,7 +38,8 @@ compressionLimit = material.yieldCompressionStrength * crossArea; % Compressive 
 tensionLimit = material.yieldTensionStrength * crossArea; % Tension limit
 eulerLimit = (pi ^ 2 * material.youngs / ((K * effectiveLength / radiusGyration) ^ 2)) * crossArea;
 
-%% Buckling Stolen Computations
+%% Buckling Flow
+
 if wtRatio <= ((0.11 * material.youngs) / material.yieldCompressionStrength)
     area = crossArea;
     Fe = (pi^2 * material.youngs) / (slendernessRatio ^ 2);
@@ -56,7 +56,7 @@ else
     Fcr = 0.877 * Fe;
 end
 
-pAllow = (Fcr * area) / safetyFactorComp; % Allowable axial load (lb)
+pAllow = (Fcr * area) / safetyFactorBending; % Allowable axial load (lb)
 
 % === Combined Axial and Bending Check ===
 area_total = (pi/4) * (oD^2 - iD^2);
@@ -92,7 +92,7 @@ end
 fprintf("Available Axial Strength (ASD): %.2f lbs\n", pAllow);
 fprintf("Mass of %s: %.2f lbs\n", name, mass);
 fprintf("Compression MoS: %.2f\n", MoSCompression);
-fprintf("Tension MoS: %.2f\n", MoSTension);
+fprintf("Tension Yield MoS: %.2f\n", MoSTension);
 fprintf("------------------------------------------------------\n")
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
 % fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))

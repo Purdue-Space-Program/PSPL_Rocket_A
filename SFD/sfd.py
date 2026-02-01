@@ -340,3 +340,35 @@ def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, rh
     # print(to_strut)
     # print(axial[to_strut])
     return axial
+
+# Calculate drag force
+def calcDragForce(cd, rho, velocity, area):
+    '''
+    cd: Drag coefficient
+    rho: Air density [kg / m^3]
+    velocity: Velocity [m / s]
+    area: Reference area [m^2]
+    drag_force: Parachute drag force [N]
+    '''
+    drag_force = 0.5 * cd * rho * (velocity ** 2) * area
+
+    print("*********************")
+    print(f"cd: {cd:.2f}")
+    print(f"rho: {rho:.2f}")
+    print(f"velocity: {velocity:.2f}")
+    print(f"area: {area:.2f}")
+
+    return drag_force
+
+# Calculate terminal velocity
+def calcTerminalVelocity(mass, gravity, cd, rho, area):
+    '''
+    mass: Mass of rocket [kg]
+    gravity: Gravitational acceleration [m / s^2]
+    cd: Drag coefficient
+    rho: Air density [kg / m^3]
+    area: Reference area [m^2]
+    terminal_velocity: Terminal velocity [m / s]
+    '''
+    terminal_velocity = np.sqrt((2 * mass * gravity) / (cd * rho * area))
+    return terminal_velocity

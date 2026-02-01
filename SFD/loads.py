@@ -25,8 +25,8 @@ diameter = vehicle.parameters.tube_outer_diameter # [m]
 thrust = vehicle.parameters.jet_thrust # [N]
 total_length = vehicle.parameters.total_length # [m]
 
-air_density = 1.81 # [kg / m^3] NEED
-max_q_wind_gust = pw.percentile_75_wind_gust_speed # [m / s] about 30 mph NEED
+air_density = 1.225 # [kg / m^3]
+max_q_wind_gust = pw.percentile_75_wind_gust_speed # [m / s]
 off_the_rail_rail_whip = 5 # [m / s] about 11 mph NEED
 
 if location == "max_q":
@@ -53,17 +53,17 @@ total_mass = np.sum(linear_density_array * (length_along_rocket_linspace[1] - le
 dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]  # [m]
 
 # Fins
-root_chord = 11 * c.IN2M # [m]
-tip_chord = 2 * c.IN2M # [m]
-sweep_length = (11 - 2) * c.IN2M # [m]
-fin_height = 8 * c.IN2M # [m]
+root_chord = 16 * c.IN2M # [m]
+tip_chord = 6 * c.IN2M # [m]
+sweep_length = 10 * c.IN2M # [m]
+fin_height = 7.25 * c.IN2M # [m]
 numFins = 3 # [m]
 fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft # [m]
 noseconeToFin = total_length - fin_top # [m]
 
 # Calculated inputs
-Q = sfd.calcQ(air_density, velocity)
-AOA = sfd.calcAOA(wind_gust, velocity) # [radians] # 1.02331 * np.pi / 180 # NEED
+Q = sfd.calcQ(air_density, velocity) # [N/m^2] Dynamic pressure
+AOA = sfd.calcAOA(wind_gust, velocity)
 S = sfd.calcS(diameter) # [m^2] Cross sectional area
 # ------------------------------------------------------------------------------
 
@@ -93,7 +93,10 @@ elif location == "off_the_rail":
 
 
 print("Inputs:")
-print(f"\tWind gust at {location}: {wind_gust} m/s")
+if location == "max_q":
+    print(f"\tWind gust at {location}: {wind_gust} m/s")
+elif location == "off_the_rail":
+    print(f"\tEstimated rail whip at {location}: {wind_gust} m/s")
 print(f"\tAir density at {location}: {air_density} kg/m^3")
 print(f"\tAngle of attack at {location}: {AOA * (180 / np.pi):.2f} degrees")
 print(f"\tVelocity at {location}: {velocity} m/s")
