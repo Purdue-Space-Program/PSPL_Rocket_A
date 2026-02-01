@@ -17,7 +17,7 @@ gravity = 9.81 # [m / s^2]
 
 # Select location to analyze
 location = "max_q" # Change to "max_q" or "off_the_rail"
-plot_on = False # Set to True to plot results, False to not plot
+plot_on = True # Set to True to plot results, False to not plot
 # ------------------------------------------------------------------------------
 
 # Inputs
@@ -25,8 +25,8 @@ diameter = vehicle.parameters.tube_outer_diameter # [m]
 thrust = vehicle.parameters.jet_thrust # [N]
 total_length = vehicle.parameters.total_length # [m]
 
-air_density = 1.225 # [kg / m^3] NEED
-max_q_wind_gust = pw.percentile_75_wind_gust_speed # [m / s] about 30 mph NEED
+air_density = 1.225 # [kg / m^3]
+max_q_wind_gust = pw.percentile_75_wind_gust_speed # [m / s]
 off_the_rail_rail_whip = 5 # [m / s] about 11 mph NEED
 
 if location == "max_q":
@@ -62,8 +62,8 @@ fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft # [m]
 noseconeToFin = total_length - fin_top # [m]
 
 # Calculated inputs
-Q = sfd.calcQ(air_density, np.sqrt(velocity**2 + wind_gust**2)) # [N/m^2] Dynamic pressure
-AOA = sfd.calcAOA(wind_gust, velocity) # [radians] # 1.02331 * np.pi / 180 # NEED
+Q = sfd.calcQ(air_density, velocity) # [N/m^2] Dynamic pressure
+AOA = sfd.calcAOA(wind_gust, velocity)
 S = sfd.calcS(diameter) # [m^2] Cross sectional area
 # ------------------------------------------------------------------------------
 
@@ -93,7 +93,10 @@ elif location == "off_the_rail":
 
 
 print("Inputs:")
-print(f"\tWind gust at {location}: {wind_gust} m/s")
+if location == "max_q":
+    print(f"\tWind gust at {location}: {wind_gust} m/s")
+elif location == "off_the_rail":
+    print(f"\tEstimated rail whip at {location}: {wind_gust} m/s")
 print(f"\tAir density at {location}: {air_density} kg/m^3")
 print(f"\tAngle of attack at {location}: {AOA * (180 / np.pi):.2f} degrees")
 print(f"\tVelocity at {location}: {velocity} m/s")
