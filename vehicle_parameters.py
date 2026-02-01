@@ -69,13 +69,30 @@ class VehicleParameters:
     total_used_propellant_mass: float = fuel_used_mass + oxidizer_used_mass # The total mass of propellant needed for the burn time [kilograms]
     total_residual_mass: float = fuel_residual_mass + oxidizer_residual_mass # The total mass of propellant put on the vehicle [kilograms]
     
+    # all from CAD
+    engine_length =         10.179 * c.IN2M
+    injector_length =       0.475 * c.IN2M
+    lower_length =          20 * c.IN2M
+    bulkhead_length =       1.22 * c.IN2M
+    mid_length =            5 * c.IN2M
+
+    upper_length =          25 * c.IN2M
+    recovery_bay_length =   24 * c.IN2M
+    nosecone_length =       15 * c.IN2M
+
     # COPV Parameters
     COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
     COPV_starting_pressure: float =  4300 * c.PSI2PA # [Pa]
 
-    # fin parameters
-
-    
+    # Fin parameters
+    # root_chord = ????? * c.IN2M
+    # tip_chord = ????? * c.IN2M
+    # sweep_length = ?????? * c.IN2M
+    # fin_height = ???? * c.IN2M
+    number_of_fins = 3
+    # fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft
+    # noseconeToFin = total_length - fin_top
+        
     # 1-DoF Results:
     one_DoF_off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     one_DoF_off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravities]
@@ -145,23 +162,6 @@ def CalcTubeVolume(OD, ID, length):
     return volume
 
 
-# all from CAD
-engine_length =         10.179 * c.IN2M
-injector_length =       0.475 * c.IN2M
-lower_length =          20 * c.IN2M
-bulkhead_length =       1.22 * c.IN2M
-fuel_tank_length =      parameters.fuel_tank_length
-mid_length =            5 * c.IN2M
-oxidizer_tank_length =  parameters.oxidizer_tank_length
-
-upper_length =          25 * c.IN2M
-recovery_bay_length =   24 * c.IN2M
-nosecone_length =       15 * c.IN2M
-
-fucked_length = engine_length + injector_length + lower_length + (4*bulkhead_length) + fuel_tank_length + mid_length + oxidizer_tank_length + upper_length + recovery_bay_length + nosecone_length
-# print(f"fucked_length: {fucked_length:.2f}")
-
-
 propellant_tank_outer_diameter = parameters.tube_outer_diameter
 propellant_tank_inner_diameter = parameters.tube_inner_diameter
 panels_outer_diameter = parameters.tube_outer_diameter
@@ -191,7 +191,7 @@ number_of_fin_can_struts = 3
 mass_per_fin_can_strut = 0.7257 * c.LBM2KG # [lbm]
 total_lower_strut_mass = number_of_fin_can_struts * mass_per_fin_can_strut # [kg]
 
-lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, lower_length)
+lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.lower_length)
 
 valves_mass = 2 * 3.26 * c.LBM2KG # fuel and ox 3/4 inch valve https://habonim.com/wp-content/uploads/2020/08/C47-BD_C47__2023_VO4_28-06-23.pdf
 
@@ -203,36 +203,36 @@ if use_bulkhead_mass_estimate == True:
     bulkhead_top_thickness = 0.76 * c.IN2M
 
     bulkhead_mass =  c.DENSITY_AL * (
-        (CalcCylinderVolume(propellant_tank_outer_diameter, bulkhead_length) - 
-        CalcCylinderVolume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), bulkhead_length - bulkhead_top_thickness))
+        (CalcCylinderVolume(propellant_tank_outer_diameter, parameters.bulkhead_length) - 
+        CalcCylinderVolume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), parameters.bulkhead_length - bulkhead_top_thickness))
     )
 else:
     bulkhead_mass = 1.971 * c.LBM2KG # [lbm] measured CAD value
 
-fuel_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, fuel_tank_length)
+fuel_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, parameters.fuel_tank_length)
 fuel_tank_dry_mass = fuel_tank_wall_mass + parameters.fuel_residual_mass
 fuel_tank_wet_mass = fuel_tank_dry_mass + parameters.fuel_used_mass
 
 # total_mid_strut_mass
-mid_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, mid_length)
+mid_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.mid_length)
 mid_mass = mid_panels_mass
 
-oxidizer_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, oxidizer_tank_length)
+oxidizer_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, parameters.oxidizer_tank_length)
 oxidizer_tank_dry_mass = oxidizer_tank_wall_mass + parameters.oxidizer_residual_mass
 oxidizer_tank_wet_mass = oxidizer_tank_dry_mass + parameters.oxidizer_used_mass
 
 regulator_mass = 1.200 # regulator https://valvesandregulators.aquaenvironment.com/item/high-flow-reducing-regulators-2/873-d-high-flow-dome-loaded-reducing-regulators/item-1659
 copv_mass = 2.9 # [kg]
-upper_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(parameters.tube_outer_diameter, parameters.tube_inner_diameter, upper_length)
+upper_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(parameters.tube_outer_diameter, parameters.tube_inner_diameter, parameters.upper_length)
 upper_mass = regulator_mass + copv_mass + upper_airframe_tube_mass
 
-recovery_bay_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, recovery_bay_length)
+recovery_bay_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.recovery_bay_length)
 parachute_mass = 2.25 * c.LBM2KG  # [kg] https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-144-compact-chute-114lbs-20fps-64lbs-15fps
 recovery_bay_mass = recovery_bay_airframe_tube_mass + parachute_mass
 
 tungsten_cube = 10 * c.LBM2KG
 
-nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, nosecone_length) + tungsten_cube
+nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.nosecone_length) + tungsten_cube
 
 # structures = 15 * c.LBM2KG # structures ! funny
 
@@ -253,26 +253,26 @@ class MassDistribution:
     def __iter__(self):
         return iter(self.components)
 
-engine =                  MassComponent(name = 'engine',                      mass = engine_mass,            bottom_distance_from_aft = 0,                                          length = engine_length)
-injector =                MassComponent(name = 'injector',                    mass = injector_mass,          bottom_distance_from_aft = engine.StartAfter(),                        length = injector_length)
-lower =                   MassComponent(name = 'lower',                       mass = lower_mass,             bottom_distance_from_aft = injector.StartAfter(),                      length = lower_length)
+engine =                  MassComponent(name = 'engine',                      mass = engine_mass,            bottom_distance_from_aft = 0,                                          length = parameters.engine_length)
+injector =                MassComponent(name = 'injector',                    mass = injector_mass,          bottom_distance_from_aft = engine.StartAfter(),                        length = parameters.injector_length)
+lower =                   MassComponent(name = 'lower',                       mass = lower_mass,             bottom_distance_from_aft = injector.StartAfter(),                      length = parameters.lower_length)
 
-lower_fuel_bulkhead =     MassComponent(name = 'lower_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = lower.StartAfter(),                         length = bulkhead_length)
+lower_fuel_bulkhead =     MassComponent(name = 'lower_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = lower.StartAfter(),                         length = parameters.bulkhead_length)
 wet_fuel_tank =           MassComponent(name = 'wet_fuel_tank',               mass = fuel_tank_wet_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.StartAfter(),           length = parameters.fuel_tank_length)
 dry_fuel_tank =           MassComponent(name = 'dry_fuel_tank',               mass = fuel_tank_dry_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.StartAfter(),           length = parameters.fuel_tank_length)
-upper_fuel_bulkhead =     MassComponent(name = 'upper_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = wet_fuel_tank.StartAfter(),                 length = bulkhead_length)
+upper_fuel_bulkhead =     MassComponent(name = 'upper_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = wet_fuel_tank.StartAfter(),                 length = parameters.bulkhead_length)
 
-mid =                     MassComponent(name = 'mid',                         mass = mid_mass,               bottom_distance_from_aft = upper_fuel_bulkhead.StartAfter(),           length = mid_length)
+mid =                     MassComponent(name = 'mid',                         mass = mid_mass,               bottom_distance_from_aft = upper_fuel_bulkhead.StartAfter(),           length = parameters.mid_length)
 
-lower_oxidizer_bulkhead = MassComponent(name = 'lower_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = mid.StartAfter(),                           length = bulkhead_length)
+lower_oxidizer_bulkhead = MassComponent(name = 'lower_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = mid.StartAfter(),                           length = parameters.bulkhead_length)
 wet_oxidizer_tank =       MassComponent(name = 'wet_oxidizer_tank',           mass = oxidizer_tank_wet_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.StartAfter(),       length = parameters.oxidizer_tank_length)
 dry_oxidizer_tank =       MassComponent(name = 'dry_oxidizer_tank',           mass = oxidizer_tank_dry_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.StartAfter(),       length = parameters.oxidizer_tank_length)
-upper_oxidizer_bulkhead = MassComponent(name = 'upper_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = wet_oxidizer_tank.StartAfter(),             length = bulkhead_length)
+upper_oxidizer_bulkhead = MassComponent(name = 'upper_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = wet_oxidizer_tank.StartAfter(),             length = parameters.bulkhead_length)
 
-upper =                   MassComponent(name = 'upper',                       mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.StartAfter(),       length = upper_length)
-recovery_bay =            MassComponent(name = 'recovery_bay',                mass = recovery_bay_mass,      bottom_distance_from_aft = upper.StartAfter(),                         length = recovery_bay_length)
+upper =                   MassComponent(name = 'upper',                       mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.StartAfter(),       length = parameters.upper_length)
+recovery_bay =            MassComponent(name = 'recovery_bay',                mass = recovery_bay_mass,      bottom_distance_from_aft = upper.StartAfter(),                         length = parameters.recovery_bay_length)
 
-nosecone =                MassComponent(name = 'nosecone',                    mass = nosecone_mass,         bottom_distance_from_aft = recovery_bay.StartAfter(),                  length=nosecone_length)
+nosecone =                MassComponent(name = 'nosecone',                    mass = nosecone_mass,          bottom_distance_from_aft = recovery_bay.StartAfter(),                  length=parameters.nosecone_length)
 
 
 wet_mass_distribution = MassDistribution(components=
@@ -415,7 +415,6 @@ parameters.dry_COM_location_from_top = rocket_length - parameters.dry_COM_locati
 
 parameters.freeze()
 # parameters.wet_mass = 9999999999999999999999999999999999999999
-
 
 
 # for recording what file accesed this script

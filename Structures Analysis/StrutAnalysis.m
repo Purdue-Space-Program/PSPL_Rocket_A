@@ -66,7 +66,7 @@ maxCompression = maxCompression / 3;
 maxTension = abs(maxTension) / 3;
 
 % === Tension Check ===
-tensileStress = abs(maxTension / crossArea);
+tensileStress = maxTension / crossArea;
 MoSCompression = pAllow / maxCompression - 1;
 MoSTension = (area * material.yieldTensionStrength) / (tensileStress * safetyFactorTension) - 1;
 
