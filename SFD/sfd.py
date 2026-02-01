@@ -8,6 +8,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import vehicle_parameters as vehicle
 
 
+LB2KG = 0.453592
+FT2M = 0.3048
+IN2M = 0.0254
+LBF2N = 4.44822
+MPH2MPS = 0.44704
+
 # Need q = 1/2 rho v^2 (done)
 # Need AOA = tan^-1(wind_gust / velocity) (done)
 # Need S (cross-sectional area)= pi * (diameter / 2)^2 (done)
@@ -32,17 +38,6 @@ import vehicle_parameters as vehicle
 # Worry about axial later
 
 # Need rho, velocity, wind gust, diameter, fin dimensions, mach, linear density, total mass, total length, 
-
-# For vector calculations
-def magnitude(vector):
-    return np.linalg.norm(vector)
-
-def normalize(vector):
-    mag = magnitude(vector)
-    if mag == 0:
-        return vector
-    return vector / mag
-
 
 # Make linear_dnsity_array and length_along_rocket_linspace inputs
 def mass_model(rocket_dict):
@@ -69,23 +64,23 @@ def mass_model(rocket_dict):
     return linear_density_array, length_along_rocket_linspace
 
 # Calculate dynamic pressure
-def calcQ(rho, freestream_velocity):
+def calcQ(rho, velocity):
     '''
     rho: air density [kg / m^3]
-    freestream_velocity: freestream velocity [vector] [m/s]
+    velocity: air velocity = rocket velocity [m/s]
     Q: Dynamic pressure [Pa]
     '''
-    return 0.5 * rho * magnitude(freestream_velocity)**2
+    return rho * velocity**2 / 2
 
 # Calculate angle of attack
-def calcAOA(freestream_velocity, orientation):
+def calcAOA(wind_gust, velocity):
     '''
-    freestream_velocity: freestream velocity [vector] [m/s]
-    orientation: rocket orientation [unit vector]
+    wind_gust: wind gust velocity [m/s]
+    velocity: rocket velocity [m/s]
     AOA: Angle of attack [radians]
     '''
     # print(f"AOA: {degrees(atan(wind_gust / velocity))} degrees")
-    return np.arccos(np.dot(freestream_velocity, normalize(orientation)) / (magnitude(freestream_velocity) * magnitude(normalize(orientation)))) # [radians]
+    return atan(wind_gust / velocity)
 
 # Calculate cross sectional area
 def calcS(diameter):
@@ -93,7 +88,7 @@ def calcS(diameter):
     diameter: rocket diameter [m]
     S: Cross sectional area [m^2]
     '''
-    return np.pi * (diameter / 2)**2
+    return pi * (diameter / 2)**2
 
 # Calculate fin stability derivative
 def calcFinSD(root_chord, tip_chord, sweep_length, fin_height, numFins, diameter):
@@ -142,19 +137,6 @@ def calcLift(Q, S, AOA, SD):
     Lift: Lift [N]
     '''
     return Q * S * AOA * SD # [N] Aspire page 14
-
-# Calculate lift direction
-def calcLiftDirection(freestream_velocity, orientation):
-    '''
-    freestream_velocity: freestream velocity [vector] [m/s]
-    orientation: rocket orientation [unit vector]
-    lift_direction: Lift direction [unit vector]
-    '''
-    velocity_unit_vector = normalize(freestream_velocity)
-    orientation_unit_vector = normalize(orientation)
-    cross1 = np.cross(velocity_unit_vector, orientation_unit_vector)
-    lift_direction = np.cross(cross1, velocity_unit_vector)
-    return normalize(lift_direction)
 
 # Calculate center of gravity
 def calcCG(linear_density_array, length_along_rocket_linspace):
@@ -241,11 +223,10 @@ def calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg
         inertia += mass_model[x] * (length_along_rocket_linspace[x] - cg)**2
     return inertia
 
-# Calculate lateral acceleration, need a way to update total_mass (same direction as lift)
+# Calculate lateral acceleration, need a way to update total_mass
 def calcLateralAcceleration(noseLift, finLift, total_mass):
     '''
-    noseLift: Nosecone lift [N]
-    finLift: Fin lift [N]
+    lift_dict: Dictionary of lift forces
     total_mass: Total mass of rocket
     '''
     return (noseLift + finLift) / total_mass # [m/s^2] a = F / m
@@ -359,3 +340,35 @@ def calcAxial(thrust, ax, linear_density_array, length_along_rocket_linspace, rh
     # print(to_strut)
     # print(axial[to_strut])
     return axial
+
+# Calculate drag force
+def calcDragForce(cd, rho, velocity, area):
+    '''
+    cd: Drag coefficient
+    rho: Air density [kg / m^3]
+    velocity: Velocity [m / s]
+    area: Reference area [m^2]
+    drag_force: Parachute drag force [N]
+    '''
+    drag_force = 0.5 * cd * rho * (velocity ** 2) * area
+
+    print("*********************")
+    print(f"cd: {cd:.2f}")
+    print(f"rho: {rho:.2f}")
+    print(f"velocity: {velocity:.2f}")
+    print(f"area: {area:.2f}")
+
+    return drag_force
+
+# Calculate terminal velocity
+def calcTerminalVelocity(mass, gravity, cd, rho, area):
+    '''
+    mass: Mass of rocket [kg]
+    gravity: Gravitational acceleration [m / s^2]
+    cd: Drag coefficient
+    rho: Air density [kg / m^3]
+    area: Reference area [m^2]
+    terminal_velocity: Terminal velocity [m / s]
+    '''
+    terminal_velocity = np.sqrt((2 * mass * gravity) / (cd * rho * area))
+    return terminal_velocity
