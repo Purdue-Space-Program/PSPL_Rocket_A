@@ -1,7 +1,7 @@
 clear;
 clc;
 
-obtain_vehicle_parameters
+% obtain_vehicle_parameters
 
 %% Struts
 StrutAnalysis(LowerStrutValues)
@@ -10,5 +10,5 @@ StrutAnalysis(UpperStrutValues)
 
 %% Tanks
 
-% TankAnalysis(FuelTankValues);
-% TankAnalysis(OxidizerTankValues)
+%TankAnalysis(FuelTankValues);
+%TankAnalysis(OxidizerTankValues);
