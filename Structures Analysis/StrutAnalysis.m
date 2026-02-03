@@ -9,8 +9,7 @@ function StrutAnalysis(objectInQuestion)
 %% ____________________
 %% Parameters
 safetyFactorTension = 1.5; % Honest guess at a safety factor
-safetyFactorComp = 1.65; % Compression safety factor (ADM ASD)
-safetyFactorBending = 1.67; % Bending safety factor (ADM ASD)
+safetyFactorBending = 1.65; % Bending safety factor (ADM ASD)
 
 K = 0.9; % Effective length factor Fixed-Fixed
 
@@ -18,13 +17,28 @@ length = objectInQuestion.length; % Length (in)
 distance = [objectInQuestion.distance, objectInQuestion.distance - length]; % Distance from Aft to top (in)
 radius = objectInQuestion.radius; % Distance from center axis (in)
 name = objectInQuestion.name; % Name of the objectin in question
-width = objectInQuestion.width; % Width of the object (in)
-wallThickness = objectInQuestion.wallThickness; % Wall thickness of the objct (in)
-crossArea = objectInQuestion.crossArea; % Cross sectional area)
-radiusGyration = objectInQuestion.radiusGyration; % Radius of gyration
-
 material = objectInQuestion.material; % Material properties from object
 
+
+if objectInQuestion.shape == 'Square'
+    width = objectInQuestion.width; % Width of the object (in)
+    wallThickness = objectInQuestion.wallThickness; % Wall thickness of the objct (in)
+    crossArea = width^2 - (width - 2 * wallThickness) ^ 2; % Cross sectional area)
+    radiusGyration = SquareRadiusGyrationCalc(width, wallThickness); % Radius of gyration
+
+elseif objectInQuestion.shape == 'Circle'
+    oD = objectInQuestion.oD;
+    iD = objectInQuestion.iD;
+    crossArea = ((oD/2)^2 - (iD/2)^2) * pi;
+    radiusGyration = ((((oD)^4 - (iD)^4) / 64) / crossArea) ^ (1/2);
+    width = oD; % Width of the object (in)
+    wallThickness = iD; % Wall thickness of the objct (in)
+else
+    width = objectInQuestion.width; % Width of the object (in)
+    wallThickness = objectInQuestion.wallThickness; % Wall thickness of the objct (in)
+    crossArea = objectInQuestion.crossArea; % Cross sectional area)
+    radiusGyration = objectInQuestion.radiusGyration; % Radius of gyration
+end
 %% ____________________
 %% Calculated Properities
 
@@ -90,7 +104,7 @@ end
 fprintf("Available Axial Strength (ASD): %.2f lbs\n", pAllow);
 fprintf("Mass of %s: %.2f lbs\n", name, mass);
 fprintf("Compression MoS: %.2f\n", MoSCompression);
-fprintf("Tension MoS: %.2f\n", MoSTension);
+fprintf("Tension Yield MoS: %.2f\n", MoSTension);
 fprintf("------------------------------------------------------\n")
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
 % fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))
