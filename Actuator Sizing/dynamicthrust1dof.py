@@ -4,10 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
-
+import main as m
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import main as m
 import vehicle_parameters as v
 
 csv_path_atmosphere = os.path.join(os.path.dirname(__file__), "atmosphere.csv")
@@ -92,7 +91,9 @@ def calculate_trajectory(
     
     totalImpulse = 0  # Initialize total impulse
 
-    mdot_history, main_thrust_history, time_history = mdot_based_on_time(mDotTotal, exitVelocity)
+    #mdot_history, main_thrust_history, time_history = mdot_based_on_time(mDotTotal, exitVelocity)
+    actuation_time = 0.5 # hardcoded actuation time
+    mdot_history, main_thrust_history, time_history = mdot_hardcoded_actuation(mDotTotal, actuation_time, exitVelocity)
 
     count = 1
     while (velocity >= 0) or (acceleration >= 0):
@@ -240,7 +241,19 @@ def mdot_based_on_time(mDotTotal, exitVelocity):
     print(f"Main Thrust at kast: {main_thrust}")
     return mdot_history, main_thrust_history, time_history
 
+def mdot_hardcoded_actuation(mDotTotal, actuation_time, exitVelocity):
+    dt = 0.0001
+    time_history = np.arange(0, actuation_time + dt, dt)
+    mdot_history = mDotTotal * (time_history / actuation_time)
+    main_thrust_history = mdot_history * exitVelocity
+    return mdot_history, main_thrust_history, time_history
 
+def actuation_time_vs_rail_exit():
+    max_actuation_time = 1 # [second]
+    for actuation_time in np.arange(0, max_actuation_time, 0.0001):
+            actuation_time = 0.5 # hardcoded actuation time
+            
+        
 #############################
 #######  PARAMETERS  ########
 #############################

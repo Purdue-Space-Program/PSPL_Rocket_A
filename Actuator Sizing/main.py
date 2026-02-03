@@ -7,7 +7,7 @@ from constants import *
 
 ###############################
 # CHOOSE MODE "test" or "real"
-piston = "test" # test or real
+piston = "real" # test or real
 ###############################
 
 ###############################
@@ -201,20 +201,20 @@ def actuation_time_kinematics_test(F_net, rod_mass, piston_diameter, piston_stro
 
 # Shortlisted Piston: https://pspliquids.slack.com/archives/C09C5J1EJDB/p1764894397354269?thread_ts=1764888234.600949&cid=C09C5J1EJDB
 
-if __name__ == "__main__":
-    piston_force = pressure * np.pi * ((piston_diameter**2) / 4)
-    print(f'Maximum possible net force disregarding friction (and valve arm if real condition): {piston_force * N2LBF:.2f}')
-    if piston.lower() == "test":
-        print(f"Piston: Test")
-        force_valve = 0
-        f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
-        volume_swept_history, time_history, time  = actuation_time_kinematics_test(f_net, rod_mass, piston_diameter, piston_stroke_length)
-    elif piston.lower() == "real":
-        print(f"Piston: Real")
-        required_torque, arm_length, torque = calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length)
-        force_valve = braking_torque * np.sqrt(2) / arm_length
-        f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
-        volume_swept_history, time_history, angle_history, time = actuation_time_kinematics_real(f_net, rod_mass, piston_diameter, arm_length)
-    else:
-        print('Invalid piston chosen')
-    volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history)
+
+piston_force = pressure * np.pi * ((piston_diameter**2) / 4)
+print(f'Maximum possible net force disregarding friction (and valve arm if real condition): {piston_force * N2LBF:.2f}')
+if piston.lower() == "test":
+    print(f"Piston: Test")
+    force_valve = 0
+    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
+    volume_swept_history, time_history, time  = actuation_time_kinematics_test(f_net, rod_mass, piston_diameter, piston_stroke_length)
+elif piston.lower() == "real":
+    print(f"Piston: Real")
+    required_torque, arm_length, torque = calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length)
+    force_valve = braking_torque * np.sqrt(2) / arm_length
+    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
+    volume_swept_history, time_history, angle_history, time = actuation_time_kinematics_real(f_net, rod_mass, piston_diameter, arm_length)
+else:
+    print('Invalid piston chosen')
+volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history)
