@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
-import main as m
+import main as m # ensure that outputs = 0 in main file to suppress plots and prints!!!
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
 import vehicle_parameters as v
@@ -69,7 +69,7 @@ def calculate_trajectory(
     """
 
     # Rocket Properties
-    reference_area = (np.pi * (tankOD) ** 2 / 4) + finNumber * finHeight * 1/2 * c.IN2M # [m^2] reference area of the rocket, 1/2 in fin thickness
+    reference_area = (np.pi * (tankOD) ** 2 / 4) + finNumber * finHeight * 0.5 * c.IN2M # [m^2] reference area of the rocket, 1/2 in fin thickness
     mass = wetMass  # [kg] initial mass of the rocket
 
     cD = 0.5
@@ -149,7 +149,6 @@ def calculate_trajectory(
         altitude_array.append(altitude)
         time_array.append(time)
         count += 1
-    print(acceleration_array[:50])
     # Find the closest altitude to the TRAILER_RAIL_HEIGHT
 
     off_the_rail_velocity, off_the_rail_acceleration, off_the_rail_time = 0, 0, 0
@@ -214,6 +213,7 @@ def calculate_trajectory_variable_burn(
     exitPressure,
     totalLength,
     propellant_mass,
+    actuation_time,
     plots,
 ):
     """
@@ -259,7 +259,7 @@ def calculate_trajectory_variable_burn(
     """
 
     # Rocket Properties
-    reference_area = (np.pi * (tankOD) ** 2 / 4) + finNumber * finHeight * 1/2 * c.IN2M # [m^2] reference area of the rocket, 1/2 in fin thickness
+    reference_area = (np.pi * (tankOD) ** 2 / 4) + finNumber * finHeight * 0.5 * c.IN2M # [m^2] reference area of the rocket, 1/2 in fin thickness
     mass = wetMass  # [kg] initial mass of the rocket
 
     cD = 0.5
@@ -281,14 +281,14 @@ def calculate_trajectory_variable_burn(
     totalImpulse = 0  # Initialize total impulse
 
     #mdot_history, main_thrust_history, time_history = mdot_based_on_time(mDotTotal, jetThrust)
-    actuation_time = 0.5 # hardcoded actuation time
+    #actuation_time = 0.5 # hardcoded actuation time
     mdot_history, main_thrust_history, time_history = mdot_hardcoded_actuation(mDotTotal, actuation_time, jetThrust)
     burnTime = 0 #### Calculate the burn time
     
     for mdot in mdot_history:
-            mass_lost = mdot * dt
-            burnTime += dt
-            propellant_mass -= mass_lost
+        mass_lost = mdot * dt
+        burnTime += dt
+        propellant_mass -= mass_lost
     while propellant_mass > 0:
         mass_lost = mdot_history[-1] * dt
         burnTime += dt
@@ -349,7 +349,6 @@ def calculate_trajectory_variable_burn(
         altitude_array.append(altitude)
         time_array.append(time)
         count += 1
-    print(acceleration_array[:50])
     # Find the closest altitude to the TRAILER_RAIL_HEIGHT
 
     off_the_rail_velocity, off_the_rail_acceleration, off_the_rail_time = 0, 0, 0
@@ -449,11 +448,62 @@ def mdot_hardcoded_actuation(mDotTotal, actuation_time, jetThrust):
     return mdot_history, main_thrust_history, time_history
 
 def actuation_time_vs_rail_exit():
+    dt = 0.01 
     max_actuation_time = 1 # [second]
-    for actuation_time in np.arange(0, max_actuation_time, 0.0001):
-        pass
+    wetMass = v.vehicle_wet_mass
+    mDotTotal = v.parameters.total_mass_flow_rate
+    jetThrust = v.parameters.jet_thrust
+    tankOD = v.parameters.tank_outer_diameter
+    finNumber =  v.number_of_fins
+    finHeight = 12 * c.IN2M
+    exitArea = np.pi * 4**2 / 4 * c.IN22M2
+    exitPressure = v.parameters.exit_pressure
+    burnTime = v.parameters.burn_time
+    totalLength = v.rocket_length
+    propellant_mass = v.parameters.total_propellant_mass
+    plots = 0
+    estimated_apogee_history = []
+    off_the_rail_velocity_history = []
+    off_the_rail_time_history = []
+    actuation_time_history = []
 
-        
+    print("Calculating Actuation time vs Off-the-rail Velocity... Might take some time...")
+    for actuation_time in np.arange(dt, max_actuation_time + dt, dt):
+        estimated_apogee, _, _, off_the_rail_velocity, _, _, off_the_rail_time = calculate_trajectory_variable_burn(
+        wetMass,
+        mDotTotal,
+        jetThrust,
+        tankOD,
+        finNumber,
+        finHeight,
+        exitArea,
+        exitPressure,
+        totalLength,
+        propellant_mass,
+        actuation_time,
+        plots)
+        estimated_apogee_history.append(estimated_apogee)
+        off_the_rail_velocity_history.append(off_the_rail_velocity)
+        off_the_rail_time_history.append(off_the_rail_time)
+        actuation_time_history.append(actuation_time)
+
+    plt.plot(actuation_time_history, off_the_rail_velocity_history)
+    plt.title("Actuation Time vs Off-the-rail Velocity")
+    plt.xlabel("Actuation Time (s)")
+    plt.ylabel("Off-the-Rail Velocity (m/s)")   
+    plt.show()
+    fig, (ax1, ax2) = plt.subplots(2)
+    fig.suptitle("Some fun graphs")
+    ax1.plot(actuation_time_history, off_the_rail_time)
+    ax1.set_title("Actuation Time vs Off-the-rail Time")
+    ax1.ylabel("Off-the-rail Time (s)")
+    ax1.xlabel("Actuation Time (s)")
+    ax2.plot(actuation_time_history, estimated_apogee_history)
+    ax2.set_title("Acutation Time vs Estimated Apogee")
+    ax2.xlabel("Acutation Time (s)")
+    ax2.ylabel("Estimated Apogee (m)")
+    fig.tight_layout()
+
 #############################
 #######  PARAMETERS  ########
 #############################
@@ -469,6 +519,7 @@ burnTime = v.parameters.burn_time
 totalLength = v.rocket_length
 propellant_mass = v.parameters.total_propellant_mass
 plots = 1
+actuation_time = 0.5 # hardcoded actuation time 
 
 estimated_apogee, max_acceleration, max_velocity, off_the_rail_velocity, off_the_rail_acceleration, totalImpulse, off_the_rail_time = calculate_trajectory_variable_burn(
     wetMass,
@@ -481,6 +532,15 @@ estimated_apogee, max_acceleration, max_velocity, off_the_rail_velocity, off_the
     exitPressure,
     totalLength,
     propellant_mass,
+    actuation_time,
     plots)
 
-print(estimated_apogee, max_acceleration, max_velocity, off_the_rail_velocity, off_the_rail_acceleration, totalImpulse, off_the_rail_time)
+print(f"Estimated Apogee: {estimated_apogee:.3f} m")
+print(f"Maximum Acceleration: {max_acceleration:.3f} m/s^2")
+print(f"Maximum Velocity: {max_velocity:.3f} m/s")
+print(f"Off-the-rail Velocity: {off_the_rail_velocity:.3f} m/s")
+print(f"Off-the-rail Acceleration: {off_the_rail_acceleration:.3f} m/s^2")
+print(f"Off-the-rail Time: {off_the_rail_time:.3f} s")
+print(f"Total Impulse: {totalImpulse:.3f} N.s")
+
+actuation_time_vs_rail_exit()

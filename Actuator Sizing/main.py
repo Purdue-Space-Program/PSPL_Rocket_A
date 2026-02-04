@@ -8,6 +8,8 @@ from constants import *
 ###############################
 # CHOOSE MODE "test" or "real"
 piston = "real" # test or real
+# OUTPUTS "on" (1) or "off" (0)
+outputs = 0
 ###############################
 
 ###############################
@@ -43,45 +45,48 @@ else:
     pass
 
 
-def calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve):
+def calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve, outputs):
     fc_piston = (4 * piston_seal_length * M2IN) * LBF2N # assuming 4, worst case, for now
     fc_shaft = (4 * shaft_seal_length * M2IN) * LBF2N
     fh_piston = (18 * piston_seal_area * M22IN2) * LBF2N # from parker oring handbook figure 5-10, lowkey using it for u-cup :skull:
     fh_shaft = (18 * shaft_seal_area * M22IN2) * LBF2N
     friction_piston = fc_piston + fh_piston
     friction_shaft = fc_shaft + fh_shaft
-    print(f"fc_piston: {fc_piston * N2LBF:.2f} LBF")
-    print(f"fc_shaft: {fc_shaft * N2LBF:.2f} LBF")
-    print(f"fh_piston: {fh_piston * N2LBF:.2f} LBF")
-    print(f"fh_shaft: {fh_shaft * N2LBF:.2f} LBF")
     f_net = piston_force - force_valve - friction_piston * 2 - friction_shaft # two seals on piston, 1 on rod
-    print(f"F_net: {f_net * N2LBF:.2f} LBF")
+    if outputs == 1:
+        print(f"fc_piston: {fc_piston * N2LBF:.2f} LBF")
+        print(f"fc_shaft: {fc_shaft * N2LBF:.2f} LBF")
+        print(f"fh_piston: {fh_piston * N2LBF:.2f} LBF")
+        print(f"fh_shaft: {fh_shaft * N2LBF:.2f} LBF")
+        print(f"F_net: {f_net * N2LBF:.2f} LBF")
     return f_net
 
-def calc_volumetric_flow(volume_swept_history, time_history):
+def calc_volumetric_flow(volume_swept_history, time_history, outputs):
     volumetric_flow_history = []
     time_step = time_history[1] - time_history[0] if len(time_history) > 1 else 0
     volumetric_flow_history.append(0)
     for i in range(1, len(volume_swept_history)):
         volumetric_flow = (volume_swept_history[i] - volume_swept_history[i-1]) / time_step
         volumetric_flow_history.append(volumetric_flow)
-    plt.subplot(2, 1, 1)
-    plt.plot(volume_swept_history, volumetric_flow_history)
-    plt.title("Volume vs Volumetric Flow")
-    plt.subplot(2, 1, 2)
-    plt.plot(time_history, volumetric_flow_history)
-    plt.title("Time vs Volumetric Flow")
-    plt.tight_layout()
-    plt.show()
+    if outputs == 1:
+        plt.subplot(2, 1, 1)
+        plt.plot(volume_swept_history, volumetric_flow_history)
+        plt.title("Volume vs Volumetric Flow")
+        plt.subplot(2, 1, 2)
+        plt.plot(time_history, volumetric_flow_history)
+        plt.title("Time vs Volumetric Flow")
+        plt.tight_layout()
+        plt.show()
     return volumetric_flow_history, time_history
 
-def calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length):
+def calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length, outputs):
     required_torque = braking_torque * safety_factor
     arm_length = piston_stroke_length / np.sqrt(2)
     torque = arm_length * piston_force / np.sqrt(2)
-    print(f"The piston will produce ~{torque * NM2LBI:.2f} torque at 200 psi.")
-    print(f"The required torque with a safety factor of 3 is {required_torque * NM2LBI:.2f}")
-    print(f"Length of valve arm would be {arm_length * M2IN:.2f}")
+    if outputs == 1:
+        print(f"The piston will produce ~{torque * NM2LBI:.2f} torque at 200 psi.")
+        print(f"The required torque with a safety factor of 3 is {required_torque * NM2LBI:.2f}")
+        print(f"Length of valve arm would be {arm_length * M2IN:.2f}")
     return required_torque, arm_length, torque
 
 def actuation_time_valve(Cv, piston_diameter, piston_stroke_length):
@@ -91,7 +96,7 @@ def actuation_time_valve(Cv, piston_diameter, piston_stroke_length):
     actuation_time = piston_area * M22IN2 * piston_stroke_length * M2IN * A * cf / (29 * Cv)
     print(f"Actuation time using cv of valve: {actuation_time:.3f}s")
 
-def actuation_time_kinematics_real(F_net, rod_mass, piston_diameter, arm_length, plot = 1):
+def actuation_time_kinematics_real(F_net, rod_mass, piston_diameter, arm_length, outputs):
     time = 0
     time_step = 0.0001
     piston_velocity = 0
@@ -119,7 +124,7 @@ def actuation_time_kinematics_real(F_net, rod_mass, piston_diameter, arm_length,
         distance_travelled_history.append(dist_travelled)
         time += time_step
 
-    if plot == 1:
+    if outputs == 1:
         plt.subplot(2, 2, 1)
         plt.plot(time_history, angle_history)
         plt.xlabel("Actuation Time [s]")
@@ -148,12 +153,12 @@ def actuation_time_kinematics_real(F_net, rod_mass, piston_diameter, arm_length,
         plt.tight_layout()
         plt.show()
 
-    print(f"Actuation time: {time:.3f}s")
-    print(f"Stroke length when using valve angle condition: {distance_travelled_history[-1] * M2IN:.2f} in")
+        print(f"Actuation time: {time:.3f}s")
+        print(f"Stroke length when using valve angle condition: {distance_travelled_history[-1] * M2IN:.2f} in")
 
     return volume_swept_history, time_history, angle_history, time
 
-def actuation_time_kinematics_test(F_net, rod_mass, piston_diameter, piston_stroke_length):
+def actuation_time_kinematics_test(F_net, rod_mass, piston_diameter, piston_stroke_length, outputs):
     time = 0
     time_step = 0.0001
     piston_velocity = 0
@@ -173,29 +178,29 @@ def actuation_time_kinematics_test(F_net, rod_mass, piston_diameter, piston_stro
         volume_swept_history.append(volume_swept)
         distance_travelled_history.append(dist_travelled)
         time += time_step
+    if outputs == 1:
+        plt.subplot(1, 3, 1)
+        plt.plot(time_history, velocity_history)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Velocity [m/s]")
+        plt.title("Time vs Velocity")
 
-    plt.subplot(1, 3, 1)
-    plt.plot(time_history, velocity_history)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Velocity [m/s]")
-    plt.title("Time vs Velocity")
+        plt.subplot(1, 3, 2)
+        plt.plot(time_history, volume_swept_history)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Volume [m^3]")
+        plt.title("Time vs Volume Swept")
 
-    plt.subplot(1, 3, 2)
-    plt.plot(time_history, volume_swept_history)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Volume [m^3]")
-    plt.title("Time vs Volume Swept")
+        plt.subplot(1, 3, 3)
+        plt.plot(time_history, distance_travelled_history)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Distance Swept [m]")
+        plt.title("Time vs Distance Swept")
+        plt.tight_layout()
+        plt.show()
 
-    plt.subplot(1, 3, 3)
-    plt.plot(time_history, distance_travelled_history)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Distance Swept [m]")
-    plt.title("Time vs Distance Swept")
-    plt.tight_layout()
-    plt.show()
-
-    print(f"Actuation time: {time:.3f} seconds")
-    print(f"Stroke length when using valve angle condition: {distance_travelled_history[-1] * M2IN:.2f} in")
+        print(f"Actuation time: {time:.3f} seconds")
+        print(f"Stroke length when using valve angle condition: {distance_travelled_history[-1] * M2IN:.2f} in")
 
     return volume_swept_history, time_history, time
 
@@ -203,18 +208,20 @@ def actuation_time_kinematics_test(F_net, rod_mass, piston_diameter, piston_stro
 
 
 piston_force = pressure * np.pi * ((piston_diameter**2) / 4)
-print(f'Maximum possible net force disregarding friction (and valve arm if real condition): {piston_force * N2LBF:.2f}')
+if outputs == 1:
+    print(f'Maximum possible net force disregarding friction (and valve arm if real condition): {piston_force * N2LBF:.2f}')
 if piston.lower() == "test":
     print(f"Piston: Test")
     force_valve = 0
-    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
-    volume_swept_history, time_history, time  = actuation_time_kinematics_test(f_net, rod_mass, piston_diameter, piston_stroke_length)
+    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve, outputs)
+    volume_swept_history, time_history, time  = actuation_time_kinematics_test(f_net, rod_mass, piston_diameter, piston_stroke_length, outputs)
 elif piston.lower() == "real":
-    print(f"Piston: Real")
-    required_torque, arm_length, torque = calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length)
+    if outputs == 1:
+        print(f"Piston: Real")
+    required_torque, arm_length, torque = calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length, outputs)
     force_valve = braking_torque * np.sqrt(2) / arm_length
-    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve)
-    volume_swept_history, time_history, angle_history, time = actuation_time_kinematics_real(f_net, rod_mass, piston_diameter, arm_length)
+    f_net = calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, force_valve, outputs)
+    volume_swept_history, time_history, angle_history, time = actuation_time_kinematics_real(f_net, rod_mass, piston_diameter, arm_length, outputs)
 else:
     print('Invalid piston chosen')
-volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history)
+volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history, outputs)
