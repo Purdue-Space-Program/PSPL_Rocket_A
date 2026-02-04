@@ -1,12 +1,12 @@
 clear;
 clc;
 
-% obtain_vehicle_parameters
+make_struts
 
 %% Struts
-StrutAnalysis(LowerStrutValues)
-StrutAnalysis(MidStrutValues)
-StrutAnalysis(UpperStrutValues)
+StrutAnalysis(lower_strut)
+StrutAnalysis(mid_strut)
+StrutAnalysis(upper_strut)
 
 %% Tanks
 
