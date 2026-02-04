@@ -1,10 +1,10 @@
 classdef Aluminum6063T52MaterialProperities
     properties
-        youngs = 10007601 % (psi)
-        yieldCompressionStrength = 31000; % (psi) check please
-        yieldTensionStrength = 35000; % (psi) bad
-        ultimateTensionStrength = 42000; % (psi) bad
-        density = 0.0975 % (lb/in^3) bad
+        youngs = 10000000 % (psi)
+        yieldCompressionStrength = 21000; % (psi)
+        yieldTensionStrength = 21000; % (psi)
+        ultimateTensionStrength = 27000; % (psi)
+        density = 0.0975 % (lb/in^3)
     end
 end
-% Sourced from pg 857 of mmpds
+% lowkey from matweb

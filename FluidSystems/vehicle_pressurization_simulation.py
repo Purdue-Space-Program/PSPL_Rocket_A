@@ -112,7 +112,7 @@ if vehicle_name == "Rocket_A":
     
     # Fuel
     FUEL = "ethanol"
-    M_DOT_FU = parameters.fuel_mass_flow_rate # [kg/s] fuel mass flow rate
+    M_DOT_FU = parameters.core_fuel_mass_flow_rate # [kg/s] fuel mass flow rate
     P_FU = P_TANK # [Pa] fuel tank nominal pressure
     V_FU = parameters.fuel_tank_usable_volume # [m^3] fuel tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX

@@ -13,16 +13,19 @@ import subprocess
 from pathlib import Path
 import sys
 from datetime import datetime
+import io
 
 import constants as c
+import vehicle_parameters_functions
 
 @dataclass
 class VehicleParameters:
 
     # Structural Parameters
-    yield_FOS: float = 1.5
-    ultimate_FOS: float = 2.0
+    yield_FoS: float = 1.5
+    ultimate_FoS: float = 2.0
     proof_factor: float = 1.5
+    bending_FoS: float = None
 
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 
@@ -36,8 +39,9 @@ class VehicleParameters:
     ISP: float = 175.0                                                          # The estimated ISP of the engine [seconds]
     OF_ratio: float = 1.0                                                       # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
     total_mass_flow_rate: float = 3.82 * c.LBM2KG                               # The targeted mass flow rate through the engine [kilograms/second]
-    oxidizer_mass_flow_rate: float = total_mass_flow_rate/(1 + (1/OF_ratio))     # The targeted mass flow rate for oxidizer through the engine [kilograms/second]
-    fuel_mass_flow_rate: float = total_mass_flow_rate/(OF_ratio + 1)            # The targeted mass flow rate for fuel through the engine [kilograms/second]
+    oxidizer_mass_flow_rate: float = total_mass_flow_rate/(1 + (1/OF_ratio))    # The targeted mass flow rate for oxidizer through the engine [kilograms/second]
+    core_fuel_mass_flow_rate: float = total_mass_flow_rate/(OF_ratio + 1)       # The targeted mass flow rate for fuel through the engine [kilograms/second]
+    film_fuel_mass_flow_rate: float = 0.3 * core_fuel_mass_flow_rate            # The targeted film mass flow rate for fuel [kilograms/second]
     burn_time: float = 2.09                                                     # The estimated burn time of the engine [seconds]
     contraction_ratio: float = 7.0                                              # The target ratio of chamber area to throat area [dimensionless]
     exit_pressure: float = 15.0 * c.PSI2PA                                      # The target exit pressure of the exhaust gas [Pascals]
@@ -56,7 +60,7 @@ class VehicleParameters:
     fuel_tank_length: float = 6 * c.IN2M      # The length of the fuel tank that needs to be filled with fuel (the actual tank may be longer) [meters]
     fuel_tank_usable_volume: float = 2.55 * c.L2M3     # The required loaded volume of fuel needed for the burn time [meter^3]
     fuel_total_mass: float = 4.42 * c.LBM2KG     # The required loaded mass of fuel needed for the burn time [kilograms]
-    fuel_used_mass: float = burn_time * fuel_mass_flow_rate 
+    fuel_used_mass: float = burn_time * core_fuel_mass_flow_rate 
     fuel_residual_mass: float = fuel_total_mass - fuel_used_mass
 
     oxidizer_tank_length: float = 4.56 * c.IN2M   # The length of the oxidizer tank that needs to be filled with oxidizer (the actual tank may be longer) [meters]
@@ -82,14 +86,21 @@ class VehicleParameters:
 
     # COPV Parameters
     COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
-    COPV_starting_pressure: float =  4300 * c.PSI2PA # [Pa]
+    COPV_starting_pressure: float = 4300 * c.PSI2PA # [Pa]
+
+
+    root_chord: float = 16 * c.IN2M
+    tip_chord: float = 6 * c.IN2M
+    sweep_length: float = root_chord - tip_chord
+    wingspan: float = 7.6 * c.IN2M
+    number_of_fins: float = 3 # [-]
+    fin_top: float = None
 
     # Fin parameters
     # root_chord = ????? * c.IN2M
     # tip_chord = ????? * c.IN2M
     # sweep_length = ?????? * c.IN2M
     # fin_height = ???? * c.IN2M
-    number_of_fins = 3
     # fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft
     # noseconeToFin = total_length - fin_top
         
@@ -118,13 +129,13 @@ class VehicleParameters:
     six_DoF_estimated_apogee: float = 747.60       # The estimated 6-DoF altitude [meters]
     
     # later-calculated values that need to be here so it can still be added for a frozen data class
-    wet_mass: float = np.nan
-    dry_mass: float = np.nan
-    total_length: float = np.nan
-    dry_COM_location_from_bottom: float = np.nan
-    dry_COM_location_from_top: float = np.nan
-    wet_COM_location_from_bottom: float = np.nan
-    wet_COM_location_from_top: float = np.nan
+    wet_mass: float = None
+    dry_mass: float = None
+    total_length: float = None
+    dry_COM_location_from_bottom: float = None
+    dry_COM_location_from_top: float = None
+    wet_COM_location_from_bottom: float = None
+    wet_COM_location_from_top: float = None
 
     # internal freeze flag
     _frozen: bool = field(default=False, init=False, repr=False)
@@ -242,9 +253,14 @@ class MassComponent:
     mass: float               # [kilograms]
     bottom_distance_from_aft: float   # distance from the bottom of the rocket to the bottom of the mass component [meters]
     length: float              # [meters]
-    
-    def StartAfter(self): # A mass object that directly after another
-        return(self.bottom_distance_from_aft + self.length)
+    top_distance_from_aft: float = None
+
+    def __post_init__(self):
+        object.__setattr__(
+            self,
+            "top_distance_from_aft",
+            self.bottom_distance_from_aft + self.length
+        )
 
 @dataclass(frozen=True)
 class MassDistribution:
@@ -253,26 +269,26 @@ class MassDistribution:
     def __iter__(self):
         return iter(self.components)
 
-engine =                  MassComponent(name = 'engine',                      mass = engine_mass,            bottom_distance_from_aft = 0,                                          length = parameters.engine_length)
-injector =                MassComponent(name = 'injector',                    mass = injector_mass,          bottom_distance_from_aft = engine.StartAfter(),                        length = parameters.injector_length)
-lower =                   MassComponent(name = 'lower',                       mass = lower_mass,             bottom_distance_from_aft = injector.StartAfter(),                      length = parameters.lower_length)
+engine =                  MassComponent(name = "engine",                      mass = engine_mass,            bottom_distance_from_aft = 0,                                                   length = parameters.engine_length)
+injector =                MassComponent(name = "injector",                    mass = injector_mass,          bottom_distance_from_aft = engine.top_distance_from_aft,                        length = parameters.injector_length)
+lower =                   MassComponent(name = "lower",                       mass = lower_mass,             bottom_distance_from_aft = injector.top_distance_from_aft,                      length = parameters.lower_length)
 
-lower_fuel_bulkhead =     MassComponent(name = 'lower_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = lower.StartAfter(),                         length = parameters.bulkhead_length)
-wet_fuel_tank =           MassComponent(name = 'wet_fuel_tank',               mass = fuel_tank_wet_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.StartAfter(),           length = parameters.fuel_tank_length)
-dry_fuel_tank =           MassComponent(name = 'dry_fuel_tank',               mass = fuel_tank_dry_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.StartAfter(),           length = parameters.fuel_tank_length)
-upper_fuel_bulkhead =     MassComponent(name = 'upper_fuel_bulkhead',         mass = bulkhead_mass,          bottom_distance_from_aft = wet_fuel_tank.StartAfter(),                 length = parameters.bulkhead_length)
+lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,          bottom_distance_from_aft = lower.top_distance_from_aft,                         length = parameters.bulkhead_length)
+wet_fuel_tank =           MassComponent(name = "wet_fuel_tank",               mass = fuel_tank_wet_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.top_distance_from_aft,           length = parameters.fuel_tank_length)
+dry_fuel_tank =           MassComponent(name = "dry_fuel_tank",               mass = fuel_tank_dry_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.top_distance_from_aft,           length = parameters.fuel_tank_length)
+upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,          bottom_distance_from_aft = wet_fuel_tank.top_distance_from_aft,                 length = parameters.bulkhead_length)
 
-mid =                     MassComponent(name = 'mid',                         mass = mid_mass,               bottom_distance_from_aft = upper_fuel_bulkhead.StartAfter(),           length = parameters.mid_length)
+mid =                     MassComponent(name = "mid",                         mass = mid_mass,               bottom_distance_from_aft = upper_fuel_bulkhead.top_distance_from_aft,           length = parameters.mid_length)
 
-lower_oxidizer_bulkhead = MassComponent(name = 'lower_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = mid.StartAfter(),                           length = parameters.bulkhead_length)
-wet_oxidizer_tank =       MassComponent(name = 'wet_oxidizer_tank',           mass = oxidizer_tank_wet_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.StartAfter(),       length = parameters.oxidizer_tank_length)
-dry_oxidizer_tank =       MassComponent(name = 'dry_oxidizer_tank',           mass = oxidizer_tank_dry_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.StartAfter(),       length = parameters.oxidizer_tank_length)
-upper_oxidizer_bulkhead = MassComponent(name = 'upper_oxidizer_bulkhead',     mass = bulkhead_mass,          bottom_distance_from_aft = wet_oxidizer_tank.StartAfter(),             length = parameters.bulkhead_length)
+lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,          bottom_distance_from_aft = mid.top_distance_from_aft,                           length = parameters.bulkhead_length)
+wet_oxidizer_tank =       MassComponent(name = "wet_oxidizer_tank",           mass = oxidizer_tank_wet_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.top_distance_from_aft,       length = parameters.oxidizer_tank_length)
+dry_oxidizer_tank =       MassComponent(name = "dry_oxidizer_tank",           mass = oxidizer_tank_dry_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.top_distance_from_aft,       length = parameters.oxidizer_tank_length)
+upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,          bottom_distance_from_aft = wet_oxidizer_tank.top_distance_from_aft,             length = parameters.bulkhead_length)
 
-upper =                   MassComponent(name = 'upper',                       mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.StartAfter(),       length = parameters.upper_length)
-recovery_bay =            MassComponent(name = 'recovery_bay',                mass = recovery_bay_mass,      bottom_distance_from_aft = upper.StartAfter(),                         length = parameters.recovery_bay_length)
+upper =                   MassComponent(name = "upper",                       mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.top_distance_from_aft,       length = parameters.upper_length)
+recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,      bottom_distance_from_aft = upper.top_distance_from_aft,                         length = parameters.recovery_bay_length)
 
-nosecone =                MassComponent(name = 'nosecone',                    mass = nosecone_mass,          bottom_distance_from_aft = recovery_bay.StartAfter(),                  length=parameters.nosecone_length)
+nosecone =                MassComponent(name = "nosecone",                    mass = nosecone_mass,          bottom_distance_from_aft = recovery_bay.top_distance_from_aft,                  length = parameters.nosecone_length)
 
 
 wet_mass_distribution = MassDistribution(components=
@@ -354,25 +370,9 @@ for item in dry_mass_distribution.components:
         "length": item.length
     }
 
-# print(rocket_dict_wet)
-# print(rocket_dict_dry)
-item_sum = 0
-# for item in rocket_dict_wet: item_sum += rocket_dict_wet[item]['mass']; print(f"{item}: {rocket_dict_wet[item]['mass']*c.KG2LBM} lbm")
-# print(f"Mass of rocket dict wet: {item_sum * c.KG2LBM} lbm")
-# for item in rocket_dict_wet: print(f"{item}: {rocket_dict_dry[item]['length']*c.M2FT} ft")
-
-
-# print(rocket_dict_wet)
-# print(f"Mass of rocket dict wet: {sum(component['mass'] for component in rocket_dict_wet.values())} kg")
-# print(" ")
-# print(rocket_dict_dry)
-# print(f"Mass of rocket dict dry: {sum(component['mass'] for component in rocket_dict_dry.values())} kg")
-# print(" ")
-# print(rocket_dict_recovery)
-# print(f"Mass of rocket dict recovery: {sum(component['mass'] for component in rocket_dict_recovery.values())} kg")
 
 num_points = 2000
-length_along_rocket_linspace = np.linspace(wet_mass_distribution.components[0].bottom_distance_from_aft, wet_mass_distribution.components[-1].StartAfter(), num_points)
+length_along_rocket_linspace = np.linspace(wet_mass_distribution.components[0].bottom_distance_from_aft, wet_mass_distribution.components[-1].top_distance_from_aft, num_points)
 
 wet_linear_density_array = np.zeros(num_points)
 dry_linear_density_array = np.zeros(num_points)
@@ -391,8 +391,6 @@ for wet_component, dry_component in zip(wet_mass_distribution.components, dry_ma
             wet_linear_density_array[index] += wet_linear_density
             dry_linear_density_array[index] += dry_linear_density
 
-
-
 vehicle_wet_mass = sum(component.mass for component in wet_mass_distribution)
 vehicle_dry_mass = sum(component.mass for component in dry_mass_distribution)
 
@@ -402,6 +400,7 @@ if max(length_along_rocket_linspace) != length_along_rocket_linspace[-1]:
 
 rocket_length = max(length_along_rocket_linspace)
 
+parameters.fin_top = injector.top_distance_from_aft + parameters.root_chord # assume fins start right after injector
 
 parameters.wet_mass = vehicle_wet_mass # The estimated dry mass of the rocket [kilograms]
 parameters.dry_mass = vehicle_dry_mass # The estimated dry mass of the rocket [kilograms]
@@ -414,97 +413,25 @@ parameters.dry_COM_location_from_bottom = calcCG(dry_linear_density_array, lengt
 parameters.dry_COM_location_from_top = rocket_length - parameters.dry_COM_location_from_bottom
 
 parameters.freeze()
-# parameters.wet_mass = 9999999999999999999999999999999999999999
+# parameters.wet_mass = 9999999999999999999999999999999999999999 # if you wanna test that freezing works
 
 
-# for recording what file accesed this script
-main_module = sys.modules.get("__main__")
-if getattr(main_module, "__file__", None):
-    selected_path = Path(main_module.__file__).resolve()
-else:
-    selected_path = None
-    for frame_info in inspect.stack()[1:]:
-        candidate_filename = frame_info.filename
-        if candidate_filename and not candidate_filename.startswith("<"):
-            candidate_path = Path(candidate_filename)
-            if candidate_path.suffix == ".py":
-                selected_path = candidate_path.resolve()
-                break
-    if selected_path is None:
-        selected_path = Path.cwd().resolve()
-
-repository_root_path = Path(
-    subprocess.check_output(
-        ["git", "rev-parse", "--show-toplevel"],
-        cwd=selected_path.parent,
-        stderr=subprocess.DEVNULL,
-        text=True,
-    ).strip()
-).resolve()
-
-try:
-    caller_file_path = Path(selected_path.relative_to(repository_root_path).as_posix())
-except Exception:
-    caller_file_path = Path(selected_path.as_posix())
-
-# print(f"caller path: {caller_file_path}")
-
-python_file_dir = Path(__file__).resolve().parent
-
-# also output here for record keeping
-PSPL_ROCKET_A_records_file_path = repository_root_path / Path("vehicle_parameters_records")
-PSPL_ROCKET_A_records_file_path.mkdir(exist_ok=True)
-
-timestamp_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-PSPL_ROCKET_A_new_record_file_path = PSPL_ROCKET_A_records_file_path / f"vehicle_parameters_{timestamp_string}.csv"
-
-PSPL_ROCKET_A = repository_root_path / f"vehicle_parameters.csv"
-
-export_path_list = [PSPL_ROCKET_A, PSPL_ROCKET_A_new_record_file_path]
-
-try:
-    Six_DoF_csv_file_path = (
-        python_file_dir
-        / ".."          # one directory up from PSPL_Rocket_A
-        / "PSPL-6DOF"
-        / "TheSixDoF"
-        / "Inputs"
-        / "Saved Rockets"
-        / "FUCK_MATLAB"
-        / "vehicle_parameters.csv"
-    ).resolve()
-
-    # write to CSV for 6DOF to read since 6DOF is in matlabese
-    Six_DoF_csv_file_path.parent.mkdir(parents=True, exist_ok=True)
-    export_path_list.append(Six_DoF_csv_file_path)
-except:
-    pass
-
-# try:
-#     # this fails when matlab runs it
-#     if __name__ == "__main__":
-# except:
-#     print("Vehicle Parameters CSV Exported failed, skipping...")
-    
 
 for export_file_path in export_path_list:
-    with open(export_file_path, "w", newline="") as csv_file_handle:
-        
-        # fuck epoch
-        csv_file_handle.write(f"# Accessed: {timestamp_string} (format: YYYY-MM-DD_HH-MM-SS)\n")
-        csv_file_handle.write(f"# Accessed by: {caller_file_path.as_posix()}\n")
-        
-        
-        csv_writer_handle = csv.writer(csv_file_handle)
-        csv_writer_handle.writerow(["parameter_name", "value"])
+    vehicle_parameters_functions.ConvertObjectToCSV(wet_mass_distribution, "vehicle_wet_mass_distribution")
 
-        for field_object in fields(parameters):
-            if field_object.name.startswith("_"):
-                continue
-            csv_writer_handle.writerow([field_object.name, getattr(parameters, field_object.name)])
-        
-        # print(f"Vehicle Parameters CSV Exported to {export_file_path}")
-# print("")
+    is_equal = vehicle_parameters_functions.Determine_if_CSV_Files_are_Equal(
+        "wet_mass_distribution.csv",
+        "wet_mass_distribution_new.csv",
+    )
+
+    if not is_equal:
+        pass
+
+
+
+
+
 
 
 if __name__ == "__main__":
@@ -534,13 +461,6 @@ if __name__ == "__main__":
     
     plt.ylabel("Wet Mass Density [lbs/feet^3]")
     plt.title("Rocket Wet Mass Distribution")
-        
-    # print(f"Fuel mass: {parameters.fuel_total_mass:.2f} kg")
-    # print(f"fuel tank mass: {fuel_tank_wall_mass+lower_fuel_bulkhead.mass+upper_fuel_bulkhead.mass:.2f} kg")
-    # print(f"total fuel tank length: {fuel_tank.length + lower_fuel_bulkhead.length + upper_fuel_bulkhead.length:.2f} m")
-    # print(f"Oxidizer mass: {parameters.oxidizer_total_mass:.2f} kg")
-    # print(f"oxidizer tank mass: {oxidizer_tank_wall_mass+lower_oxidizer_bulkhead.mass+upper_oxidizer_bulkhead.mass:.2f} kg")
-    # print(f"total oxidizer tank length: {oxidizer_tank.length + lower_oxidizer_bulkhead.length + upper_oxidizer_bulkhead.length:.2f} m\n")
 
 
     print_components = False
@@ -569,4 +489,3 @@ if __name__ == "__main__":
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
     # plt.show()
-    

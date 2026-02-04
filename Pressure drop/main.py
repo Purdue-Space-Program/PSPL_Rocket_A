@@ -26,7 +26,7 @@ oxidizer_name = "oxygen"
 chamber_pressure =  parameters.chamber_pressure * u.pascal
 oxidizer_tank_pressure = parameters.tank_pressure * u.pascal
 fuel_tank_pressure = parameters.tank_pressure * u.pascal
-fuel_mass_flow_rate = parameters.fuel_mass_flow_rate * (u.kilogram / u.second)  # Isopropyl alcohol mass flow rate
+fuel_mass_flow_rate = parameters.core_fuel_mass_flow_rate * (u.kilogram / u.second)  # Isopropyl alcohol mass flow rate
 oxidizer_mass_flow_rate = parameters.oxidizer_mass_flow_rate * (u.kilogram / u.second)  # LOx mass flow rate
 
 saturation_temp_ox = CP.PropsSI('T', 'P', oxidizer_tank_pressure.magnitude, 'Q', 0, oxidizer_name) * u.kelvin

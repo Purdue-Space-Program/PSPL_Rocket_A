@@ -12,7 +12,7 @@ def find_film_mdot(m_dot_ipa, film_percent):
     return m_dot
 ##### Find total area of the orifices needed to sustain a maximum of 30% film #####
 max_film_percent = 30 # [%]
-m_dot_ipa = vehicle.parameters.fuel_mass_flow_rate # [kg/s]
+m_dot_ipa = vehicle.parameters.core_fuel_mass_flow_rate # [kg/s]
 p1 = 310 * PSI2PA # [Pa]
 p2 = vehicle.parameters.chamber_pressure # [Pa]
 dp = p1 - p2 # [Pa]

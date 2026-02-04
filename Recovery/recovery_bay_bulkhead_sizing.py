@@ -117,8 +117,8 @@ def CalculateShearJoint(bolt_thread_size, bolt_material, number_of_bolts, joint_
     initial_fitting_factor = 1 # since we dont know if the joint is shear or bearing critical yet (idk if this is the right way to do it tbh)
     
     # bolt_shear_yield_MoS ?????????????????????????
-    bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FOS, initial_fitting_factor)
-    clamped_material_bearing_ultimate_MoS = CalculateMoS(clamped_material_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FOS, initial_fitting_factor)
+    bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, initial_fitting_factor)
+    clamped_material_bearing_ultimate_MoS = CalculateMoS(clamped_material_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, initial_fitting_factor)
     
     if (bolt_maximum_allowable_shear_ultimate_load > clamped_material_maximum_allowable_bearing_ultimate_load):
         fitting_factor = 1.15
@@ -130,9 +130,9 @@ def CalculateShearJoint(bolt_thread_size, bolt_material, number_of_bolts, joint_
         raise ValueError("what")
     
     
-    bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FOS, fitting_factor)
-    clamped_material_bearing_ultimate_MoS = CalculateMoS(clamped_material_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FOS, fitting_factor)
-    bearingYieldMOS = CalculateMoS(tank_wall_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, parameters.yield_FOS, fitting_factor)
+    bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
+    clamped_material_bearing_ultimate_MoS = CalculateMoS(clamped_material_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
+    bearingYieldMOS = CalculateMoS(tank_wall_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, parameters.yield_FoS, fitting_factor)
     
     print(f"\tshearUltimateMOS: {bolt_shear_ultimate_MoS:.3f}")
     print(f"\tbearingUltimateMOS: {clamped_material_bearing_ultimate_MoS:.3f}")
