@@ -14,6 +14,7 @@ csv_import_options.CommentStyle = "#";
 csv_import_options.VariableNamesLine = 3;
 csv_import_options.DataLines = [4, Inf];
 vehicle_parameters_csv = readtable(vehicle_parameters_csv_path, csv_import_options);
+vehicle_parameters_csv.Properties.VariableNames = ["parameter_name", "value"];
 
 % convert to struct for syntactic sugar
 vehicle_parameters = cell2struct( ...
@@ -23,3 +24,5 @@ vehicle_parameters = cell2struct( ...
 
 mat_file_path = fullfile("Structures Analysis\vehicle_parameters.mat");
 save(mat_file_path, "vehicle_parameters", "vehicle_parameters_csv");
+
+cd(current_directory)
