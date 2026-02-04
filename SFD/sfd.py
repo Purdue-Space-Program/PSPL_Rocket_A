@@ -352,11 +352,11 @@ def calcDragForce(cd, rho, velocity, area):
     '''
     drag_force = 0.5 * cd * rho * (velocity ** 2) * area
 
-    print("*********************")
-    print(f"cd: {cd:.2f}")
-    print(f"rho: {rho:.2f}")
-    print(f"velocity: {velocity:.2f}")
-    print(f"area: {area:.2f}")
+    # print("*********************")
+    # print(f"cd: {cd:.2f}")
+    # print(f"rho: {rho:.2f}")
+    # print(f"velocity: {velocity:.2f}")
+    # print(f"area: {area:.2f}")
 
     return drag_force
 
