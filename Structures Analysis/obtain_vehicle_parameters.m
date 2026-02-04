@@ -17,6 +17,10 @@ save(mat_file_path, "vehicle_parameters_csv")
 
 cd(currentDirectory)
 
+mat_file_path = fullfile("Structures Analysis\vehicle_parameters.mat");
+
+save(mat_file_path, "vehicle_parameters_csv")
+
 % convert to struct for syntactic sugar
 vehicle_parameters = cell2struct( ...
     num2cell(vehicle_parameters_csv.value), ...

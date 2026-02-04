@@ -88,7 +88,6 @@ class VehicleParameters:
     COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
     COPV_starting_pressure: float = 4300 * c.PSI2PA # [Pa]
 
-
     root_chord: float = 16 * c.IN2M
     tip_chord: float = 6 * c.IN2M
     sweep_length: float = root_chord - tip_chord
@@ -96,11 +95,6 @@ class VehicleParameters:
     number_of_fins: float = 3 # [-]
     fin_top: float = None
 
-    # Fin parameters
-    # root_chord = ????? * c.IN2M
-    # tip_chord = ????? * c.IN2M
-    # sweep_length = ?????? * c.IN2M
-    # fin_height = ???? * c.IN2M
     # fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft
     # noseconeToFin = total_length - fin_top
         
@@ -414,8 +408,6 @@ parameters.dry_COM_location_from_top = rocket_length - parameters.dry_COM_locati
 
 parameters.freeze()
 # parameters.wet_mass = 9999999999999999999999999999999999999999 # if you wanna test that freezing works
-
-
 
 for export_file_path in export_path_list:
     vehicle_parameters_functions.ConvertObjectToCSV(wet_mass_distribution, "vehicle_wet_mass_distribution")
