@@ -105,22 +105,22 @@ class VehicleParameters:
 
     one_DoF_max_acceleration: float = 6.96 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravities]
     one_DoF_max_mach: float = 0.395                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    one_DoF_max_velocity: float = one_DoF_max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
+    one_DoF_max_velocity: float = one_DoF_max_mach * 343  # The maximum speed of the rocket during flight [meters/second]
     one_DoF_total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
 
     one_DoF_estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DoF altitude [meters]
 
     # 6-DoF results:
-    # six_DoF_off_the_rail_TWR: float = ?                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    six_DoF_off_the_rail_acceleration: float = 58.264 / c.GRAVITY       # The target acceleration of the rocket off the launch rail [standard gravities]
-    six_DoF_off_the_rail_velocity: float = 28.70          # The target velocity of the rocket off the launch rail [meters/second]
+    # six_DoF_off_the_rail_TWR: float = ?                          # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
+    six_DoF_off_the_rail_acceleration: float = 58.264 / c.GRAVITY  # The target acceleration of the rocket off the launch rail [standard gravities]
+    six_DoF_off_the_rail_velocity: float = 28.70                   # The target velocity of the rocket off the launch rail [meters/second]
 
-    # six_DoF_max_acceleration: float = ? # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravities]
-    six_DoF_max_mach: float = 0.368                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    six_DoF_max_velocity: float = six_DoF_max_mach * 343          # The maximum speed of the rocket during flight [meters/second]
-    # six_DoF_total_impulse: float = ?                   # The total impulse of the rocket over the duration of flight [newton seconds]
+    # six_DoF_max_acceleration: float = ? # (upwards!)             # The maximum acceleration of the rocket during flight [standard gravities]
+    six_DoF_max_mach: float = 0.368                                # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    six_DoF_max_velocity: float = six_DoF_max_mach * 343           # The maximum speed of the rocket during flight [meters/second]
+    # six_DoF_total_impulse: float = ?                             # The total impulse of the rocket over the duration of flight [newton seconds]
     
-    six_DoF_estimated_apogee: float = 747.60       # The estimated 6-DoF altitude [meters]
+    six_DoF_estimated_apogee: float = 747.60                       # The estimated 6-DoF altitude [meters]
     
     # later-calculated values that need to be here so it can still be added for a frozen data class
     wet_mass: float = None
@@ -409,16 +409,47 @@ parameters.dry_COM_location_from_top = rocket_length - parameters.dry_COM_locati
 parameters.freeze()
 # parameters.wet_mass = 9999999999999999999999999999999999999999 # if you wanna test that freezing works
 
-for export_file_path in export_path_list:
-    vehicle_parameters_functions.ConvertObjectToCSV(wet_mass_distribution, "vehicle_wet_mass_distribution")
 
-    is_equal = vehicle_parameters_functions.Determine_if_CSV_Files_are_Equal(
-        "wet_mass_distribution.csv",
-        "wet_mass_distribution_new.csv",
-    )
 
-    if not is_equal:
-        pass
+
+########## paused until i figure ts out ##########
+# repository_root_path = vehicle_parameters_functions.Get_Repository_Root_Path()
+
+# PSPL_ROCKET_A_file_path = repository_root_path / f"vehicle_parameters.csv"
+
+# export_path_list = [PSPL_ROCKET_A_file_path]
+
+# try:
+#     Six_DoF_csv_file_path = (
+#         repository_root_path
+#         / ".."          # one directory up from PSPL_Rocket_A
+#         / "PSPL-6DOF"
+#         / "TheSixDoF"
+#         / "Inputs"
+#         / "Saved Rockets"
+#         / "FUCK_MATLAB"
+#         / "vehicle_parameters.csv"
+#     ).resolve()
+
+#     # write to CSV for 6DOF to read since 6DOF is in matlabese
+#     Six_DoF_csv_file_path.parent.mkdir(parents=True, exist_ok=True)
+#     export_path_list.append(Six_DoF_csv_file_path)
+# except:
+#     pass
+
+
+
+
+# for export_file_path in export_path_list:
+#     vehicle_parameters_functions.ConvertObjectToCSV(wet_mass_distribution, "vehicle_wet_mass_distribution")
+
+#     is_equal = vehicle_parameters_functions.Determine_if_CSV_Files_are_Equal(
+#         "wet_mass_distribution.csv",
+#         "wet_mass_distribution_new.csv",
+#     )
+
+#     if not is_equal:
+#         pass
 
 
 
