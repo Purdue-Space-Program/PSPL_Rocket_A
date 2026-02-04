@@ -31,7 +31,7 @@ def ConvertObjectToCSV(object, file_name):
 
     timestamp_string = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    
+
     with open(export_file_path, "w", newline="", encoding="utf-8") as csv_file_handle:
         
         csv_writer_handle = csv.writer(csv_file_handle)
@@ -39,6 +39,8 @@ def ConvertObjectToCSV(object, file_name):
         # fuck epoch
         csv_file_handle.write(f"# Accessed: {timestamp_string} (format: YYYY-MM-DD_HH-MM-SS)\n")
         csv_file_handle.write(f"# Accessed by: {caller_file_path.as_posix()}\n")
+        
+        csv_writer_handle.writerow(["parameter_name", "value"])
         
         if isinstance(object, vehicle_parameters.MassDistribution):
             mass_distribution_object = object
