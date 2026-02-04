@@ -1,4 +1,4 @@
-classdef Aluminum6061T6MaterialProperities
+classdef Aluminum6061T6MaterialProperties
     properties
         youngs = 10007601 % (psi)
         yieldCompressionStrength = 35000; % (psi)

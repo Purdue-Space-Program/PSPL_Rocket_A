@@ -1,4 +1,4 @@
-classdef Aluminum6063T52MaterialProperities
+classdef Aluminum6063T52MaterialProperties
     properties
         youngs = 10000000 % (psi)
         yieldCompressionStrength = 21000; % (psi)

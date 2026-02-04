@@ -307,5 +307,7 @@ savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB
 
 if len(AOA_recovery_list) > 1:
     plt.tight_layout()
-plt.show()
 # ------------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    plt.show()

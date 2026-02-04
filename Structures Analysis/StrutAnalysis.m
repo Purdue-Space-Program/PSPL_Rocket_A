@@ -2,7 +2,7 @@ function StrutAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
 
-%% Object Properities
+%% Object Properties
 
 %objectInQuestion = MidStrutValues;
 
@@ -22,7 +22,7 @@ material = objectInQuestion.material; % Material properties from object
 
 if objectInQuestion.shape == 'Square'
     width = objectInQuestion.width; % Width of the object (in)
-    wallThickness = objectInQuestion.wallThickness; % Wall thickness of the objct (in)
+    wallThickness = objectInQuestion.wallThickness; % Wall thickness of the object (in)
     crossArea = width^2 - (width - 2 * wallThickness) ^ 2; % Cross sectional area)
     radiusGyration = SquareRadiusGyrationCalc(width, wallThickness); % Radius of gyration
 
@@ -32,15 +32,15 @@ elseif objectInQuestion.shape == 'Circle'
     crossArea = ((oD/2)^2 - (iD/2)^2) * pi;
     radiusGyration = ((((oD)^4 - (iD)^4) / 64) / crossArea) ^ (1/2);
     width = oD; % Width of the object (in)
-    wallThickness = iD; % Wall thickness of the objct (in)
+    wallThickness = iD; % Wall thickness of the object (in)
 else
     width = objectInQuestion.width; % Width of the object (in)
-    wallThickness = objectInQuestion.wallThickness; % Wall thickness of the objct (in)
+    wallThickness = objectInQuestion.wallThickness; % Wall thickness of the object (in)
     crossArea = objectInQuestion.crossArea; % Cross sectional area)
     radiusGyration = objectInQuestion.radiusGyration; % Radius of gyration
 end
 %% ____________________
-%% Calculated Properities
+%% Calculated Properties
 
 effectiveLength = K * length;
 slendernessRatio = effectiveLength / radiusGyration;
@@ -73,9 +73,9 @@ else
 end
 
 pAllow = (Fcr * area) / safetyFactorBending; % Allowable axial load (lb)
-%% Load Limit Properities
+%% Load Limit Properties
 
-[maxCompression, maxTension] = NetAxialLoad(distance, radius); % Max compressive and tensionile cases, divided by the three struts
+[maxCompression, maxTension] = NetAxialLoad(distance, radius); % Max compressive and tensile cases, divided by the three struts
 maxCompression = maxCompression / 3;
 maxTension = abs(maxTension) / 3;
 
@@ -92,7 +92,7 @@ fprintf("Max compression case: %.2f lbf\n", maxCompression);
 fprintf("Max tension case: %.2f lbf\n\n", maxTension);
 
 if consideringLocalBuckling == 1
-    fprintf("Nonslender - local buckling not critcal.\n")
+    fprintf("Non-slender - local buckling not critical.\n")
 else
     fprintf("Slender = local buckling must be considered.\n");
 end

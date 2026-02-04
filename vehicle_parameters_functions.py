@@ -9,7 +9,8 @@ from dataclasses import dataclass, fields, field
 
 import vehicle_parameters
 
-def ConvertObjectToCSV(repository_root_path, object, file_name):
+def ConvertObjectToCSV(object, file_name):
+    repository_root_path, caller_file_path = Get_Repository_Root_Path()
     
     export_file_path = Path(f"{file_name}.csv")
     
@@ -174,4 +175,4 @@ def Get_Repository_Root_Path():
         ).strip()
     ).resolve()
     
-    return(repository_root_path)
+    return(repository_root_path, selected_path)

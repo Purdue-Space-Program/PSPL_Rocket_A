@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sfd
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -8,7 +7,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import vehicle_parameters as vehicle
 import constants as c
 from scipy.io import savemat
-import parseWind as pw
+from . import sfd
+from . import parseWind
+# import sfd
+# import parseWind as pw
+os.chdir(os.path.dirname(__file__))
 # ------------------------------------------------------------------------------
 
 # Constants
@@ -26,7 +29,7 @@ thrust = vehicle.parameters.jet_thrust # [N]
 total_length = vehicle.parameters.total_length # [m]
 
 air_density = 1.225 # [kg / m^3]
-max_q_wind_gust = pw.percentile_75_wind_gust_speed # [m / s]
+max_q_wind_gust = parseWind.percentile_75_wind_gust_speed # [m / s]
 off_the_rail_rail_whip = 5 # [m / s] about 11 mph NEED
 
 if location == "max_q":
@@ -152,6 +155,7 @@ for variable in ["shear_array", "bending_array", "axial_array"]:
     plt.ylabel(ylabel)
     plt.grid()
     plot_num += 1
-if plot_on:
-    plt.show()
 
+if __name__ == "__main__":
+    if plot_on:
+        plt.show()

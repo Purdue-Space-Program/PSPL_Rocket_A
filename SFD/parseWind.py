@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+os.chdir(os.path.dirname(__file__))
 
 '''
 This script reads wind speed data from a text file, processes it to extract wind speed information,
@@ -15,8 +17,8 @@ Search for USW00094881 to find the specific dataset.
 
 plot_on = False # Set to True to plot results, False to not plot
 
-file_path  = 'USW00094881-data.txt'
-df = pd.read_csv(file_path, sep='\s+', comment='#')
+wind_data_file_path = "USW00094881-data.txt"
+df = pd.read_csv(wind_data_file_path, sep='\s+', comment='#')
 array_2d = df.values
 # print(array_2d) # TEST
 # print(array_2d[0:10]) # TEST
@@ -34,16 +36,17 @@ print(f"Standard deviation of wind gust speed: {std_dev_wind_gust_speed:.2f} m/s
 print(f"75th percentile wind gust speed: {percentile_75_wind_gust_speed:.2f} m/s") # 75th percentile wind speed in m/s
 print(f"90th percentile wind gust speed: {percentile_90_wind_gust_speed:.2f} m/s") # 90th percentile wind speed in m/s
 
-plt.figure(figsize=(10, 6))
-plt.hist(wind_gust_speed_array, bins=20, alpha=0.7, edgecolor='black')
-plt.axvline(avg_wind_gust_speed, color='red', linestyle='--', linewidth=2, label=f'Mean: {avg_wind_gust_speed:.2f}')
-plt.axvline(percentile_75_wind_gust_speed, color='green', linestyle='--', linewidth=2, label=f'75th Percentile: {percentile_75_wind_gust_speed:.2f}')
-plt.axvline(percentile_90_wind_gust_speed, color='orange', linestyle='--', linewidth=2, label=f'90th Percentile: {percentile_90_wind_gust_speed:.2f}')
-plt.xlabel('Value')
-plt.ylabel('Frequency')
-plt.title('Distribution of Data')
-plt.legend()
-plt.grid(True, alpha=0.3)
 
-if plot_on:
-    plt.show()
+if __name__ == "__main__":
+    if plot_on == True:
+        plt.figure(figsize=(10, 6))
+        plt.hist(wind_gust_speed_array, bins=20, alpha=0.7, edgecolor='black')
+        plt.axvline(avg_wind_gust_speed, color='red', linestyle='--', linewidth=2, label=f'Mean: {avg_wind_gust_speed:.2f}')
+        plt.axvline(percentile_75_wind_gust_speed, color='green', linestyle='--', linewidth=2, label=f'75th Percentile: {percentile_75_wind_gust_speed:.2f}')
+        plt.axvline(percentile_90_wind_gust_speed, color='orange', linestyle='--', linewidth=2, label=f'90th Percentile: {percentile_90_wind_gust_speed:.2f}')
+        plt.xlabel('Value')
+        plt.ylabel('Frequency')
+        plt.title('Distribution of Data')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.show()

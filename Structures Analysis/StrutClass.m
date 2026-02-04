@@ -9,7 +9,6 @@ classdef StrutClass
         radius (1,1) double; % Distance from center axis (in) 
         crossArea (1,1) double; % (in)
         radiusGyration (1,1) double; % (in)
-        material = Aluminum6063T52MaterialProperities % Material
+        material = Aluminum6063T52MaterialProperties % Material
     end
 end
-% This strut isn't finished as of 12/7 at 11:53 am,

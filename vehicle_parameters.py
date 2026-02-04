@@ -410,36 +410,6 @@ parameters.freeze()
 # parameters.wet_mass = 9999999999999999999999999999999999999999 # if you wanna test that freezing works
 
 
-
-
-########## paused until i figure ts out ##########
-# repository_root_path = vehicle_parameters_functions.Get_Repository_Root_Path()
-
-# PSPL_ROCKET_A_file_path = repository_root_path / f"vehicle_parameters.csv"
-
-# export_path_list = [PSPL_ROCKET_A_file_path]
-
-# try:
-#     Six_DoF_csv_file_path = (
-#         repository_root_path
-#         / ".."          # one directory up from PSPL_Rocket_A
-#         / "PSPL-6DOF"
-#         / "TheSixDoF"
-#         / "Inputs"
-#         / "Saved Rockets"
-#         / "FUCK_MATLAB"
-#         / "vehicle_parameters.csv"
-#     ).resolve()
-
-#     # write to CSV for 6DOF to read since 6DOF is in matlabese
-#     Six_DoF_csv_file_path.parent.mkdir(parents=True, exist_ok=True)
-#     export_path_list.append(Six_DoF_csv_file_path)
-# except:
-#     pass
-
-
-
-
 # for export_file_path in export_path_list:
 #     vehicle_parameters_functions.ConvertObjectToCSV(wet_mass_distribution, "vehicle_wet_mass_distribution")
 

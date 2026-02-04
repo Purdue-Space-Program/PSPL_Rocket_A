@@ -11,6 +11,6 @@ classdef UpperStrutValues
         radius = 2.25; % Distance from center axis (in) 
 %        crossArea = (3/4)^2 - (3/4 - 2 * 1/8)^2; % (in)
 %        radiusGyration = SquareRadiusGyrationCalc(3/4, 1/8); % (in)
-        material = Aluminum6063T52MaterialProperities % Material
+        material = Aluminum6063T52MaterialProperties % Material
     end
 end
