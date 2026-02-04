@@ -135,6 +135,9 @@ def main():
     ambient_temp_array = np.transpose(np.array([T_infinty_total]))
     np.savetxt("chamber_ambient_temp.csv", ambient_temp_array, delimiter=',')
 
+    heat_transfer_coefficient_array = np.transpose(np.array([h_total]))
+    np.savetxt("chamber_heat_transfer_coefficient.csv", heat_transfer_coefficient_array, delimiter=',')
+
     
 
 def RunCEA(
