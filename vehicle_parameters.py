@@ -25,7 +25,7 @@ class VehicleParameters:
     yield_FoS: float = 1.5
     ultimate_FoS: float = 2.0
     proof_factor: float = 1.5
-    bending_FoS: float = None
+    # bending_FoS: float = None
 
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 
@@ -74,15 +74,15 @@ class VehicleParameters:
     total_residual_mass: float = fuel_residual_mass + oxidizer_residual_mass # The total mass of propellant put on the vehicle [kilograms]
     
     # all from CAD
-    engine_length =         10.179 * c.IN2M
-    injector_length =       0.475 * c.IN2M
-    lower_length =          20 * c.IN2M
-    bulkhead_length =       1.22 * c.IN2M
-    mid_length =            5 * c.IN2M
+    engine_length: float =         10.179 * c.IN2M
+    injector_length: float =       0.475 * c.IN2M
+    lower_length: float =          20 * c.IN2M
+    bulkhead_length: float =       1.22 * c.IN2M
+    mid_length: float =            5 * c.IN2M
 
-    upper_length =          25 * c.IN2M
-    recovery_bay_length =   24 * c.IN2M
-    nosecone_length =       15 * c.IN2M
+    upper_length: float =          25 * c.IN2M
+    recovery_bay_length: float =   24 * c.IN2M
+    nosecone_length: float =       15 * c.IN2M
 
     # COPV Parameters
     COPV_volume: float = 4.70 * c.L2M3 # [m^3] 

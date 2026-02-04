@@ -9,8 +9,11 @@ disp(exit_status)
 disp(command_output)
 
 vehicle_parameters_csv_path = fullfile("vehicle_parameters.csv");
-vehicle_parameters_csv = readtable(vehicle_parameters_csv_path);
-
+csv_import_options = detectImportOptions(vehicle_parameters_csv_path);
+csv_import_options.CommentStyle = "#";
+csv_import_options.VariableNamesLine = 3;
+csv_import_options.DataLines = [4, Inf];
+vehicle_parameters_csv = readtable(vehicle_parameters_csv_path, csv_import_options);
 
 % convert to struct for syntactic sugar
 vehicle_parameters = cell2struct( ...

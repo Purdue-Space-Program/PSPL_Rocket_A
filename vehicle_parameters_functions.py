@@ -12,8 +12,17 @@ import vehicle_parameters
 def ConvertObjectToCSV(object, file_name):
     repository_root_path, caller_file_path = Get_Repository_Root_Path()
     
-    export_file_path = Path(f"{file_name}.csv")
-    
+    if isinstance(file_name, Path):
+        export_file_path = file_name
+    else:
+        export_file_path = Path(file_name)
+
+    if export_file_path.suffix != ".csv":
+        export_file_path = export_file_path.with_suffix(".csv")
+    if not export_file_path.is_absolute():
+        export_file_path = repository_root_path / export_file_path
+    export_file_path.parent.mkdir(parents=True, exist_ok=True)
+
     try:
         caller_file_path = Path(caller_file_path.relative_to(repository_root_path).as_posix())
     except Exception:

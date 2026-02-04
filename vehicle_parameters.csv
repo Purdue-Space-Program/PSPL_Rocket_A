@@ -1,8 +1,7 @@
-# Accessed: 2026-02-04_10-02-16 (format: YYYY-MM-DD_HH-MM-SS)
-# Accessed by: Actuator Sizing/dynamicthrust1dof.py
-parameter_name,value
-yield_FOS,1.5
-ultimate_FOS,2.0
+# Accessed: 2026-02-04_16-44-12 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed by: main.py
+yield_FoS,1.5
+ultimate_FoS,2.0
 proof_factor,1.5
 fuel_name,isopropyl alcohol
 oxidizer_name,liquid oxygen
@@ -14,7 +13,8 @@ ISP,175.0
 OF_ratio,1.0
 total_mass_flow_rate,1.73272144
 oxidizer_mass_flow_rate,0.86636072
-fuel_mass_flow_rate,0.86636072
+core_fuel_mass_flow_rate,0.86636072
+film_fuel_mass_flow_rate,0.25990821599999997
 burn_time,2.09
 contraction_ratio,7.0
 exit_pressure,103421.40000000001
@@ -38,8 +38,22 @@ oxidizer_residual_mass,0.19418273520000007
 total_propellant_mass,4.00975328
 total_used_propellant_mass,3.6213878096
 total_residual_mass,0.38836547040000013
+engine_length,0.2585466
+injector_length,0.012065
+lower_length,0.508
+bulkhead_length,0.030987999999999998
+mid_length,0.127
+upper_length,0.635
+recovery_bay_length,0.6095999999999999
+nosecone_length,0.381
 COPV_volume,0.0047
 COPV_starting_pressure,29647468.0
+root_chord,0.4064
+tip_chord,0.15239999999999998
+sweep_length,0.254
+wingspan,0.19304
+number_of_fins,3
+fin_top,0.6770115999999999
 one_DoF_off_the_rail_TWR,7.43
 one_DoF_off_the_rail_acceleration,6.43
 one_DoF_off_the_rail_velocity,27.64

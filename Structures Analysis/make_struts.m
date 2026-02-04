@@ -1,3 +1,4 @@
+obtain_vehicle_parameters
 parameters = load("vehicle_parameters.mat");
 
 lower_strut = StrutClass;

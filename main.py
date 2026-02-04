@@ -1,12 +1,12 @@
 import vehicle_parameters
 import vehicle_parameters_functions
-import SFD.loads
+# import SFD.loads
 from pathlib import Path
 
 
 
 ######### paused until i figure ts out ##########
-repository_root_path = vehicle_parameters_functions.Get_Repository_Root_Path()
+repository_root_path, _ = vehicle_parameters_functions.Get_Repository_Root_Path()
 
 PSPL_ROCKET_A_file_path = repository_root_path / Path(f"vehicle_parameters.csv")
 
