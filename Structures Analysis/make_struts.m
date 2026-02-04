@@ -1,12 +1,12 @@
 obtain_vehicle_parameters
-parameters = load("vehicle_parameters.mat");
+parameters = load("vehicle_parameters.mat").vehicle_parameters;
 %%
 lower_strut = StrutClass;
 lower_strut.name = "Lower Strut";
 lower_strut.shape = 'Asym T';
 lower_strut.width = 3/4; % [in]
 lower_strut.wallThickness = 1/8; % [in]
-lower_strut.length = parameters.vehicle_parameters.lower_length;
+lower_strut.length = parameters.lower_length;
 lower_strut.distance = 22.6535; % [in]
 lower_strut.radius = 2; % [in]
 lower_strut.material = Aluminum6061T6MaterialProperties;
