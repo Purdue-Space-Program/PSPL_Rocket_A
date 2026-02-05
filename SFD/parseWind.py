@@ -15,7 +15,7 @@ This is the link to the dataset: https://www.ncei.noaa.gov/data/integrated-globa
 Search for USW00094881 to find the specific dataset.
 '''
 
-plot_on = False # Set to True to plot results, False to not plot
+plot_on = True # Set to True to plot results, False to not plot
 
 wind_data_file_path = "USW00094881-data.txt"
 df = pd.read_csv(wind_data_file_path, sep='\s+', comment='#')

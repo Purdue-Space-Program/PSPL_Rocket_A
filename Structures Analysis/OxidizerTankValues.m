@@ -6,6 +6,6 @@ classdef OxidizerTankValues
         radius = 3; % Distance from center axis (in) 
         iD = 5.75; % (in)
         oD = 6; % (in)
-        material = Aluminum6061T6MaterialProperities % Material of the
+        material = Aluminum6061T6MaterialProperties
     end
 end

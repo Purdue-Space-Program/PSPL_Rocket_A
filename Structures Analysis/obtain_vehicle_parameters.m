@@ -2,7 +2,7 @@ current_directory = pwd;
 cd('C:..')
 
 python_executable_path = "python";
-python_script_path = "vehicle_parameters.py";
+python_script_path = "main.py";
 [~, ~] = system(python_executable_path + " " + python_script_path);
 
 vehicle_parameters_csv_path = fullfile("vehicle_parameters.csv");

@@ -73,6 +73,7 @@ else
 end
 
 pAllow = (Fcr * area) / safetyFactorBending; % Allowable axial load (lb)
+
 %% Load Limit Properties
 
 [maxCompression, maxTension] = NetAxialLoad(distance, radius); % Max compressive and tensile cases, divided by the three struts
@@ -81,15 +82,15 @@ maxTension = abs(maxTension) / 3;
 
 % === Tension Check ===
 tensileStress = maxTension / crossArea;
-MoSCompression = pAllow / maxCompression - 1;
-MoSTension = (area * material.yieldTensionStrength) / (tensileStress * safetyFactorTension) - 1;
+MoSCompression = (pAllow / maxCompression) - 1;
+MoSTension = ((area * material.yieldTensionStrength) / (tensileStress * safetyFactorTension)) - 1;
 
 
 %% ____________________
 %% FORMATTED TEXT/FIGURE DISPLAYS
 fprintf("Analysis of %s\n", name)
-fprintf("Max compression case: %.2f lbf\n", maxCompression);
-fprintf("Max tension case: %.2f lbf\n\n", maxTension);
+fprintf("Max strut compression case: %.2f lbf\n", maxCompression);
+fprintf("Max strut tension case: %.2f lbf\n\n", maxTension);
 
 if consideringLocalBuckling == 1
     fprintf("Non-slender - local buckling not critical.\n")
@@ -105,7 +106,7 @@ fprintf("Available Axial Strength (ASD): %.2f lbs\n", pAllow);
 fprintf("Mass of %s: %.2f lbs\n", name, mass);
 fprintf("Compression MoS: %.2f\n", MoSCompression);
 fprintf("Tension Yield MoS: %.2f\n", MoSTension);
-fprintf("------------------------------------------------------\n")
+fprintf("------------------------------------------------------\n\n\n")
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
 % fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))
 % fprintf("------------------------------------------------------\n")

@@ -7,10 +7,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import vehicle_parameters as vehicle
 import constants as c
 from scipy.io import savemat
-from . import sfd
-from . import parseWind
-# import sfd
-# import parseWind as pw
+
+try:
+    from SFD import parseWind
+    from SFD import sfd
+except ModuleNotFoundError:
+    import parseWind
+    import sfd
+
 os.chdir(os.path.dirname(__file__))
 # ------------------------------------------------------------------------------
 
@@ -39,7 +43,7 @@ if location == "max_q":
     mach = vehicle.parameters.six_DoF_max_mach # [] Mach number at max q
     cg = vehicle.parameters.dry_COM_location_from_bottom # [m] Center of gravity from bottom of rocket
     linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle.rocket_dict_dry)
-    wind_gust = max_q_wind_gust # [m / s] Wind gust at max q
+    wind_gust = max_q_wind_gust # [m/s] Wind gust at max q
 elif location == "off_the_rail":
     velocity = vehicle.parameters.six_DoF_off_the_rail_velocity # [m / s] Velocity off the rail
     ax = vehicle.parameters.six_DoF_off_the_rail_acceleration * gravity # [m / s^2] Acceleration off the rail

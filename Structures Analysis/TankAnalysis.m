@@ -93,7 +93,7 @@ fprintf("Available Axial Strength (ASD): %.2f lbs\n", pAllow);
 fprintf("Mass of %s: %.2f lbs\n", name, mass);
 fprintf("Compression MoS: %.2f\n", MoSCompression);
 fprintf("Tension Yield MoS: %.2f\n", MoSTension);
-fprintf("------------------------------------------------------\n")
+fprintf("------------------------------------------------------\n\n\n")
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
 % fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))
 % fprintf("------------------------------------------------------\n")

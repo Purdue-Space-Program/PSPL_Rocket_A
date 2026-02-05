@@ -1,38 +1,50 @@
+import os
+os.chdir(os.path.dirname(__file__))
+
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import parseWind as pw
 from scipy.io import savemat
-import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import vehicle_parameters as vehicle
 import constants as c
 
-import sfd as sfd
-import loads as loads # This will cause plots of loads.py to show up when rdof.py is run
+try:
+    from SFD import parseWind
+    from SFD import sfd
+    from SFD import loads # This will cause plots of loads.py to show up when rdof.py is run
+except ModuleNotFoundError:
+    import parseWind
+    import sfd
+    import loads # This will cause plots of loads.py to show up when rdof.py is run
 # ------------------------------------------------------------------------------
+
+def CalculateCircleArea(diameter):
+    radius = diameter/2
+    area = np.pi * (radius**2)
+    return(area)
 
 # Input Parameters 
 rocket_dict_dry = vehicle.rocket_dict_dry
 parachute_mass = vehicle.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
-max_q_velocity = vehicle.parameters.six_DoF_max_velocity  # [m / s]
+max_q_velocity = vehicle.parameters.six_DoF_max_velocity # [m/s]
 AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_velocity) # [radians] # NEED
-# AOA_recovery = 0 # [radians] Assumed angle of attack at recovery
-wind_gust_speed = pw.percentile_75_wind_gust_speed # [m/s]
-horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m / s] # NEED
+wind_gust_speed = 0#parseWind.percentile_75_wind_gust_speed # [m/s]
+horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m/s] # NEED
 gravity = 9.81 # [m / s^2]
 air_density = 1.225 # [kg / m^3]
 drag_coefficient = 2.2 # [-]
-canopy_area = ((14 * c.FT2M) / 2)**2 * np.pi # [m^2]
+# canopy_area = ((14 * c.FT2M) / 2)**2 * np.pi # [m^2]
+canopy_area = CalculateCircleArea(14 * c.FT2M) - CalculateCircleArea(29.56 * c.IN2M) # [m^2] 168 inch (diameter?) parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
 max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
 # ------------------------------------------------------------------------------
 
 # Calculate AOA_recovery
 AOA_start = np.pi / 2 # [radians] Starting angle of attack at apogee, assume 90 degrees (fully horizontal)
-time_before_deployment = 2 # [s] Time from apogee to parachute deployment
+time_before_deployment = 0 # [s] Time from apogee to parachute deployment
 vertical_velocity_deploy = gravity * time_before_deployment # [m / s] Vertical velocity at parachute deployment
 velocity_deploy = np.sqrt(vertical_velocity_deploy**2 + (horizontal_velocity + wind_gust_speed)**2) # [m / s] Total relative velocity at parachute deployment
 angle_rocket_parachute_deploy = np.arctan(vertical_velocity_deploy / (horizontal_velocity + wind_gust_speed)) # [radians] Angle of rocket vs parachute velocity vector at parachute deployment
@@ -271,20 +283,31 @@ print("-----------------------------------")
 matlab_dict = {}
 plt.figure()
 plot_num = 1
+
+limit_load_shear_array = None
+limit_load_bending_array = None
+limit_load_axial_array = None
+
 for angle in AOA_recovery_list:
     r_i = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, angle) # [radians / s^2] Angular acceleration if rocket at angle at recovery
-    shear_array_i = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r_i, cg, angle)) # [N] Shear force array if rocket at angle at recovery
-    bending_array_i = np.array(calcBending(shear_array_i, length_along_rocket_linspace)) # [N m] Bending moment array if rocket at angle at recovery
-    axial_array_i = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, angle)) # [N] Axial forces array if rocket at angle at recovery
-    matlab_dict[f"axial_array_recovery"] = axial_array_i
-    matlab_dict[f"shear_array_recovery"] = shear_array_i
-    matlab_dict[f"bending_array_recovery"] = bending_array_i
-    matlab_dict[f"AOA_recovery_deg"] = angle * (180 / np.pi)
+    shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r_i, cg, angle)) # [N] Shear force array if rocket at angle at recovery
+    bending_array = np.array(calcBending(shear_array, length_along_rocket_linspace)) # [N m] Bending moment array if rocket at angle at recovery
+    axial_array = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, angle)) # [N] Axial forces array if rocket at angle at recovery
+    
+    if (limit_load_shear_array is None) or (np.mean(shear_array) > np.mean(limit_load_shear_array)):
+        limit_load_shear_array = shear_array
+    
+    if (limit_load_bending_array is None) or (np.mean(bending_array) > np.mean(limit_load_bending_array)):
+        limit_load_bending_array = bending_array
+    
+    if (limit_load_axial_array is None) or (np.mean(axial_array) > np.mean(limit_load_axial_array)):
+        limit_load_axial_array = axial_array
+    # matlab_dict[f"AOA_recovery_deg"] = angle * (180 / np.pi)
     
     plot_def = [
-        (shear_array_i, c.N2LBF, "Shear Force [lbf]", "Shear Forces"),
-        (bending_array_i, c.N2LBF * c.M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
-        (axial_array_i, c.N2LBF, "Axial Force [lbf]", "Axial Forces")
+        (shear_array, c.N2LBF, "Shear Force [lbf]", "Shear Forces"),
+        (bending_array, c.N2LBF * c.M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
+        (axial_array, c.N2LBF, "Axial Force [lbf]", "Axial Forces")
     ]
 
     for data, scale, ylabel, base_title in plot_def:
@@ -301,7 +324,12 @@ for angle in AOA_recovery_list:
         plt.grid()
         plot_num += 1
 
+
+matlab_dict[f"shear_array_recovery"] = limit_load_shear_array
+matlab_dict[f"bending_array_recovery"] = limit_load_bending_array
+matlab_dict[f"axial_array_recovery"] = limit_load_axial_array
 matlab_dict["length_along_rocket_linspace"] = length_along_rocket_linspace
+
 savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB
 # ------------------------------------------------------------------------------
 
