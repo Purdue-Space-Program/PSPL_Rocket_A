@@ -9,10 +9,10 @@ import vehicle_parameters as v
 
 
 def tensile_from_chamber(diameter, pressure):
-    return (diameter*diameter/4.0*np.pi) * pressure
+    return ((diameter*diameter/4.0*np.pi) * pressure)/0.8
 
-def tensile_from_o_ring(diameter, compression):
-    return (diameter*np.pi) * compression
+def tensile_from_o_ring(diameter, required_compression_per_linear_inch):
+    return (diameter*np.pi) * required_compression_per_linear_inch
 
 #def recovery_strut_force(mass, acceleration)
 
@@ -49,10 +49,7 @@ def MOS(calculated, actual):
 
 
 if __name__ == "__main__":
-    
-    proof_stress_safety_factor = 0.8
     steel_tensile_strength = 42100
-    # proof_stress = proof(proof_stress_safety_factor,steel_tensile_strength)
     proof_stress = 140000
     safety_factor = 1.4
     #Pathfinder
@@ -78,8 +75,8 @@ if __name__ == "__main__":
         tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
         tensile_force_from_outer_o_ring = tensile_from_o_ring(5.44301,70)
         tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.44302,70)
-        tensile_force_from_film_o_ring = tensile_from_o_ring(3.859,90)
-        tensile_force_from_manifold_o_ring = 0 #tensile_from_o_ring(3.512,70)
+        tensile_force_from_film_o_ring = tensile_from_o_ring(4.193,70)
+        tensile_force_from_manifold_o_ring = tensile_from_o_ring(.443,70)
 
     elif chamber_input_values == "CMS":
         
@@ -92,6 +89,8 @@ if __name__ == "__main__":
     forces_plates = {tensile_force_from_chamber_plates,tensile_force_from_outer_o_ring,tensile_force_from_chamber_o_ring,tensile_force_from_film_o_ring,tensile_force_from_manifold_o_ring}
     net_force_plates = sum_forces(forces_plates, safety_factor)
     lower_bound_preload_plates = lower_preload(bolt_minor_diameter_plates,proof_stress)
+    print(net_force_plates)
+    print(lower_bound_preload_plates)
     calculated_number_of_bolts_plates = bolts(net_force_plates,lower_bound_preload_plates)
     print(f"calculated_number_of_bolts_plates: {calculated_number_of_bolts_plates:.2f}")
 
@@ -101,7 +100,7 @@ if __name__ == "__main__":
     print(f"MOS_plates: {MOS_plates:.2f}")
 
     tensile_force_from_chamber_pintle = tensile_from_chamber(.98,500)
-    tensile_force_from_pintle_o_ring = tensile_from_o_ring(.762,90)
+    tensile_force_from_pintle_o_ring = tensile_from_o_ring(1.505,70)
 
     flange_diameter = diameter(ED_ratio, bolt_major_diameter_plates, nut_diameter_plates, chamber_diameter, chamber_wall_thickness)
     print(f"flange_diameter: {flange_diameter:.2f}")
@@ -112,7 +111,7 @@ if __name__ == "__main__":
     calculated_number_of_bolts_pintle = bolts(net_force_pintle,lower_bound_preload_pintle)
     print(f"calculated_number_of_bolts_pintle: {calculated_number_of_bolts_pintle:.2f}")
 
-    actual_number_bolts_pintle = 6
+    actual_number_bolts_pintle = 4
     MOS_pintle = MOS(calculated_number_of_bolts_pintle, actual_number_bolts_pintle)
     print(f"actual_number_bolts_pintle: {actual_number_bolts_pintle:.2f}")
     print(f"MOS_pintle: {MOS_pintle:.2f}")
