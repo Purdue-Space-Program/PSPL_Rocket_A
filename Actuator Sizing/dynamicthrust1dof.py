@@ -69,7 +69,7 @@ def calculate_trajectory(
     """
 
     # Rocket Properties
-    reference_area = (np.pi * (tankOD) ** 2 / 4) + finNumber * finHeight * 0.5 * c.IN2M # [m^2] reference area of the rocket, 1/2 in fin thickness
+    reference_area = (np.pi * (tankOD) ** 2 / 4) + finNumber * finHeight * 0.25 * c.IN2M # [m^2] reference area of the rocket, 1/2 in fin thickness
     mass = wetMass  # [kg] initial mass of the rocket
 
     cD = 0.5
@@ -95,7 +95,7 @@ def calculate_trajectory(
     mdot_history, main_thrust_history, time_history = mdot_hardcoded_actuation(mDotTotal, actuation_time, jetThrust)
 
     count = 1
-    while (velocity >= 0) or (acceleration >= 0):
+    while velocity >= 0:
 
         altitude_index = int(altitude // 10)  # Divide altitude by 10 to find index
 
@@ -295,7 +295,7 @@ def calculate_trajectory_variable_burn(
         propellant_mass -= mass_lost
 
     count = 1
-    while (velocity >= 0) or (acceleration >= 0):
+    while velocity >= 0:
 
         altitude_index = int(altitude // 10)  # Divide altitude by 10 to find index
 
@@ -415,7 +415,7 @@ def mdot_based_on_time(mDotTotal, jetThrust):
     f_linear = interp1d(angles, cv_frac, kind='linear', bounds_error=False, fill_value=(0.0, 1.0))
 
     if time_history[2] - time_history[1] != dt:
-        print("Ensure time step of 0.0001 in actuator sizing code!")
+        print(f"Ensure time step of {dt}s in actuator sizing code!")
         return None
     for angle in angle_history:
             cv_fraction = float(f_linear(angle))
@@ -425,19 +425,19 @@ def mdot_based_on_time(mDotTotal, jetThrust):
             main_thrust_history.append(main_thrust)
     main_thrust_history = np.array(main_thrust_history)
     mdot_history = np.array(mdot_history)
-    plt.plot(time_history, mdot_history * c.KG2LBM)
-    plt.xlabel('Time [s]')
-    plt.ylabel('mdot [lbm/s]')
-    plt.show()
-    plt.plot(angle_history, mdot_history * c.KG2LBM)
-    plt.xlabel('Valve Angle [degrees]')
-    plt.ylabel('mdot [lbm/s]')
-    plt.show()
-    plt.plot(time_history, main_thrust_history)
-    plt.xlabel('Time [s]')
-    plt.ylabel('Main Thrust [N]')
-    plt.show()
-    print(f"Main Thrust at kast: {main_thrust}")
+    # plt.plot(time_history, mdot_history * c.KG2LBM)
+    # plt.xlabel('Time [s]')
+    # plt.ylabel('mdot [lbm/s]')
+    # plt.show()
+    # plt.plot(angle_history, mdot_history * c.KG2LBM)
+    # plt.xlabel('Valve Angle [degrees]')
+    # plt.ylabel('mdot [lbm/s]')
+    # plt.show()
+    # plt.plot(time_history, main_thrust_history)
+    # plt.xlabel('Time [s]')
+    # plt.ylabel('Main Thrust [N]')
+    # plt.show()
+    print(f"Main Thrust: {main_thrust}")
     return mdot_history, main_thrust_history, time_history
 
 def mdot_hardcoded_actuation(mDotTotal, actuation_time, jetThrust):
@@ -448,8 +448,8 @@ def mdot_hardcoded_actuation(mDotTotal, actuation_time, jetThrust):
     return mdot_history, main_thrust_history, time_history
 
 def actuation_time_vs_rail_exit():
-    dt = 0.01 
-    max_actuation_time = 1 # [second]
+    dt = 0.1 # pretty large to reduce computation time 
+    max_actuation_time = 2 # [second]
     wetMass = v.vehicle_wet_mass
     mDotTotal = v.parameters.total_mass_flow_rate
     jetThrust = v.parameters.jet_thrust
@@ -467,7 +467,7 @@ def actuation_time_vs_rail_exit():
     off_the_rail_time_history = []
     actuation_time_history = []
 
-    print("Calculating Actuation time vs Off-the-rail Velocity... Might take some time...")
+    print("\nCalculating Actuation time vs Off-the-rail Velocity... ")
     for actuation_time in np.arange(dt, max_actuation_time + dt, dt):
         estimated_apogee, _, _, off_the_rail_velocity, _, _, off_the_rail_time = calculate_trajectory_variable_burn(
         wetMass,
@@ -491,19 +491,21 @@ def actuation_time_vs_rail_exit():
     plt.title("Actuation Time vs Off-the-rail Velocity")
     plt.xlabel("Actuation Time (s)")
     plt.ylabel("Off-the-Rail Velocity (m/s)")   
+    plt.grid()
+    plt.axvline(x=0.25, color='r', linestyle='--')
     plt.show()
     fig, (ax1, ax2) = plt.subplots(2)
     fig.suptitle("Some fun graphs")
-    ax1.plot(actuation_time_history, off_the_rail_time)
+    ax1.plot(actuation_time_history, off_the_rail_time_history  )
     ax1.set_title("Actuation Time vs Off-the-rail Time")
-    ax1.ylabel("Off-the-rail Time (s)")
-    ax1.xlabel("Actuation Time (s)")
+    ax1.set_ylabel("Off-the-rail Time (s)")
+    ax1.set_xlabel("Actuation Time (s)")
     ax2.plot(actuation_time_history, estimated_apogee_history)
-    ax2.set_title("Acutation Time vs Estimated Apogee")
-    ax2.xlabel("Acutation Time (s)")
-    ax2.ylabel("Estimated Apogee (m)")
+    ax2.set_title("Actuation Time vs Estimated Apogee")
+    ax2.set_xlabel("Acutation Time (s)")
+    ax2.set_ylabel("Estimated Apogee (m)")
     fig.tight_layout()
-
+    plt.show()
 #############################
 #######  PARAMETERS  ########
 #############################
@@ -519,7 +521,7 @@ burnTime = v.parameters.burn_time
 totalLength = v.rocket_length
 propellant_mass = v.parameters.total_propellant_mass
 plots = 1
-actuation_time = 0.5 # hardcoded actuation time 
+actuation_time = 0.25 # hardcoded actuation time 
 
 estimated_apogee, max_acceleration, max_velocity, off_the_rail_velocity, off_the_rail_acceleration, totalImpulse, off_the_rail_time = calculate_trajectory_variable_burn(
     wetMass,
