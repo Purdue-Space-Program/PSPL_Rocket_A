@@ -19,11 +19,12 @@ def tensile_from_o_ring(diameter, required_compression_per_linear_inch):
 def proof(safety, strength):
     return safety*strength
 
-def lower_preload(diameter, proof):
+def upper_preload(diameter, proof, preload_percent):
     area = np.pi * (diameter*diameter/4)
-    preload_percent = 0.75
-    torque_variation = 0.25
-    return (((area*proof)*preload_percent)/(1+torque_variation))*(1-torque_variation)
+    return ((area*proof)*preload_percent)
+
+def lower_preload(diameter, proof, preload_percent, torque_variation):
+    return (upper_preload(diameter, proof, preload_percent)/(1+torque_variation))*(1-torque_variation)
 
 def bolts(force, preload):
     return force/preload
@@ -53,7 +54,9 @@ def MOS(calculated, actual):
 if __name__ == "__main__":
     steel_tensile_strength = 42100
     proof_stress = 140000
-    safety_factor = 1.4
+    safety_factor = 1.4*1.15
+    preload_percent = 0.75
+    torque_variation = 0.25
     #Pathfinder
     bolt_major_diameter_plates = 0.19 #0.25
     bolt_minor_diameter_plates = 0.1528 #0.2075
@@ -90,11 +93,11 @@ if __name__ == "__main__":
 
     forces_plates = {tensile_force_from_chamber_plates,tensile_force_from_outer_o_ring,tensile_force_from_chamber_o_ring,tensile_force_from_film_o_ring,tensile_force_from_manifold_o_ring}
     net_force_plates = sum_forces(forces_plates, safety_factor)
-    lower_bound_preload_plates = lower_preload(bolt_minor_diameter_plates,proof_stress)
-    print(net_force_plates)
-    print(lower_bound_preload_plates)
+    lower_bound_preload_plates = lower_preload(bolt_minor_diameter_plates,proof_stress,preload_percent,torque_variation)
     calculated_number_of_bolts_plates = bolts(net_force_plates,lower_bound_preload_plates)
     print(f"calculated_number_of_bolts_plates: {calculated_number_of_bolts_plates:.2f}")
+
+    net_force_plates
 
     actual_number_bolts_plates = 15
     MOS_plates = MOS(calculated_number_of_bolts_plates, actual_number_bolts_plates)
@@ -109,7 +112,7 @@ if __name__ == "__main__":
 
     forces_pintle = {tensile_force_from_chamber_pintle,tensile_force_from_pintle_o_ring}
     net_force_pintle = sum_forces(forces_pintle, safety_factor)
-    lower_bound_preload_pintle = lower_preload(bolt_minor_diameter_pintle,proof_stress)
+    lower_bound_preload_pintle = lower_preload(bolt_minor_diameter_pintle,proof_stress,preload_percent,torque_variation)
     calculated_number_of_bolts_pintle = bolts(net_force_pintle,lower_bound_preload_pintle)
     print(f"calculated_number_of_bolts_pintle: {calculated_number_of_bolts_pintle:.2f}")
 
