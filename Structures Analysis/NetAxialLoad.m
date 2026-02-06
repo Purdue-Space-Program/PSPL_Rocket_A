@@ -47,32 +47,14 @@ if radius == 0
     netCompressionRecovery = axialLoadsrfd; 
     netTensionRecovery = axialLoadsrfd;
 else
-    netCompressionMaxQ = axialLoadssfd + 2 .* momentLoadssfd ./ radius; 
-    netTensionMaxQ = axialLoadssfd - 2 .* momentLoadssfd / radius; 
-    netCompressionRecovery = axialLoadsrfd + 2 .* momentLoadsrfd ./ radius; 
-    netTensionRecovery = axialLoadsrfd - 2 .* momentLoadsrfd / radius;
+    netCompressionMaxQ = axialLoadssfd + (2 .* momentLoadssfd ./ radius); 
+    netTensionMaxQ = axialLoadssfd - (2 .* momentLoadssfd / radius); 
+    netCompressionRecovery = axialLoadsrfd + (2 .* momentLoadsrfd ./ radius); 
+    netTensionRecovery = axialLoadsrfd - (2 .* momentLoadsrfd / radius);
 end
-
 
 max_Q_compressive_limit_load = max([netCompressionMaxQ(locationMaxQ(1)), netCompressionMaxQ(locationMaxQ(2))]);
 recovery_compressive_limit_load = max([netCompressionRecovery(locationMaxQ(1)), netCompressionRecovery(locationMaxQ(2))]);
-
-if (max_Q_compressive_limit_load > recovery_compressive_limit_load)
-    fprintf("Max Q is bounding compressive case\n")
-else
-    fprintf("Recovery is bounding compressive case\n")
-end
-
-
-max_Q_tension_limit_load = max([netTensionMaxQ(locationMaxQ(1)), netTensionMaxQ(locationMaxQ(2))]);
-recovery_tension_limit_load = max([netTensionRecovery(locationMaxQ(1)), netTensionRecovery(locationMaxQ(2))]);
-
-if (max_Q_tension_limit_load > recovery_tension_limit_load)
-    fprintf("Max Q is bounding tension case\n")
-else
-    fprintf("Recovery is bounding tension case\n")
-end
-
 
 maxCompression = max([netCompressionMaxQ(locationMaxQ(1)), netCompressionRecovery(locationRecovery(1)), netCompressionMaxQ(locationMaxQ(2)), netCompressionRecovery(locationRecovery(2))]);
 maxTension = min([netTensionMaxQ(locationMaxQ(1)), netTensionRecovery(locationRecovery(1)), netTensionMaxQ(locationMaxQ(2)), netTensionRecovery(locationRecovery(2))]);
@@ -153,22 +135,39 @@ timeToPdr = exist('graphStatus');
 
 if timeToPdr
 
-for state = [1,2]
-for theta = [0, pi]
+    for state = [1,2]
+        for theta = [0, pi]
+            
 
-    M = max([momentLoadssfd(locationMaxQ(1)) * (state == 1), momentLoadssfd(locationMaxQ(2)) * (state == 1), ...
-        momentLoadsrfd(locationRecovery(1)) * (state == 2), momentLoadsrfd(locationRecovery(2)) * (state == 2)]);
+            M = max([momentLoadssfd(locationMaxQ(1)) * (state == 1), momentLoadssfd(locationMaxQ(2)) * (state == 1), ...
+                momentLoadsrfd(locationRecovery(1)) * (state == 2), momentLoadsrfd(locationRecovery(2)) * (state == 2)]);
 
-    Fg = max([axialLoadssfd(locationMaxQ(1)) * (state == 1), axialLoadssfd(locationMaxQ(2)) * (state == 1), ...
-        axialLoadsrfd(locationRecovery(1)) * (state == 2), axialLoadsrfd(locationRecovery(2)) * (state == 2)]);
+            Fg = max([axialLoadssfd(locationMaxQ(1)) * (state == 1), axialLoadssfd(locationMaxQ(2)) * (state == 1), ...
+                axialLoadsrfd(locationRecovery(1)) * (state == 2), axialLoadsrfd(locationRecovery(2)) * (state == 2)]);
 
-    R = radius;
+            R = radius;
 
-    F3 = (Fg - ((2 * M * cos(theta)) / R)) / 3;
-    F1 = M * cos(theta) / (3 * R) + Fg / 3 - M * sin(theta) / (R * sqrt(3));
-    F2 = M * cos(theta) / (3 * R) + Fg / 3 + M * sin(theta) / (R * sqrt(3));
-    fprintf("F1: %2.f\nF2: %2.f\nF3: %2.f\n\n", F1, F2, F3)
+            F3 = (Fg - ((2 * M * cos(theta)) / R)) / 3;
+            F1 = M * cos(theta) / (3 * R) + Fg / 3 - M * sin(theta) / (R * sqrt(3));
+            F2 = M * cos(theta) / (3 * R) + Fg / 3 + M * sin(theta) / (R * sqrt(3));
+            fprintf("F1: %2.f\nF2: %2.f\nF3: %2.f\n\n", F1, F2, F3)
 
-end
-end
+            
+            if (maxQ > recovery)
+                fprintf("Max Q is bounding compressive case\n")
+            else
+                fprintf("Recovery is bounding compressive case\n")
+            end
+
+
+            max_Q_tension_limit_load = max([netTensionMaxQ(locationMaxQ(1)), netTensionMaxQ(locationMaxQ(2))]);
+            recovery_tension_limit_load = max([netTensionRecovery(locationMaxQ(1)), netTensionRecovery(locationMaxQ(2))]);
+
+            if (maxQ > recovery)
+                fprintf("Max Q is bounding tension case\n")
+            else
+                fprintf("Recovery is bounding tension case\n")
+            end
+        end
+    end
 end

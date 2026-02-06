@@ -20,19 +20,19 @@ name = objectInQuestion.name; % Name of the objectin in question
 material = objectInQuestion.material; % Material properties from object
 
 
-if objectInQuestion.shape == 'Square'
+if objectInQuestion.shape == "Square"
     width = objectInQuestion.width; % Width of the object (in)
     wallThickness = objectInQuestion.wallThickness; % Wall thickness of the object (in)
-    crossArea = width^2 - (width - 2 * wallThickness) ^ 2; % Cross sectional area)
+    crossArea = width^2 - ((width - 2 * wallThickness)^2); % Cross sectional area)
     radiusGyration = SquareRadiusGyrationCalc(width, wallThickness); % Radius of gyration
 
-elseif objectInQuestion.shape == 'Circle'
-    oD = objectInQuestion.oD;
-    iD = objectInQuestion.iD;
-    crossArea = ((oD/2)^2 - (iD/2)^2) * pi;
-    radiusGyration = ((((oD)^4 - (iD)^4) / 64) / crossArea) ^ (1/2);
-    width = oD; % Width of the object (in)
-    wallThickness = iD; % Wall thickness of the object (in)
+elseif objectInQuestion.shape == "Circle"
+    OD = objectInQuestion.OD;
+    ID = objectInQuestion.ID;
+    crossArea = ((OD/2)^2 - (ID/2)^2) * pi;
+    radiusGyration = ((((OD)^4 - (ID)^4) / 64) / crossArea) ^ (1/2);
+    width = OD; % Width of the object (in)
+    wallThickness = (OD - ID)/2; % Wall thickness of the object (in)
 else
     width = objectInQuestion.width; % Width of the object (in)
     wallThickness = objectInQuestion.wallThickness; % Wall thickness of the object (in)
@@ -46,33 +46,33 @@ effectiveLength = K * length;
 slendernessRatio = effectiveLength / radiusGyration;
 mass = length * crossArea * material.density;
 
-transitionalRatio = sqrt(2 * pi^2 * material.youngs) / (K ^2 * material.yieldCompressionStrength);
+transitionalRatio = sqrt(2 * pi^2 * material.youngs_modulus) / (K ^2 * material.yieldCompressionStrength);
 wtRatio = width / (wallThickness); % Width-Thickness ratio
 
-buckleLimit = (material.yieldCompressionStrength - (material.yieldCompressionStrength * K * effectiveLength / (2 * pi * radiusGyration)) ^ 2 * (material.youngs ^ (-1))) * crossArea;
+buckleLimit = (material.yieldCompressionStrength - (material.yieldCompressionStrength * K * effectiveLength / (2 * pi * radiusGyration)) ^ 2 * (material.youngs_modulus^ (-1))) * crossArea;
 compressionLimit = material.yieldCompressionStrength * crossArea; % Compressive limit
 tensionLimit = material.yieldTensionStrength * crossArea; % Tension limit
-eulerLimit = (pi ^ 2 * material.youngs / ((K * effectiveLength / radiusGyration) ^ 2)) * crossArea;
+eulerLimit = (pi ^ 2 * material.youngs_modulus / ((K * effectiveLength / radiusGyration) ^ 2)) * crossArea;
 
 %% Buckling Flow
 
-if wtRatio <= ((0.11 * material.youngs) / material.yieldCompressionStrength)
+if wtRatio <= ((0.11 * material.youngs_modulus) / material.yieldCompressionStrength)
     area = crossArea;
-    Fe = (pi^2 * material.youngs) / (slendernessRatio ^ 2);
+    Fe = (pi^2 * material.youngs_modulus) / (slendernessRatio ^ 2);
     consideringLocalBuckling = 1;
 else
-    area = crossArea * ((0.038 * material.youngs) / (material.yieldCompressionStrength * (wt_ratio)) + 2/3);
+    area = crossArea * ((0.038 * material.youngs_modulus) / (material.yieldCompressionStrength * (wt_ratio)) + 2/3);
     Fe = (pi ^ 2 * E) / (slenderness_ratio ^ 2);
     consideringLocalBuckling = 0;
 end
 
-if slendernessRatio <= (4.71 * (material.youngs / material.yieldCompressionStrength)^ (1/2))
+if slendernessRatio <= (4.71 * (material.youngs_modulus / material.yieldCompressionStrength)^ (1/2))
     Fcr = ((0.658) ^ (material.yieldCompressionStrength / Fe)) * material.yieldCompressionStrength;
 else
     Fcr = 0.877 * Fe;
 end
 
-pAllow = (Fcr * area) / safetyFactorBending; % Allowable axial load (lb)
+pAllow = (Fcr * area) / safetyFactorBending; % Allowable axial load [lb]
 
 %% Load Limit Properties
 
@@ -120,13 +120,13 @@ fprintf("------------------------------------------------------\n\n\n")
 % radiusGyration = (moment / crossArea) ^ (1/2);
 % end
 % 
-% function limit = bucklingEuler(effectiveLength, youngsMod, K, radiusGyration, crossArea)
-% sigma = pi ^ 2 * youngsMod / ((K * effectiveLength / radiusGyration) ^ 2);
+% function limit = bucklingEuler(effectiveLength, youngs_modulus, K, radiusGyration, crossArea)
+% sigma = pi ^ 2 * youngs_modulus / ((K * effectiveLength / radiusGyration) ^ 2);
 % limit = sigma * crossArea;
 % end
 % 
-% function limit = bucklingJohnson(yieldStrength, effectiveLength, youngsMod, K, radiusGyration, crossArea)
-% sigma = yieldStrength - (yieldStrength * K * effectiveLength / (2 * pi * radiusGyration)) ^ 2 * (youngsMod ^ (-1));
+% function limit = bucklingJohnson(yieldStrength, effectiveLength, youngs_modulus, K, radiusGyration, crossArea)
+% sigma = yieldStrength - (yieldStrength * K * effectiveLength / (2 * pi * radiusGyration)) ^ 2 * (youngs_modulus ^ (-1));
 % limit = sigma * crossArea;
 % end
 % 
