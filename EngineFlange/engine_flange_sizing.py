@@ -21,7 +21,9 @@ def proof(safety, strength):
 
 def lower_preload(diameter, proof):
     area = np.pi * (diameter*diameter/4)
-    return (((area*proof)*0.75)/1.25)*0.75
+    preload_percent = 0.75
+    torque_variation = 0.25
+    return (((area*proof)*preload_percent)/(1+torque_variation))*(1-torque_variation)
 
 def bolts(force, preload):
     return force/preload
