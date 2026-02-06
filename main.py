@@ -1,9 +1,11 @@
+import os
+from pathlib import Path
+from scipy.io import savemat
+from dataclasses import fields, asdict
+
 import vehicle_parameters
 import vehicle_parameters_functions
 import SFD.rdof
-from pathlib import Path
-
-
 
 ######### paused until i figure ts out ##########
 repository_root_path, _ = vehicle_parameters_functions.Get_Repository_Root_Path()
@@ -31,5 +33,20 @@ except:
     pass
 
 
-
 vehicle_parameters_functions.ConvertObjectToCSV(vehicle_parameters.parameters, "vehicle_parameters")
+# vehicle_parameters_functions.ConvertObjectToCSV(vehicle_parameters.wet_mass_distribution, "wet_mass_distribution")
+
+
+def convert_mass_distribution_to_matlab_dict(mass_distribution_object):
+    matlab_struct_dictionary = {}
+    for dataclass_field in fields(mass_distribution_object):
+        mass_component_object = getattr(mass_distribution_object, dataclass_field.name)
+        matlab_struct_dictionary[dataclass_field.name] = asdict(mass_component_object)
+    return matlab_struct_dictionary
+
+os.chdir("..")
+
+savemat(
+    r"Structures Analysis/wet_mass_distribution.mat",
+    {"wet_mass_distribution": convert_mass_distribution_to_matlab_dict(vehicle_parameters.wet_mass_distribution)}
+)

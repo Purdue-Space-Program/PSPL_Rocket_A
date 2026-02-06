@@ -17,6 +17,7 @@ import io
 
 import constants as c
 import vehicle_parameters_functions
+from typing import Optional, Iterator
 
 @dataclass
 class VehicleParameters:
@@ -243,94 +244,81 @@ nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inne
 
 @dataclass(frozen=True)
 class MassComponent:
-    name : str                # name of the component [string]
+    name: str                # name of the component [string]
     mass: float               # [kilograms]
-    bottom_distance_from_aft: float   # distance from the bottom of the rocket to the bottom of the mass component [meters]
     length: float              # [meters]
+    bottom_distance_from_aft: float = None   # distance from the bottom of the rocket to the bottom of the mass component [meters]
     top_distance_from_aft: float = None
 
-    def __post_init__(self):
-        object.__setattr__(
-            self,
-            "top_distance_from_aft",
-            self.bottom_distance_from_aft + self.length
-        )
 
 @dataclass(frozen=True)
 class MassDistribution:
-    components: list[MassComponent]
+    engine: MassComponent
+    injector: MassComponent
+    lower: MassComponent
+    lower_fuel_bulkhead: MassComponent
+    
+    fuel_tank: MassComponent
+
+    upper_fuel_bulkhead: MassComponent
+    mid: MassComponent
+    lower_oxidizer_bulkhead: MassComponent
+    
+    oxidizer_tank: MassComponent
+    upper_oxidizer_bulkhead: MassComponent
+    upper: MassComponent
+    recovery_bay: MassComponent
+    nosecone: MassComponent
 
     def __iter__(self):
-        return iter(self.components)
-
-engine =                  MassComponent(name = "engine",                      mass = engine_mass,            bottom_distance_from_aft = 0,                                                   length = parameters.engine_length)
-injector =                MassComponent(name = "injector",                    mass = injector_mass,          bottom_distance_from_aft = engine.top_distance_from_aft,                        length = parameters.injector_length)
-lower =                   MassComponent(name = "lower",                       mass = lower_mass,             bottom_distance_from_aft = injector.top_distance_from_aft,                      length = parameters.lower_length)
-
-lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,          bottom_distance_from_aft = lower.top_distance_from_aft,                         length = parameters.bulkhead_length)
-wet_fuel_tank =           MassComponent(name = "wet_fuel_tank",               mass = fuel_tank_wet_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.top_distance_from_aft,           length = parameters.fuel_tank_length)
-dry_fuel_tank =           MassComponent(name = "dry_fuel_tank",               mass = fuel_tank_dry_mass,     bottom_distance_from_aft = lower_fuel_bulkhead.top_distance_from_aft,           length = parameters.fuel_tank_length)
-upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,          bottom_distance_from_aft = wet_fuel_tank.top_distance_from_aft,                 length = parameters.bulkhead_length)
-
-mid =                     MassComponent(name = "mid",                         mass = mid_mass,               bottom_distance_from_aft = upper_fuel_bulkhead.top_distance_from_aft,           length = parameters.mid_length)
-
-lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,          bottom_distance_from_aft = mid.top_distance_from_aft,                           length = parameters.bulkhead_length)
-wet_oxidizer_tank =       MassComponent(name = "wet_oxidizer_tank",           mass = oxidizer_tank_wet_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.top_distance_from_aft,       length = parameters.oxidizer_tank_length)
-dry_oxidizer_tank =       MassComponent(name = "dry_oxidizer_tank",           mass = oxidizer_tank_dry_mass, bottom_distance_from_aft = lower_oxidizer_bulkhead.top_distance_from_aft,       length = parameters.oxidizer_tank_length)
-upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,          bottom_distance_from_aft = wet_oxidizer_tank.top_distance_from_aft,             length = parameters.bulkhead_length)
-
-upper =                   MassComponent(name = "upper",                       mass = upper_mass,             bottom_distance_from_aft = upper_oxidizer_bulkhead.top_distance_from_aft,       length = parameters.upper_length)
-recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,      bottom_distance_from_aft = upper.top_distance_from_aft,                         length = parameters.recovery_bay_length)
-
-nosecone =                MassComponent(name = "nosecone",                    mass = nosecone_mass,          bottom_distance_from_aft = recovery_bay.top_distance_from_aft,                  length = parameters.nosecone_length)
-
-
-wet_mass_distribution = MassDistribution(components=
-    [
-    engine,
-    injector,
-    lower,
+        for dataclass_field in fields(self):
+            yield getattr(self, dataclass_field.name)
     
-    lower_fuel_bulkhead,
-    wet_fuel_tank,
-    upper_fuel_bulkhead,
-    
-    mid,
-    
-    lower_oxidizer_bulkhead,
-    wet_oxidizer_tank,
-    upper_oxidizer_bulkhead,
-    
-    upper,
-    
-    recovery_bay,
-    nosecone,
-    ]
+    def __post_init__(self):
+        previous_top_distance_from_aft = 0.0
+
+        for mass_component in self:
+            object.__setattr__(mass_component, "bottom_distance_from_aft", previous_top_distance_from_aft)
+            object.__setattr__(mass_component, "top_distance_from_aft", mass_component.bottom_distance_from_aft + mass_component.length)
+            
+            # mass_component.bottom_distance_from_aft = previous_top_distance_from_aft
+            # mass_component.top_distance_from_aft = mass_component.bottom_distance_from_aft + mass_component.length
+            previous_top_distance_from_aft = mass_component.top_distance_from_aft
+            
+
+
+
+wet_mass_distribution = MassDistribution(
+    engine =                  MassComponent(name = "engine",                      mass = engine_mass,                      length = parameters.engine_length),
+    injector =                MassComponent(name = "injector",                    mass = injector_mass,                    length = parameters.injector_length),
+    lower =                   MassComponent(name = "lower",                       mass = lower_mass,                       length = parameters.lower_length),
+    lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    fuel_tank =               MassComponent(name = "wet_fuel_tank",               mass = fuel_tank_wet_mass,               length = parameters.fuel_tank_length),
+    upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    mid =                     MassComponent(name = "mid",                         mass = mid_mass,                         length = parameters.mid_length),
+    lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    oxidizer_tank =       MassComponent(name = "wet_oxidizer_tank",           mass = oxidizer_tank_wet_mass,           length = parameters.oxidizer_tank_length),
+    upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    upper =                   MassComponent(name = "upper",                       mass = upper_mass,                       length = parameters.upper_length),
+    recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,                length = parameters.recovery_bay_length),
+    nosecone =                MassComponent(name = "nosecone",                    mass = nosecone_mass,                    length = parameters.nosecone_length),
 )
 
-dry_mass_distribution = MassDistribution(components=
-    [
-    engine,
-    injector,
-    lower,
-    
-    lower_fuel_bulkhead,
-    dry_fuel_tank,
-    upper_fuel_bulkhead,
-    
-    mid,
-    
-    lower_oxidizer_bulkhead,
-    dry_oxidizer_tank,
-    upper_oxidizer_bulkhead,
-    
-    upper,
-    
-    recovery_bay,
-    nosecone,
-    ]
+dry_mass_distribution = MassDistribution(
+    engine =                  MassComponent(name = "engine",                      mass = engine_mass,                      length = parameters.engine_length),
+    injector =                MassComponent(name = "injector",                    mass = injector_mass,                    length = parameters.injector_length),
+    lower =                   MassComponent(name = "lower",                       mass = lower_mass,                       length = parameters.lower_length),
+    lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    fuel_tank =               MassComponent(name = "dry_fuel_tank",               mass = fuel_tank_dry_mass,               length = parameters.fuel_tank_length),
+    upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    mid =                     MassComponent(name = "mid",                         mass = mid_mass,                         length = parameters.mid_length),
+    lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    oxidizer_tank =       MassComponent(name = "dry_oxidizer_tank",           mass = oxidizer_tank_dry_mass,           length = parameters.oxidizer_tank_length),
+    upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    upper =                   MassComponent(name = "upper",                       mass = upper_mass,                       length = parameters.upper_length),
+    recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,                length = parameters.recovery_bay_length),
+    nosecone =                MassComponent(name = "nosecone",                    mass = nosecone_mass,                    length = parameters.nosecone_length),
 )
-
 
 
 def calcCG(linear_density_array, length_along_rocket_linspace):
@@ -349,7 +337,7 @@ def calcCG(linear_density_array, length_along_rocket_linspace):
     return cg
 
 rocket_dict_wet = {} # Rocket dictionary for wet mass
-for item in wet_mass_distribution.components:
+for item in wet_mass_distribution:
     rocket_dict_wet[item.name] = {
         "mass": item.mass,
         "bottom_distance_from_aft": item.bottom_distance_from_aft,
@@ -357,7 +345,7 @@ for item in wet_mass_distribution.components:
     }
 
 rocket_dict_dry = {} # Rocket dictionary for dry mass
-for item in dry_mass_distribution.components:
+for item in dry_mass_distribution:
     rocket_dict_dry[item.name] = {
         "mass": item.mass,
         "bottom_distance_from_aft": item.bottom_distance_from_aft,
@@ -366,12 +354,12 @@ for item in dry_mass_distribution.components:
 
 
 num_points = 2000
-length_along_rocket_linspace = np.linspace(wet_mass_distribution.components[0].bottom_distance_from_aft, wet_mass_distribution.components[-1].top_distance_from_aft, num_points)
+length_along_rocket_linspace = np.linspace(wet_mass_distribution.engine.bottom_distance_from_aft, wet_mass_distribution.nosecone.top_distance_from_aft, num_points)
 
 wet_linear_density_array = np.zeros(num_points)
 dry_linear_density_array = np.zeros(num_points)
 
-for wet_component, dry_component in zip(wet_mass_distribution.components, dry_mass_distribution.components, strict=True):
+for wet_component, dry_component in zip(wet_mass_distribution, dry_mass_distribution, strict=True):
     
     wet_linear_density = (wet_component.mass / wet_component.length) # The average mass in the length of the component
     dry_linear_density = (dry_component.mass / dry_component.length) # The average mass in the length of the component
@@ -394,7 +382,7 @@ if max(length_along_rocket_linspace) != length_along_rocket_linspace[-1]:
 
 rocket_length = max(length_along_rocket_linspace)
 
-parameters.fin_top = injector.top_distance_from_aft + parameters.root_chord # assume fins start right after injector
+parameters.fin_top = wet_mass_distribution.injector.top_distance_from_aft + parameters.root_chord # assume fins start right after injector
 
 parameters.wet_mass = vehicle_wet_mass # The estimated dry mass of the rocket [kilograms]
 parameters.dry_mass = vehicle_dry_mass # The estimated dry mass of the rocket [kilograms]
@@ -459,7 +447,7 @@ if __name__ == "__main__":
     print_components = False
     
     if print_components == True:
-        for component in wet_mass_distribution.components:
+        for component in wet_mass_distribution:
             print(f"{component.name}:")
             
             # imperial

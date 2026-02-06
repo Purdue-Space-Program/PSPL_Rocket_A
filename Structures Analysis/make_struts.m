@@ -1,6 +1,8 @@
+make_material_properties
 obtain_vehicle_parameters
 parameters = load("vehicle_parameters.mat").vehicle_parameters;
-make_material_properties
+wet_mass_distribution = load("wet_mass_distribution.mat").wet_mass_distribution;
+
 
 IN2M = 0.0254;  % [m/in] Conversion factor from in to m
 M2IN = 1 / IN2M;  % [in/m] Conversion factor from m to in
@@ -19,7 +21,7 @@ upper_strut.ID = 1/2; % [in]
 
 % upper_strut.length = parameters.upper_length * M2IN; % Length of strut (in)
 upper_strut.length = 6; % from CAD (in)
-upper_strut.distance = 46.0935 + 5.7; % Location of strut from aft, top of strut (in)
+upper_strut.distance = wet_mass_distribution.upper.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut (in)
 upper_strut.radius = 2.25; % Distance from center axis (in) 
 upper_strut.material = Aluminum_6061_T6_Material_Properties;
 
@@ -31,7 +33,7 @@ mid_strut.shape = "Circle";
 mid_strut.OD = 1;
 mid_strut.ID = 1/2;
 mid_strut.length = parameters.mid_length * M2IN; % Length of strut (in)
-mid_strut.distance = 39.0935; % Location of strut from aft, top of strut (in)
+mid_strut.distance = wet_mass_distribution.mid.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut (in)
 mid_strut.radius = 2.25; % Distance from center axis (in) 
 mid_strut.material = Aluminum_6061_T6_Material_Properties;
 
@@ -41,7 +43,7 @@ lower_strut.shape = "Asym T";
 lower_strut.width = 3/4; % [in]
 lower_strut.wallThickness = 1/8; % [in]
 lower_strut.length = parameters.lower_length * M2IN;
-lower_strut.distance = 22.6535; % [in]
+lower_strut.distance = wet_mass_distribution.lower.top_distance_from_aft * M2IN; % [in]
 lower_strut.radius = 2; % [in]
 lower_strut.material = Aluminum_6061_T6_Material_Properties;
 % from cad

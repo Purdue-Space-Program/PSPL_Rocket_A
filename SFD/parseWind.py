@@ -30,14 +30,16 @@ std_dev_wind_gust_speed = np.std(wind_gust_speed_array) # Std dev of wind speed 
 percentile_75_wind_gust_speed = np.percentile(wind_gust_speed_array, 75) # 75th percentile wind speed in m/s
 percentile_90_wind_gust_speed = np.percentile(wind_gust_speed_array, 90) # 90th percentile wind speed in m/s
 
-print(f"Max wind gust ever recorded: {max_wind_gust_speed:.2f} m/s") # Max wind speed in m/s
-print(f"Average wind gust: {avg_wind_gust_speed:.2f} m/s") # Average wind speed in m/s
-print(f"Standard deviation of wind gust speed: {std_dev_wind_gust_speed:.2f} m/s") # Std dev of wind speed in m/s
-print(f"75th percentile wind gust speed: {percentile_75_wind_gust_speed:.2f} m/s") # 75th percentile wind speed in m/s
-print(f"90th percentile wind gust speed: {percentile_90_wind_gust_speed:.2f} m/s") # 90th percentile wind speed in m/s
 
 
 if __name__ == "__main__":
+
+    print(f"Max wind gust ever recorded: {max_wind_gust_speed:.2f} m/s") # Max wind speed in m/s
+    print(f"Average wind gust: {avg_wind_gust_speed:.2f} m/s") # Average wind speed in m/s
+    print(f"Standard deviation of wind gust speed: {std_dev_wind_gust_speed:.2f} m/s") # Std dev of wind speed in m/s
+    print(f"75th percentile wind gust speed: {percentile_75_wind_gust_speed:.2f} m/s") # 75th percentile wind speed in m/s
+    print(f"90th percentile wind gust speed: {percentile_90_wind_gust_speed:.2f} m/s") # 90th percentile wind speed in m/s
+
     if plot_on == True:
         plt.figure(figsize=(10, 6))
         plt.hist(wind_gust_speed_array, bins=20, alpha=0.7, edgecolor='black')

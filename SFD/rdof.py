@@ -32,7 +32,7 @@ parachute_mass = vehicle.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
 max_q_velocity = vehicle.parameters.six_DoF_max_velocity # [m/s]
 AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_velocity) # [radians] # NEED
-wind_gust_speed = 0#parseWind.percentile_75_wind_gust_speed # [m/s]
+wind_gust_speed = parseWind.percentile_75_wind_gust_speed # [m/s]
 horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m/s] # NEED
 gravity = 9.81 # [m / s^2]
 air_density = 1.225 # [kg / m^3]
@@ -134,11 +134,11 @@ def calcDragForce(cd, rho, velocity, area):
     '''
     drag_force = 0.5 * cd * rho * (velocity ** 2) * area
 
-    print("*********************")
-    print(f"cd: {cd:.2f}")
-    print(f"rho: {rho:.2f}")
-    print(f"velocity: {velocity:.2f}")
-    print(f"area: {area:.2f}")
+    # print("*********************")
+    # print(f"cd: {cd:.2f}")
+    # print(f"rho: {rho:.2f}")
+    # print(f"velocity: {velocity:.2f}")
+    # print(f"area: {area:.2f}")
 
     return drag_force
 
@@ -248,35 +248,36 @@ worst_axial_array = np.array(calcAxial(drag_force, linear_density_array, length_
 
 # Converting to matlab file
 # matlab_dict = {"axial_array": axial_array, "shear_array": shear_array, "bending_array": bending_array, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
-# savemat("rfd_outputs_revcovery.mat", matlab_dict) # Save as .mat file for MATLAB
+# savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB
 # ------------------------------------------------------------------------------
 
-# Print outputs
-print("Outputs at recovery:")
-print(f"Worst axial force at recovery (90 degrees): {max(worst_axial_array) * c.N2LBF:.2f} lbf")
-print(f"Worst shear force at recovery (0 degrees): {max(worst_shear_array) * c.N2LBF:.2f} lbf")
-print(f"Worst bending moment at recovery (0 degrees): {max(worst_bending_array) * c.N2LBF * c.M2FT:.2f} lbf-ft")
-print("-----------------------------------")
+if __name__ == "__main__":
+    # Print outputs
+    print("Outputs at recovery:")
+    print(f"Worst axial force at recovery (90 degrees): {max(worst_axial_array) * c.N2LBF:.2f} lbf")
+    print(f"Worst shear force at recovery (0 degrees): {max(worst_shear_array) * c.N2LBF:.2f} lbf")
+    print(f"Worst bending moment at recovery (0 degrees): {max(worst_bending_array) * c.N2LBF * c.M2FT:.2f} lbf-ft")
+    print("-----------------------------------")
 
-print("Inputs:")
-print(f"Angle of attack from max_q: {AOA_max_q * (180 / np.pi):.2f} degrees")
-print(f"Angle of attack at recovery: {AOA_recovery * (180 / np.pi):.2f} degrees")
-print(f"Angle of rocket vs parachute velocity vector at recovery: {angle_rocket_parachute_deploy * (180 / np.pi):.2f} degrees")
-print(f"Drag force: {drag_force:.2f} N")
-print(f"Wind gust at recovery: {wind_gust_speed:.2f} m/s")
-print(f"Horizontal velocity at recovery: {horizontal_velocity:.2f} m/s")
-print(f"Vertical velocity at recovery: {vertical_velocity_deploy:.2f} m/s")
-print(f"Total velocity used for drag force at recovery: {velocity_deploy:.2f} m/s")
-print(f"Air density at apogee: {air_density:.2f} kg/m^3")
-print(f"Canopy area: {canopy_area:.2f} m^2")
-print(f"Drag coefficient at recovery: {drag_coefficient:.2f}")
-print(f"Rocket mass at recovery: {total_mass:.2f} kg")
-print("-----------------------------------")
+    print("Inputs:")
+    print(f"Angle of attack from max_q: {AOA_max_q * (180 / np.pi):.2f} degrees")
+    print(f"Angle of attack at recovery: {AOA_recovery * (180 / np.pi):.2f} degrees")
+    print(f"Angle of rocket vs parachute velocity vector at recovery: {angle_rocket_parachute_deploy * (180 / np.pi):.2f} degrees")
+    print(f"Drag force: {drag_force:.2f} N")
+    print(f"Wind gust at recovery: {wind_gust_speed:.2f} m/s")
+    print(f"Horizontal velocity at recovery: {horizontal_velocity:.2f} m/s")
+    print(f"Vertical velocity at recovery: {vertical_velocity_deploy:.2f} m/s")
+    print(f"Total velocity used for drag force at recovery: {velocity_deploy:.2f} m/s")
+    print(f"Air density at apogee: {air_density:.2f} kg/m^3")
+    print(f"Canopy area: {canopy_area:.2f} m^2")
+    print(f"Drag coefficient at recovery: {drag_coefficient:.2f}")
+    print(f"Rocket mass at recovery: {total_mass:.2f} kg")
+    print("-----------------------------------")
 
-print("Calculated values:")
-print(f"Terminal velocity: {terminal_velocity:.2f} m/s")
-print(f"Descent time: {descent_time:.2f} seconds")
-print("-----------------------------------")
+    print("Calculated values:")
+    print(f"Terminal velocity: {terminal_velocity:.2f} m/s")
+    print(f"Descent time: {descent_time:.2f} seconds")
+    print("-----------------------------------")
 # ------------------------------------------------------------------------------
 
 # Plotting and converting to matlab file

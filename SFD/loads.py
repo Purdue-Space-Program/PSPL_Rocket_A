@@ -65,7 +65,7 @@ tip_chord = 6 * c.IN2M # [m]
 sweep_length = 10 * c.IN2M # [m]
 fin_height = 7.25 * c.IN2M # [m]
 numFins = 3 # [m]
-fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft # [m]
+fin_top = vehicle.parameters.fin_top # [m]
 noseconeToFin = total_length - fin_top # [m]
 
 # Calculated inputs
@@ -76,7 +76,7 @@ S = sfd.calcS(diameter) # [m^2] Cross sectional area
 
 # Calculated values
 finCP = sfd.calcFinCP(root_chord, tip_chord, sweep_length, fin_height, total_length, noseconeToFin) # Fin center of pressure
-noseCP = sfd.calcNoseCP(vehicle.nosecone.length, total_length) # Nose center of pressure
+noseCP = sfd.calcNoseCP(vehicle.wet_mass_distribution.nosecone.length, total_length) # Nose center of pressure
 finSD = sfd.calcFinSD(root_chord, tip_chord, sweep_length, fin_height, numFins, diameter) # Fin stability derivative
 machCoeff = sfd.calcMachCoeff(1, mach) # Mach coefficient
 noseSD = sfd.calcNoseSD(cg, noseCP, diameter) # Nose stability derivative
@@ -98,43 +98,43 @@ elif location == "off_the_rail":
     savemat("sfd_outputs_off_the_rail.mat", matlab_dict) # Save as .mat file for MATLAB
 # ------------------------------------------------------------------------------
 
+if __name__ == "__main__":
+    print("Inputs:")
+    if location == "max_q":
+        print(f"\tWind gust at {location}: {wind_gust} m/s")
+    elif location == "off_the_rail":
+        print(f"\tEstimated rail whip at {location}: {wind_gust} m/s")
+    print(f"\tAir density at {location}: {air_density} kg/m^3")
+    print(f"\tAngle of attack at {location}: {AOA * (180 / np.pi):.2f} degrees")
+    print(f"\tVelocity at {location}: {velocity} m/s")
+    print(f"\tAcceleration at {location}: {ax} m/s^2")
+    print(f"\tRocket mass at {location}: {total_mass:.2f} kg")
+    print(f"\tCenter of gravity at {location}: {cg:.2f} m from bottom")
+    print(f"\tCross sectional area: {S:.4f} m^2")
+    print("-----------------------------------")
 
-print("Inputs:")
-if location == "max_q":
-    print(f"\tWind gust at {location}: {wind_gust} m/s")
-elif location == "off_the_rail":
-    print(f"\tEstimated rail whip at {location}: {wind_gust} m/s")
-print(f"\tAir density at {location}: {air_density} kg/m^3")
-print(f"\tAngle of attack at {location}: {AOA * (180 / np.pi):.2f} degrees")
-print(f"\tVelocity at {location}: {velocity} m/s")
-print(f"\tAcceleration at {location}: {ax} m/s^2")
-print(f"\tRocket mass at {location}: {total_mass:.2f} kg")
-print(f"\tCenter of gravity at {location}: {cg:.2f} m from bottom")
-print(f"\tCross sectional area: {S:.4f} m^2")
-print("-----------------------------------")
+    print(f"Results at {location}:")
+    print(f"\tMax shear force at {location}: {max(shear_array) * c.N2LBF:.2f} lbf")
+    print(f"\tMax bending moment at {location}: {max(bending_array) * c.N2LBF * c.M2FT:.2f} lbf-ft")
+    print(f"\tMax axial force at {location}: {max(axial_array) * c.N2LBF:.2f} lbf")
+    print("-----------------------------------")
 
-print(f"Results at {location}:")
-print(f"\tMax shear force at {location}: {max(shear_array) * c.N2LBF:.2f} lbf")
-print(f"\tMax bending moment at {location}: {max(bending_array) * c.N2LBF * c.M2FT:.2f} lbf-ft")
-print(f"\tMax axial force at {location}: {max(axial_array) * c.N2LBF:.2f} lbf")
-print("-----------------------------------")
+    print("Fin parameters:")
+    print(f"\tFin center of pressure: {finCP:.2f} m from bottom")
+    print(f"\tFin stability derivative: {finSD:.4f} ")
+    print(f"\tFin lift: {finLift:.2f} N")
+    print(f"\tRoot chord: {root_chord:.2f} m")
+    print(f"\tTip chord: {tip_chord:.2f} m")
+    print(f"\tSweep length: {sweep_length:.2f} m")
+    print(f"\tFin height: {fin_height:.2f} m")
+    print(f"\tNumber of fins: {numFins}")
+    print("-----------------------------------")
 
-print("Fin parameters:")
-print(f"\tFin center of pressure: {finCP:.2f} m from bottom")
-print(f"\tFin stability derivative: {finSD:.4f} ")
-print(f"\tFin lift: {finLift:.2f} N")
-print(f"\tRoot chord: {root_chord:.2f} m")
-print(f"\tTip chord: {tip_chord:.2f} m")
-print(f"\tSweep length: {sweep_length:.2f} m")
-print(f"\tFin height: {fin_height:.2f} m")
-print(f"\tNumber of fins: {numFins}")
-print("-----------------------------------")
-
-print("Nosecone parameters:")
-print(f"\tNose center of pressure: {noseCP:.2f} m from bottom")
-print(f"\tNose stability derivative: {noseSD:.4f} ")
-print(f"\tNose lift: {noseLift:.2f} N")
-print("-----------------------------------")
+    print("Nosecone parameters:")
+    print(f"\tNose center of pressure: {noseCP:.2f} m from bottom")
+    print(f"\tNose stability derivative: {noseSD:.4f} ")
+    print(f"\tNose lift: {noseLift:.2f} N")
+    print("-----------------------------------")
 
 # Plotting
 plt.figure()

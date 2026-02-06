@@ -177,7 +177,7 @@ def updateCG(vehicle, burn_time, total_time):
             cg.append(cg[-1])
         else:
             linear_density_array = np.zeros(vehicle.num_points)
-            for component in vehicle.mass_distribution.components:
+            for component in vehicle.mass_distribution:
                 mass = component.mass
                 if component.name == 'oxidizer_tank':
                     mass -= ox_flow_rate * t

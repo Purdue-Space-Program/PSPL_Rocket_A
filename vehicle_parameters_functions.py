@@ -67,6 +67,7 @@ def ConvertObjectToCSV(object, file_name):
                     continue
                 csv_writer_handle.writerow([field_object.name, getattr(mass_distribution_object, field_object.name)])
 
+            print(f"Mass Distribution CSV Exported to {export_file_path}")
 
         elif isinstance(object, vehicle_parameters.VehicleParameters):
             vehicle_parameters_object = object
@@ -79,8 +80,7 @@ def ConvertObjectToCSV(object, file_name):
             print(f"Vehicle Parameters CSV Exported to {export_file_path}")
     
         else:
-            raise ValueError("da fuq")         
-        print("")
+            raise ValueError("da fuq")
 
 
 

@@ -1,4 +1,4 @@
-current_directory = pwd;
+starting_directory = pwd;
 cd('C:..')
 
 python_executable_path = "python";
@@ -21,4 +21,4 @@ vehicle_parameters = cell2struct( ...
 mat_file_path = fullfile("Structures Analysis\vehicle_parameters.mat");
 save(mat_file_path, "vehicle_parameters", "vehicle_parameters_csv");
 
-cd(current_directory)
+cd(starting_directory)
