@@ -55,7 +55,7 @@ drag_coefficient = 2.2 # [-]
 # Parachute parameters
 # canopy_area = ((14 * c.FT2M) / 2)**2 * np.pi # [m^2]
 canopy_outer_diameter = 14 * c.FT2M # [m] Outer diameter of parachute for area calculation, Rocketman High Performance CD 2.2 Parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
-canopy_inner_diameter = (29.56 / 12) * c.FT2M # [m] Inne diameter of parachute for area calculation, Rocketman High Performance CD 2.2 Parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
+canopy_inner_diameter = (29.56 / 12) * c.FT2M # [m] Inner diameter of parachute for area calculation, Rocketman High Performance CD 2.2 Parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
 canopy_area = CalculateCircleArea(canopy_outer_diameter) - CalculateCircleArea(canopy_inner_diameter) # [m^2] 168 inch (diameter?) parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
 canopy_factor = 2.5 # [-] Canopy factor for low porosity canopies, will be used for inflation time calculation
 # ------------------------------------------------------------------------------
