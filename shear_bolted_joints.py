@@ -207,6 +207,18 @@ if __name__ == "__main__":
     tank_bulkhead_to_strut_joint.CalculateShearJoint()
 
 
+    print("-------------Launch Lug Bolted Joint-------------")
+    tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
+                                                        bolt_thread_size = "#10", 
+                                                        number_of_bolts = 2,
+                                                        joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
+                                                        joint_member_1_thickness = 0.5 * c.IN2M,
+                                                        E_d_ratio = 2,
+                                                        joint_member_1_shear_limit_load = 668 * c.LBF2N,
+                                                        shear_joint_type = "Single")
+    tank_bulkhead_to_strut_joint.CalculateShearJoint()
+
+
 
     print("-------------Recovery Bulkhead Bolted Joint-------------")    
     injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "Alloy Steel", 
