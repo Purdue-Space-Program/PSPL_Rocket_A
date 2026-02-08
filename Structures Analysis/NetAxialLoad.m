@@ -54,7 +54,7 @@ else
 end
 
 max_Q_compressive_limit_load = max([netCompressionMaxQ(locationMaxQ(1)), netCompressionMaxQ(locationMaxQ(2))]);
-recovery_compressive_limit_load = max([netCompressionRecovery(locationMaxQ(1)), netCompressionRecovery(locationMaxQ(2))]);
+recovery_compressive_limit_load = max([netCompressionRecovery(locationRecovery(1)), netCompressionRecovery(locationRecovery(2))]);
 
 maxCompression = max([netCompressionMaxQ(locationMaxQ(1)), netCompressionRecovery(locationRecovery(1)), netCompressionMaxQ(locationMaxQ(2)), netCompressionRecovery(locationRecovery(2))]);
 maxTension = min([netTensionMaxQ(locationMaxQ(1)), netTensionRecovery(locationRecovery(1)), netTensionMaxQ(locationMaxQ(2)), netTensionRecovery(locationRecovery(2))]);

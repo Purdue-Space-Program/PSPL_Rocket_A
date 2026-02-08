@@ -1,4 +1,4 @@
-# Accessed: 2026-02-06_13-59-02 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-02-08_00-02-28 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: main.py
 parameter_name,value
 yield_FoS,1.5
@@ -68,10 +68,10 @@ six_DoF_off_the_rail_velocity,28.7
 six_DoF_max_mach,0.368
 six_DoF_max_velocity,126.224
 six_DoF_estimated_apogee,747.6
-wet_mass,35.493690833847005
-dry_mass,31.872303024247007
+wet_mass,37.439600513847004
+dry_mass,33.818212704247
 total_length,2.9233876
-dry_COM_location_from_bottom,1.1553211098912488
-dry_COM_location_from_top,1.768066490108751
-wet_COM_location_from_bottom,1.1444105829658153
-wet_COM_location_from_top,1.7789770170341845
+dry_COM_location_from_bottom,1.1001078064456227
+dry_COM_location_from_top,1.8232797935543772
+wet_COM_location_from_bottom,1.0950790265421995
+wet_COM_location_from_top,1.8283085734578004
