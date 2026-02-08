@@ -187,7 +187,7 @@ elif panel_type == "foil":
 engine_mass = 11.66 * c.LBM2KG # [lbm] measured CAD value
 
 # injector_mass = c.DENSITY_SS316 * CalcCylinderVolume(propellant_tank_outer_diameter, injector_length)
-injector_mass = 4.69 * c.LBM2KG # [lbm] measured CAD value
+injector_mass = 8.98 * c.LBM2KG # [lbm] measured CAD value
 
 number_of_fins = 3
 mass_per_fin = 1.614 * c.LBM2KG # [lbm]

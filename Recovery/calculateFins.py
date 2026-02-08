@@ -26,7 +26,6 @@ def CalculateFinFlutterCriticalMachNumber(shear_modulus, aspect_ratio, fin_thick
     C = coefficient
     c = root_chord
     
-    
     numerator = G * 2 * (AR + 2) * ((t/c)**3)
     denominator = C * (AR**3) * P * (taper_ratio + 1)
     return np.sqrt(numerator/denominator) 
