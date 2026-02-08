@@ -81,7 +81,7 @@ class VehicleParameters:
     bulkhead_length: float =       1.22 * c.IN2M
     mid_length: float =            5 * c.IN2M
 
-    upper_length: float =          25 * c.IN2M
+    upper_length: float =          30 * c.IN2M
     recovery_bay_length: float =   24 * c.IN2M
     nosecone_length: float =       15 * c.IN2M
 
