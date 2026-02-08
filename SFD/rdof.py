@@ -58,7 +58,7 @@ vertical_velocity_deploy = (-1) * gravity * time_before_deployment # [m / s] Ver
 velocity_deploy = np.sqrt(vertical_velocity_deploy**2 + (horizontal_velocity + wind_gust_speed)**2) # [m / s] Total relative velocity at parachute deployment
 angle_from_horizontal_parachute_deploy = np.arctan(vertical_velocity_deploy / (horizontal_velocity + wind_gust_speed)) # [radians] Angle of rocket vs parachute velocity vector at parachute deployment
 AOA_recovery = orientation_start - angle_from_horizontal_parachute_deploy # [radians] Angle of attack at parachute deployment
-orientation_start_recovery_list = [AOA_recovery] # [radians] List of angles of attack at recovery for plotting
+orientation_start_recovery_list = [0, np.pi / 2] # [radians] List of angles of attack at recovery for plotting
 # ------------------------------------------------------------------------------
 
 # Mass Model
@@ -308,10 +308,10 @@ limit_load_axial_array = None
 for orientation in orientation_start_recovery_list:
     angle = orientation - angle_from_horizontal_parachute_deploy
     for t in np.arange(0, inflation_time, dt):
-        area = open_rate * t
-        if area > canopy_area:
-            area = canopy_area
-        drag_force = calcDragForce(drag_coefficient, air_density, velocity_deploy, area) # [N]
+        #area = open_rate * t
+        #if area > canopy_area:
+        #    area = canopy_area
+        drag_force = calcDragForce(drag_coefficient, air_density, velocity_deploy, canopy_area) # [N]
         lateral_acceleration = calcParachuteAcceleration(drag_force, total_mass) # [m / s^2]
         # Orientation update at the end
         # Velocity update at the end
