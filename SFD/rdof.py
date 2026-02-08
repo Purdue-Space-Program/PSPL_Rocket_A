@@ -26,6 +26,15 @@ def CalculateCircleArea(diameter):
     area = np.pi * (radius**2)
     return(area)
 
+def magnitude(vector):
+    return np.linalg.norm(vector)
+
+def norm(vector):
+    mag = magnitude(vector)
+    if mag == 0:
+        return vector
+    return vector / mag
+
 # Input Parameters 
 rocket_dict_dry = vehicle.rocket_dict_dry
 parachute_mass = vehicle.parachute_mass  # [kg]
@@ -45,8 +54,8 @@ drag_coefficient = 2.2 # [-]
 
 # Parachute parameters
 # canopy_area = ((14 * c.FT2M) / 2)**2 * np.pi # [m^2]
-canopy_outer_diameter = 29.56 * c.FT2M # [m] Diameter of parachute for area calculation, Rocketman High Performance CD 2.2 Parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
-canopy_inner_diameter = 14 * c.FT2M # [m] Diameter of parachute for area calculation, Rocketman High Performance CD 2.2 Parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
+canopy_outer_diameter = 14 * c.FT2M # [m] Outer diameter of parachute for area calculation, Rocketman High Performance CD 2.2 Parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
+canopy_inner_diameter = (29.56 / 12) * c.FT2M # [m] Inne diameter of parachute for area calculation, Rocketman High Performance CD 2.2 Parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
 canopy_area = CalculateCircleArea(canopy_outer_diameter) - CalculateCircleArea(canopy_inner_diameter) # [m^2] 168 inch (diameter?) parachute: https://www.the-rocketman.com/products/rocketman-high-performance-cd-2-2-parachutes?variant=42195940114526
 canopy_factor = 2.5 # [-] Canopy factor for low porosity canopies, will be used for inflation time calculation
 # ------------------------------------------------------------------------------
@@ -55,7 +64,7 @@ canopy_factor = 2.5 # [-] Canopy factor for low porosity canopies, will be used 
 orientation_start = 0 # [radians] Starting orientation at apogee measured from the horizontal
 time_before_deployment = 0 # [s] Time from apogee to parachute deployment
 vertical_velocity_deploy = (-1) * gravity * time_before_deployment # [m / s] Vertical velocity at parachute deployment
-velocity_deploy = np.sqrt(vertical_velocity_deploy**2 + (horizontal_velocity + wind_gust_speed)**2) # [m / s] Total relative velocity at parachute deployment
+velocity_deploy = np.array([horizontal_velocity + wind_gust_speed, vertical_velocity_deploy]) # [m / s] Total relative velocity at parachute deployment
 angle_from_horizontal_parachute_deploy = np.arctan(vertical_velocity_deploy / (horizontal_velocity + wind_gust_speed)) # [radians] Angle of rocket vs parachute velocity vector at parachute deployment
 AOA_recovery = orientation_start - angle_from_horizontal_parachute_deploy # [radians] Angle of attack at parachute deployment
 orientation_start_recovery_list = [0, np.pi / 2] # [radians] List of angles of attack at recovery for plotting
@@ -239,10 +248,10 @@ def calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, an
 
 # Calculations
 terminal_velocity = calcTerminalVelocity(total_mass, gravity, drag_coefficient, air_density, canopy_area) # [m/s] solving for velocity setting weight and Drag equal
-drag_force = calcDragForce(drag_coefficient, air_density, velocity_deploy, canopy_area) # [N]
+drag_force = calcDragForce(drag_coefficient, air_density, magnitude(velocity_deploy), canopy_area) # [N]
 descent_time = max_height/terminal_velocity # [s]
 
-inflation_time = sfd.inflation_time(canopy_factor, canopy_outer_diameter, velocity_deploy) # [s]
+inflation_time = sfd.inflation_time(canopy_factor, canopy_outer_diameter, magnitude(velocity_deploy)) # [s]
 open_rate = canopy_area / inflation_time # [m^2 / s] Rate at which canopy area opens
 dt = 0.1 # [s]
 
@@ -283,7 +292,7 @@ if __name__ == "__main__":
     print(f"Wind gust at recovery: {wind_gust_speed:.2f} m/s")
     print(f"Horizontal velocity at recovery: {horizontal_velocity:.2f} m/s")
     print(f"Vertical velocity at recovery: {vertical_velocity_deploy:.2f} m/s")
-    print(f"Total velocity used for drag force at recovery: {velocity_deploy:.2f} m/s")
+    print(f"Total velocity used for drag force at recovery: {magnitude(velocity_deploy):.2f} m/s")
     print(f"Air density at apogee: {air_density:.2f} kg/m^3")
     print(f"Canopy area: {canopy_area:.2f} m^2")
     print(f"Drag coefficient at recovery: {drag_coefficient:.2f}")
@@ -306,18 +315,38 @@ limit_load_bending_array = None
 limit_load_axial_array = None
 
 for orientation in orientation_start_recovery_list:
+    shear_force_array = []
+    bending_moment_array = []
+    axial_force_array = []
     angle = orientation - angle_from_horizontal_parachute_deploy
+    aoa = angle
+    velocity = velocity_deploy
     for t in np.arange(0, inflation_time, dt):
-        #area = open_rate * t
-        #if area > canopy_area:
-        #    area = canopy_area
-        drag_force = calcDragForce(drag_coefficient, air_density, velocity_deploy, canopy_area) # [N]
-        lateral_acceleration = calcParachuteAcceleration(drag_force, total_mass) # [m / s^2]
+        area = open_rate * t
+        if area > canopy_area:
+            area = canopy_area
+        drag_force = calcDragForce(drag_coefficient, air_density, magnitude(velocity), area) # [N]
+        F_g = total_mass * gravity # [N]
+        F_net = F_g + drag_force * (-1) * norm(velocity)
+        acceleartion = calcParachuteAcceleration(drag_force, total_mass) # [m / s^2]
+        orientation_cartesian = np.array([np.cos(orientation), np.sin(orientation)])
+        
+        torque = np.cross(parachute_to_cg * orientation_cartesian, drag_force * norm(velocity)) # [N m]
+        angular_acceleration = torque / inertia # [radians / s^2]
+        angular_velocity = angular_acceleration * dt # [radians / s]
+        orientation += angular_velocity * dt # [radians]
+
+        r_i = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, aoa) # [radians / s^2] Angular acceleration if rocket at angle at recovery
+        shear_array = np.array(calcShear(drag_force, recovery_bay_start, acceleartion, linear_density_array, length_along_rocket_linspace, r_i, cg, aoa)) # [N] Shear force array if rocket at angle at recovery
+        bending_array = np.array(calcBending(shear_array, length_along_rocket_linspace)) # [N m] Bending moment array if rocket at angle at recovery
+        axial_array = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, aoa)) # [N] Axial forces array if rocket at angle at recovery
         # Orientation update at the end
         # Velocity update at the end
 
-
-
+        shear_force_array.append(shear_array)
+        bending_moment_array.append(bending_array)
+        axial_force_array.append(axial_array)
+    
     r_i = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, angle) # [radians / s^2] Angular acceleration if rocket at angle at recovery
     shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r_i, cg, angle)) # [N] Shear force array if rocket at angle at recovery
     bending_array = np.array(calcBending(shear_array, length_along_rocket_linspace)) # [N m] Bending moment array if rocket at angle at recovery

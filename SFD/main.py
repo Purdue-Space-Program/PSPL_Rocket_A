@@ -245,9 +245,9 @@ for i in range(len(time_array)):
     max_shear_forces.append(max(np.abs(shear_force_array[i])))
     max_bending_moments.append(max(np.abs(bending_moment_array[i])))
     max_axial_forces.append(max(np.abs(axial_force_array[i])))
-    worst_time_shear = max_shear_forces.index(max(max_shear_forces))
-    worst_time_bending = max_bending_moments.index(max(max_bending_moments))
-    worst_time_axial = max_axial_forces.index(max(max_axial_forces))
+worst_time_shear = max_shear_forces.index(max(max_shear_forces))
+worst_time_bending = max_bending_moments.index(max(max_bending_moments))
+worst_time_axial = max_axial_forces.index(max(max_axial_forces))
 
 
 
