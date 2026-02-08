@@ -16,37 +16,45 @@ xchamb, ychamb = chamber.nozzle_contour(vehicle.parameters.chamber_throat_diamet
 
 x = np.loadtxt('chamber_contour_inches.csv', delimiter = ',', usecols = 2)
 innerr = np.loadtxt('chamber_contour_inches.csv', delimiter = ',', usecols = 0)
-sof = 1.4
-mechs = 72518.9 #(psi) mechanical strength at 500K ~226C
+sof = 1.5
+mechs = 7000 #(psi) 
 
 maxstress = mechs/sof # calculates hoopstress
-pressure = 500 #psi double nominal chamber pressure
-outerr = innerr[0]*math.sqrt((maxstress+pressure)/(maxstress - ((innerr[0]**2 * pressure)/innerr[0]**2)))
+pressure = 250 #psi double nominal chamber pressure
+outerr = innerr[0] * math.sqrt((maxstress + pressure)/(maxstress - pressure))
 chamberthickness = outerr - innerr[0]
 
-print(f"To ensure a safety factor of 1.4, the thickness of the chamber should be at least {chamberthickness*c.M2IN:0.3f} in")
+print(f"To ensure a safety factor of 1.5, the thickness of the chamber should be at least {chamberthickness:0.3f} in")
 
 minthickness = []
 hoopstressar = []
-for i in innerr:
-    r = i
+for r in innerr:
     outerr = r + chamberthickness
-    hoopstress = ((i**2 * pressure)/(outerr**2 - i**2))*(1+(outerr**2/r**2))
+    hoopstress = ((r**2 * pressure)/(outerr**2 - r**2))*(1+(outerr**2/r**2)) #hoopstress with singular minimum thickness
     hoopstressar.append(hoopstress)
-    outerr = i*math.sqrt((maxstress+pressure)/(maxstress - ((i**2 * pressure)/i**2)))
-    minthickness.append((outerr-i)*c.M2IN)
+    outerr = r * math.sqrt((maxstress + pressure)/(maxstress - pressure)) #changing thickness for each radius
+    minthickness.append((outerr-r))
 
-plt.figure(1)
-plt.plot(xchamb, ychamb)
-plt.plot(x, minthickness+ychamb)
-plt.xlabel("Axial Distance(in)")
-plt.ylabel("Minimum Chamber Thickness(in)")
-plt.title("Chamber")
-plt.show()
+
+#plt.figure(1)
+#plt.plot(xchamb, ychamb)
+#plt.plot(x, minthickness+ychamb)
+#plt.xlabel("Axial Distance(in)")
+#plt.ylabel("Minimum Chamber Thickness Difference(in)")
+#plt.title("Chamber")
+#plt.show()
 
 plt.figure(2)
 plt.plot(x, hoopstressar)
 plt.xlabel("Axial Distance(in)")
-plt.ylabel("Hoop Stress")
+plt.ylabel("Hoop Stress(psi)")
 plt.title("Hoopstress along the chamber" )
+plt.show()
+
+
+plt.figure(3)
+plt.plot(x, minthickness)
+plt.xlabel("Axial Distance(in)")
+plt.ylabel("Minimum Chamber Thickness(in)")
+plt.title("Chamber")
 plt.show()

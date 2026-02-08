@@ -35,7 +35,7 @@ def CalculateFinFlutterCriticalMachNumber(shear_modulus, aspect_ratio, fin_thick
     return np.sqrt(numerator/denominator) 
 
 def main():
-    target_stability_caliber = 2.0
+    target_stability_caliber = 1.9
     center_of_pressure_from_top = calculateCenterOfPressure(target_stability_caliber, parameters.wet_COM_location_from_top, parameters.tube_outer_diameter)
     dry_stability_cal = calculateStabilityCaliber(center_of_pressure_from_top, parameters.dry_COM_location_from_top, parameters.tube_outer_diameter)
 
@@ -47,9 +47,9 @@ def main():
     coefficient = 1.337 # what the fuck
     atmospheric_pressure = 1 * c.ATM2PA
 
-    tip_chord = 6 * c.IN2M
-    root_chord = 16 * c.IN2M
-    wingspan = 7.6 * c.IN2M
+    tip_chord = parameters.tip_chord
+    root_chord = parameters.root_chord
+    wingspan = parameters.wingspan
     sweep_distance = root_chord - tip_chord
     taper_ratio = calculateTaperRatio(tip_chord, root_chord)
     aspect_ratio = calculateAspectRatio(tip_chord, root_chord, wingspan, sweep_distance)

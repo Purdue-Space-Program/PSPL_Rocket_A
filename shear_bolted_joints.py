@@ -41,6 +41,7 @@ def CalculateShearJoint(bolt_thread_size, bolt_material, number_of_bolts, joint_
 
     # material properties
     F_su_316_Stainless_Steel = 50_000 * c.PSI2PA # [psi] S-basis from MMPDS-2019
+    F_su_Alloy_Steel = 153_000*0.65 * c.PSI2PA # [psi] S-basis from MMPDS-2019
 
     # from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
     F_bry_Aluminum_6061_T6_E_d_one_point_five = 50_000 * c.PSI2PA # [psi] 
@@ -107,6 +108,10 @@ def CalculateShearJoint(bolt_thread_size, bolt_material, number_of_bolts, joint_
     match bolt_material:
         case "316 Stainless Steel":
             bolt_F_su = F_su_316_Stainless_Steel
+        case "Alloy Steel":
+            bolt_F_su = F_su_Alloy_Steel
+        case _:
+            raise ValueError("cock and ball torque")
             
     
     bolt_maximum_allowable_shear_ultimate_load = CalculateMaximumAllowableBoltShearLoad(bolt_F_su, bolt_minor_diameter)
@@ -178,7 +183,7 @@ if __name__ == "__main__":
     bulkhead_blowoff_load = (parameters.tank_pressure * bulkhead_area) * parameters.proof_factor
     print(f"\tBulkhead blowoff load: {bulkhead_blowoff_load:.2f} N, {bulkhead_blowoff_load * c.N2LBF :.2f} LBF")
         
-    tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
+    tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
                                                         bolt_thread_size = "5/16\"", 
                                                         number_of_bolts = 18,
                                                         joint_member_1_material = "Aluminum 6061-T6",
@@ -191,26 +196,26 @@ if __name__ == "__main__":
 
     
     print("-------------Tank Bulkhead to Strut Bolted Joint-------------")
-    tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
+    tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
                                                         bolt_thread_size = "5/16\"", 
                                                         number_of_bolts = 2,
-                                                        joint_member_1_material = "Aluminum 6063-T52", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
-                                                        joint_member_1_thickness = 0.125 * c.IN2M,
+                                                        joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
+                                                        joint_member_1_thickness = 0.25 * c.IN2M,
                                                         E_d_ratio = 2,
-                                                        joint_member_1_shear_limit_load = 600 * c.LBF2N,
+                                                        joint_member_1_shear_limit_load = 2500 * c.LBF2N,
                                                         shear_joint_type = "Single")
     tank_bulkhead_to_strut_joint.CalculateShearJoint()
 
 
 
-    print("-------------Injector Upper Half to Fin Can Struts Bolted Joint-------------")    
-    injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
-                                                        bolt_thread_size = "5/16\"", 
-                                                        number_of_bolts = 2,
-                                                        joint_member_1_material = "304 Stainless Steel", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
+    print("-------------Recovery Bulkhead Bolted Joint-------------")    
+    injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "Alloy Steel", 
+                                                        bolt_thread_size = "1/4", 
+                                                        number_of_bolts = 12,
+                                                        joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
                                                         joint_member_1_thickness = 0.125 * c.IN2M,
                                                         E_d_ratio = 2,
-                                                        joint_member_1_shear_limit_load = 600 * c.LBF2N,
+                                                        joint_member_1_shear_limit_load = 2500 * c.LBF2N,
                                                         shear_joint_type = "Single")
     injector_upper_half_to_fin_can_strut.CalculateShearJoint()
     
