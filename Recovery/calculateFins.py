@@ -10,6 +10,9 @@ import csv
 def calculateCenterOfPressure(target_cal, center_of_mass, diameter):
     return ((target_cal)*(diameter))+center_of_mass
 
+def calculateStabilityCaliber(center_of_pressure, center_of_mass, diameter):
+    return (center_of_pressure - center_of_mass)/diameter
+
 def calculateTaperRatio(tip_chord, root_chord):
     return tip_chord/root_chord
 
@@ -26,17 +29,18 @@ def CalculateFinFlutterCriticalMachNumber(shear_modulus, aspect_ratio, fin_thick
     C = coefficient
     c = root_chord
     
+    
     numerator = G * 2 * (AR + 2) * ((t/c)**3)
     denominator = C * (AR**3) * P * (taper_ratio + 1)
     return np.sqrt(numerator/denominator) 
 
 def main():
     target_stability_caliber = 2.0
-    wet_target_center_of_pressure_from_top = calculateCenterOfPressure(target_stability_caliber, parameters.wet_COM_location_from_top, parameters.tube_outer_diameter)
-    dry_target_center_of_pressure_from_top = calculateCenterOfPressure(target_stability_caliber, parameters.dry_COM_location_from_top, parameters.tube_outer_diameter)
+    center_of_pressure_from_top = calculateCenterOfPressure(target_stability_caliber, parameters.wet_COM_location_from_top, parameters.tube_outer_diameter)
+    dry_stability_cal = calculateStabilityCaliber(center_of_pressure_from_top, parameters.dry_COM_location_from_top, parameters.tube_outer_diameter)
 
-    print(f"wet_target_center_of_pressure_from_top: {wet_target_center_of_pressure_from_top * c.M2IN:.2f} inches from top")
-    print(f"dry_target_center_of_pressure_from_top: {dry_target_center_of_pressure_from_top * c.M2IN:.2f} inches from top")
+    print(f"center_of_pressure_from_top: {center_of_pressure_from_top * c.M2IN:.2f} inches from top")
+    print(f"dry_stability_cal: {dry_stability_cal:.2f} cal")
 
     shear_modulus = 26e9 # [pa]
     fin_thickness = (1/4) * c.IN2M
