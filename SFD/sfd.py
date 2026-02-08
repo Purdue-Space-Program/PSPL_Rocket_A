@@ -372,3 +372,47 @@ def calcTerminalVelocity(mass, gravity, cd, rho, area):
     '''
     terminal_velocity = np.sqrt((2 * mass * gravity) / (cd * rho * area))
     return terminal_velocity
+
+def calcShearRecovery(drag_force, recovery_bay_start, lateral_acceleration, linear_density_array, length_along_rocket_linspace, angular_acceleration, cg):
+    '''
+    drag_force: Parachute drag force [N]
+    lateral_acceleration: Lateral acceleration [m / s^2]
+    linear_density_array: Array of linear density across rocket length [kg / m]
+    length_along_rocket_linspace: Array of rocket lengths [m]
+    angular_acceleration: Angular acceleration [radians / s^2]
+    cg: Location of center of gravity of rocket [m]
+    shear_array: Array of shear forces across rocket length [N]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    cg_rel_lengths = np.array(-1 * length_along_rocket_linspace + cg)
+    mass_model = np.cumsum(linear_density_array * dx) # aft to nose
+    cumulative_moment_about_cg = np.cumsum(linear_density_array * dx * cg_rel_lengths) # aft to nose
+    shear_array = (-1) * lateral_acceleration * mass_model - angular_acceleration * cumulative_moment_about_cg
+    shear_array[int(recovery_bay_start / dx) - 1:] += drag_force
+
+    return shear_array
+
+def calcAxialRecovery(drag_force, linear_density_array, length_along_rocket_linspace, total_mass):
+    '''
+    drag_force: Parachute drag force [N]
+    linear_density_array: Array of linear density across rocket length [kg / m]
+    length_along_rocket_linspace: Array of rocket lengths [m]
+    axial_array: Array of axial forces across rocket length [N]
+    total_mass: Total mass of rocket [kg]
+    '''
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    ax = drag_force / total_mass
+    mass_model = np.cumsum(linear_density_array * dx) # aft to nose
+    axial_array = ax * mass_model
+
+    return axial_array
+
+def inflation_time(canopy_factor, diamater, velocity):
+    '''
+    canopy_factor: Canopy factor (2.5 for low porosity canopies, will be used)
+    diameter: Diameter of parachute [m]
+    velocity: Velocity of rocket at deployment [m / s]
+    inflation_time: Time for parachute to fully inflate [s]
+    '''
+    inflation_time = (canopy_factor * diamater) / (velocity**0.85)
+    return inflation_time

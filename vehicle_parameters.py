@@ -444,7 +444,7 @@ if __name__ == "__main__":
     plt.title("Rocket Wet Mass Distribution")
 
 
-    print_components = False
+    print_components = True
     
     if print_components == True:
         for component in wet_mass_distribution:
