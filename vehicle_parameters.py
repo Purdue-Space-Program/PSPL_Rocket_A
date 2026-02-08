@@ -92,7 +92,7 @@ class VehicleParameters:
     root_chord: float = 16 * c.IN2M
     tip_chord: float = 6 * c.IN2M
     sweep_length: float = root_chord - tip_chord
-    wingspan: float = 7.6 * c.IN2M
+    wingspan: float = 7.4 * c.IN2M
     number_of_fins: float = 3 # [-]
     fin_top: float = None
 
