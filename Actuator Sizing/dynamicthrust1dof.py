@@ -506,6 +506,7 @@ def actuation_time_vs_rail_exit():
     ax2.set_ylabel("Estimated Apogee (m)")
     fig.tight_layout()
     plt.show()
+
 #############################
 #######  PARAMETERS  ########
 #############################

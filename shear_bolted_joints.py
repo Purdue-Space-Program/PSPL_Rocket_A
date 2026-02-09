@@ -41,7 +41,7 @@ def CalculateShearJoint(bolt_thread_size, bolt_material, number_of_bolts, joint_
 
     # material properties
     F_su_316_Stainless_Steel = 50_000 * c.PSI2PA # [psi] S-basis from MMPDS-2019
-    F_su_Alloy_Steel = 153_000*0.65 * c.PSI2PA # [psi] S-basis from MMPDS-2019
+    F_su_Alloy_Steel = 153_000*0.6 * c.PSI2PA # [psi] S-basis from MMPDS-2019
 
     # from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
     F_bry_Aluminum_6061_T6_E_d_one_point_five = 50_000 * c.PSI2PA # [psi] 
@@ -203,6 +203,18 @@ if __name__ == "__main__":
                                                         joint_member_1_thickness = 0.25 * c.IN2M,
                                                         E_d_ratio = 2,
                                                         joint_member_1_shear_limit_load = 2500 * c.LBF2N,
+                                                        shear_joint_type = "Single")
+    tank_bulkhead_to_strut_joint.CalculateShearJoint()
+
+
+    print("-------------Launch Lug Bolted Joint-------------")
+    tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
+                                                        bolt_thread_size = "#10", 
+                                                        number_of_bolts = 2,
+                                                        joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
+                                                        joint_member_1_thickness = 0.5 * c.IN2M,
+                                                        E_d_ratio = 2,
+                                                        joint_member_1_shear_limit_load = 668 * c.LBF2N,
                                                         shear_joint_type = "Single")
     tank_bulkhead_to_strut_joint.CalculateShearJoint()
 

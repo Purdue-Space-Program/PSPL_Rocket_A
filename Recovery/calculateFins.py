@@ -35,7 +35,7 @@ def CalculateFinFlutterCriticalMachNumber(shear_modulus, aspect_ratio, fin_thick
     return np.sqrt(numerator/denominator) 
 
 def main():
-    target_stability_caliber = 1.9
+    target_stability_caliber = 1.75
     center_of_pressure_from_top = calculateCenterOfPressure(target_stability_caliber, parameters.wet_COM_location_from_top, parameters.tube_outer_diameter)
     dry_stability_cal = calculateStabilityCaliber(center_of_pressure_from_top, parameters.dry_COM_location_from_top, parameters.tube_outer_diameter)
 

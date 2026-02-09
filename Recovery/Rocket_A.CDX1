@@ -12,7 +12,7 @@
     </NoseCone>
     <BodyTube>
       <PartType>BodyTube</PartType>
-      <Length>89.4</Length>
+      <Length>94.4</Length>
       <Diameter>6</Diameter>
       <LaunchLugDiameter>0</LaunchLugDiameter>
       <LaunchLugLength>0</LaunchLugLength>
@@ -28,7 +28,7 @@
       <Fin>
         <Count>3</Count>
         <Chord>16</Chord>
-        <Span>7.6</Span>
+        <Span>7.4</Span>
         <SweepDistance>10</SweepDistance>
         <TipChord>6</TipChord>
         <Thickness>0.1875</Thickness>
@@ -43,20 +43,20 @@
       <PartType>Transition</PartType>
       <Length>0.01</Length>
       <Diameter>6.5</Diameter>
-      <Location>104.4</Location>
+      <Location>109.4</Location>
       <RearDiameter>6.5</RearDiameter>
       <Color>Black</Color>
     </Transition>
     <BodyTube>
       <PartType>BodyTube</PartType>
-      <Length>11</Length>
+      <Length>11.6</Length>
       <Diameter>6.5</Diameter>
       <LaunchLugDiameter>0</LaunchLugDiameter>
       <LaunchLugLength>0</LaunchLugLength>
       <RailGuideDiameter>0</RailGuideDiameter>
       <RailGuideHeight>0</RailGuideHeight>
       <LaunchShoeArea>0</LaunchShoeArea>
-      <Location>104.41</Location>
+      <Location>109.41</Location>
       <Color>Black</Color>
       <BoattailLength>0</BoattailLength>
       <BoattailRearDiameter>0</BoattailRearDiameter>

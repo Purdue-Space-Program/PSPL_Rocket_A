@@ -19,14 +19,14 @@ import time
 u = UnitRegistry()
 
 # Tank Pressure / fuel properties
-source_pressure = 250 * u.psi                    # Ethanol tank pressure that will provide power to the actuator
+tank_pressure = 287.0 * u.psi                    # Ethanol tank pressure that will provide power to the actuator
 ambient_pressure = 14.696 * u.psi                # Fluid in the back of the piston is thrown off-board. Ambient pressure acts as that "Tank pressure"
-temp = 293.0 * u.kelvin                          # Approximate ethanol temperature in the tank 293 is ambient
+temp = 173.0 * u.kelvin                          # Approximate ethanol temperature in the tank 293 is ambient
 
 # Calculated properties
 # Fluid properties - Used to calculate pressure drops
-density = 19.8 * (u.kg / u.m**3) # density of IPA
-dynamic_mu = 1.75e-5 * (u.pascal * u.second) #viscosity of IPA
+density = CP.PropsSI('D', 'T', temp.magnitude, 'P', tank_pressure.to('Pa').magnitude, 'ETHANOL') * (u.kg / u.m**3)
+dynamic_mu = CP.PropsSI('V', 'P', tank_pressure.magnitude, 'T', temp.magnitude, 'ETHANOL') * (u.pascal * u.second) #viscosity
 kinetic_mu = dynamic_mu / density
 
 print(kinetic_mu.to(u.cSt))
@@ -35,24 +35,24 @@ print(kinetic_mu.to(u.cSt))
 # Start of analysis
 def main():
     # Tank Pressure / fuel properties
-    source_pressure = 250.0 * u.psi                    # Has to be defined in the main function to be used in loops
+    tank_pressure = 250.0 * u.psi                    # Has to be defined in the main function to be used in loops
 
     #Tube constants
     tube_outer_diameter = 0.25 * u.inch
     tube_thickness = 0.035 * u.inch
 
     # Piston geometry
-    piston_radius = 0.375 * u.inch                     
+    piston_radius = 1 * u.inch                     
     piston_mass = (100 * u.gram).to(u.kg)            # This value can be imported from CAD - Estimated for now
 
     # Valve constants
     valve_arm = 1.4 * u.inch                         # Length of valve arm
-    valve_torque = 240 * u.inch * u.lbf              # Force required to turn two valves - Using CMS values
+    valve_torque = 120 * u.inch * u.lbf              # Force required to turn the valve - Using CMS values
     actuation_angle = (90 * u.degree).to(u.radian)   # Angle required to open/close the valve
 
     # Shaft geometry
     shaft_length = 4 * u.inch                        # Length from actuator hinge to shaft-valve arm hinge
-    shaft_diameter = 0.25 * u.inch
+    shaft_diameter = 0.32 * u.inch
     theta = (135 * u.degree).to(u.radian)            # Angle between shaft arm and valve arm
 
     # O-ring constants
@@ -72,110 +72,9 @@ def main():
     print(test)
     print(test2)
 
-    variable = []                                    # Holds values that will be plotted on graphs
-    forward_actuation_times = []                             # Holds values that will be plotted on graphs
-
-    forward_time, backward_time = actuation_time(piston_mass, tube_outer_diameter, tube_thickness, piston_radius, valve_arm, valve_torque, shaft_length, shaft_diameter, theta, actuation_angle, source_pressure, rotary_seal_length, rotary_seal_area, piston_seal_length, piston_seal_area)
+    forward_time = actuation_time(piston_mass, tube_outer_diameter, tube_thickness, piston_radius, valve_arm, valve_torque, shaft_length, shaft_diameter, theta, actuation_angle, tank_pressure, rotary_seal_length, rotary_seal_area, piston_seal_length, piston_seal_area)
 
     print(forward_time)
-    print(backward_time)
-
-    backward_actuation_times = []
-
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-
-    for piston_radius in range(1, 10):
-        piston_radius = (0.45 + piston_radius * 0.01) * u.inch
-
-        variable.append(piston_radius.magnitude)
-
-        forward_time, backward_time = actuation_time(piston_mass, tube_outer_diameter, tube_thickness, piston_radius, valve_arm, valve_torque, shaft_length, shaft_diameter, theta, actuation_angle, source_pressure, rotary_seal_length, rotary_seal_area, piston_seal_length, piston_seal_area)
-
-        print(forward_time)
-        print(backward_time)
-        print()
-
-        forward_actuation_times.append(forward_time.magnitude * 1000)
-        backward_actuation_times.append(backward_time.magnitude * 1000)
-
-    ax1.plot(variable, forward_actuation_times, color= 'blue', label= 'Forward Actuation')
-    ax1.plot(variable, backward_actuation_times, color = 'red', label= 'Backward Actuation')
-    ax1.set_xlabel("Piston Radius (Inch)", fontsize= 14)
-    ax1.set_ylabel("Actuation time (ms)", fontsize= 14)
-    ax1.set_title("Actuation Time vs. Piston Radius", fontsize= 14)
-    ax1.grid(True, which='both', linestyle='--', linewidth=0.5, color='gray')
-    ax1.axvline(x=0.51, color='k', linestyle='--', linewidth=2)
-    print("Plot 1 Done!")
-
-    #Reset Values
-    piston_radius = 0.5 * u.inch
-    variable = []
-    forward_actuation_times = []
-    backward_actuation_times = []
-
-    for valve_arm in range(1, 10):
-        valve_arm = (1.0 + valve_arm * 0.1) * u.inch
-        variable.append(valve_arm.magnitude)
-
-        forward_time, backward_time = actuation_time(piston_mass, tube_outer_diameter, tube_thickness, piston_radius, valve_arm, valve_torque, shaft_length, shaft_diameter, theta, actuation_angle, source_pressure, rotary_seal_length, rotary_seal_area, piston_seal_length, piston_seal_area)
-
-        print(forward_time)
-        print(backward_time)
-        print()
-
-        forward_actuation_times.append(forward_time.magnitude * 1000)
-        backward_actuation_times.append(backward_time.magnitude * 1000)
-
-    ax2.plot(variable, forward_actuation_times, color= 'blue')
-    ax2.plot(variable, backward_actuation_times, color = 'red')
-    ax2.set_xlabel("Valve Arm Length (Inch)", fontsize= 14)
-    ax2.set_ylabel("Actuation time (ms)", fontsize= 14)
-    ax2.set_title("Actuation Time vs. Valve Arm Length", fontsize= 14)
-    ax2.grid(True, which='both', linestyle='--', linewidth=0.5, color='gray')
-    ax2.axvline(x=1.4, color='k', linestyle='--', linewidth=2)  # Vertical line at x=2.5
-    print("Plot 2 Done!")
-
-    #Reset Values
-    valve_arm = 1.4 * u.inch
-    variable = []
-    forward_actuation_times = []
-    backward_actuation_times = []
-
-    for shaft_diameter in range(1,10):
-        shaft_diameter = (0.27 + (shaft_diameter * 0.01)) * u.inch
-        variable.append(shaft_diameter.magnitude)
-
-        forward_time, backward_time = actuation_time(piston_mass, tube_outer_diameter, tube_thickness, piston_radius, valve_arm, valve_torque, shaft_length, shaft_diameter, theta, actuation_angle, source_pressure, rotary_seal_length, rotary_seal_area, piston_seal_length, piston_seal_area)
-
-        print(forward_time)
-        print(backward_time)
-        print()
-
-        forward_actuation_times.append(forward_time.magnitude * 1000)
-        backward_actuation_times.append(backward_time.magnitude * 1000)
-
-    ax3.plot(variable, forward_actuation_times, color= 'blue', label= 'Forward Actuation')
-    ax3.plot(variable, backward_actuation_times, color = 'red', label= 'Backward Actuation')
-    ax3.set_xlabel("Shaft Diameter (inch)", fontsize= 14)
-    ax3.set_ylabel("Actuation time (ms)", fontsize= 14)
-    ax3.set_title("Actuation Time vs. Shaft Diameter", fontsize= 14)
-    ax3.axvline(x=0.32, color='k', linestyle='--', linewidth=2)
-    print("Plot 3 Done!")
-
-    #Reset Values
-    shaft_diameter = 0.25 * u.inch
-    variable = []
-    forward_actuation_times = []
-    backward_actuation_times = []
-
-    handles, labels = ax1.get_legend_handles_labels()
-    fig.legend(handles, labels, loc= 'upper right', fontsize= 16)
-    ax3.grid(True, which='both', linestyle='--', linewidth=0.5, color='gray')
-    plt.show()
-    
-    
-
-
 
 def actuation_time(piston_mass, tube_outer_diameter, tube_thickness, piston_radius, valve_arm, valve_torque, shaft_length, shaft_diameter, theta, actuation_angle, tank_pressure, rotary_seal_length, rotary_seal_area, piston_seal_length, piston_seal_area):
     # Geometry calculations
@@ -206,7 +105,6 @@ def actuation_time(piston_mass, tube_outer_diameter, tube_thickness, piston_radi
     
 
     forward_t = 0 * u.second                        # t = 0 is when the solenoid is opened
-    backward_t = 0 * u.second
     time_step = 0.00004 * u.second                   # Each step of time
 
     piston_velocity = 0 * u.inch / u.second         # Will be updated
@@ -270,46 +168,7 @@ def actuation_time(piston_mass, tube_outer_diameter, tube_thickness, piston_radi
 
     piston_velocity = 0 * u.inch / u.second     # reset the velocity for back actuation
 
-    while distance_traveled.magnitude > 0:
-        forward_volumetric_flow = piston_velocity * piston_area
-        backward_volumetric_flow = piston_velocity * (piston_area - shaft_area)
-
-        forward_line_velocity = forward_volumetric_flow / tube_area     # As piston speeds up the velocity required to keep pushing will increase
-        backward_line_velocity = backward_volumetric_flow / tube_area
-
-        #These variables will be used to calculate the net force on the piston
-        pressure_full = ambient_pressure + 2 * bend_dp(forward_line_velocity, 90 * u.degree, 0.5 * u.inch, tube_outer_diameter, tube_thickness, 0.0015 * u.mm) + solenoid_dp(forward_volumetric_flow, 41) + manifold_dp(forward_volumetric_flow)
-        pressure_shaft = tank_pressure - 2 * bend_dp(backward_line_velocity, 90 * u.degree, 0.5 * u.inch, tube_outer_diameter, tube_thickness, 0.0015 * u.mm) - solenoid_dp(backward_volumetric_flow, 32) - manifold_dp(backward_volumetric_flow)
-        
-        F_full = pressure_full * piston_area
-        F_shaft = pressure_shaft * (piston_area - shaft_area)
-        F_valve_resistance = valve_torque / (valve_arm * m.sin(theta.magnitude))
-
-        Fh_piston= ((10 + 0.03 * abs((pressure_full - pressure_shaft).magnitude)) * piston_seal_area * u.lbf).to(u.newton)
-        Fh_rotary = ((10 + 0.03 * pressure_shaft.magnitude) * rotary_seal_area * u.lbf).to(u.newton)
-        #Fh_piston = (fh * piston_seal_area * u.lbf).to(u.newton)
-        F_rotary = Fc_rotary + Fh_rotary
-        F_piston = Fc_piston + Fh_piston
-
-        F_net = (F_shaft - F_full - 2*F_rotary - F_piston - F_valve_resistance).to(u.newton)
-
-        #print(f"Net Force: {F_net:.3f}")
-        #print(f"Piston Velocity 2: {piston_velocity:.5f}")
-        #time.sleep(0.01)
-
-        piston_velocity += (F_net * time_step) / (piston_mass)
-        distance_traveled -= piston_velocity * time_step + ((F_net * (time_step ** 2)) / (2 * piston_mass))
-
-        # Law of Cosine
-        theta = m.acos(
-            (((distance_traveled + shaft_length)**2 + valve_arm**2 - hinge_distance**2) / (2 * (distance_traveled + shaft_length) * valve_arm)).magnitude
-        ) * u.radian
-
-        valve_angle = m.acos((-((distance_traveled + shaft_length)**2) + valve_arm**2 + hinge_distance**2) / ((2) * (valve_arm) * (hinge_distance))) * u.radian
-
-        backward_t += time_step
-
-    return(forward_t, backward_t)
+    return forward_t
 
 # These equations are from manufacturer specifications using hydraulic oil. In turbulent flow, the viscosities of the fluids don't differ that much.
 # Parker DSH104 Solenoid Spool
