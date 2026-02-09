@@ -1,4 +1,3 @@
-from CoolProp.CoolProp import PropsSI
 import numpy as np
 import sys
 import os
@@ -16,8 +15,8 @@ def calc_K_sharp_edged_orifice(d, d0):
 ##### Find total area of the orifices needed to sustain a maximum of 30% film #####
 max_film_percent = 30 # [%]
 m_dot_ipa = vehicle.parameters.core_fuel_mass_flow_rate # [kg/s]
-manifold_pressure = vehicle.parameters.chamber_pressure / 0.8 # [Pa] 20% Stiffness to prevent backflow
 chamber_pressure = vehicle.parameters.chamber_pressure # [Pa]
+manifold_pressure = chamber_pressure / 0.8 # [Pa] 20% Stiffness to prevent backflow
 dp = manifold_pressure - chamber_pressure # [Pa]
 cd = 0.6
 max_m_dot = m_dot_ipa * max_film_percent / 100
@@ -60,43 +59,39 @@ while diameter < 0.4:
     diameter_history.append(diameter)
     diameter += 0.01 """
 
-def calc_K_sharp_edged_orifice(d, d0):
-    beta = d0 / d
-    jet_velocity_ratio = 1 + 0.622 * (1 - 0.215 * beta**2 - 0.785 * beta**5)
-    K = 0.0696 * (1 - beta**5) * jet_velocity_ratio**2 + (1 - beta**2)**2
-    return K
-
 d = 1.5 * IN2M # Diameter of manifold hole 
-d0 = 0.05 * IN2M # Diameter of orifice plate
+d0 = 0.0001 * IN2M # Diameter of orifice plate
 di = 0.18 * IN2M # Inner Diameter of tube before metering orifice
 upstream_pressure = 350 * PSI2PA # Pressure before metering orifice, to be changed
 dp = np.inf # Initializing pressure drop
-film_percent = 0 # Initializing
+film_percent = 0.001 # Initializing
 film_percent_history = []
 m_dot_film_history = []
 dp_history = []
 d0_history = []
 
 ##### Find d0 for all mass flow rates for which desired manifold pressure is achieved #####
-area_i = np.pi * di**2 / 4 # Inner area of tube before metering orifice
-
+area_i = np.pi * di**2 / 4 # Inner area of tube before metering orifice # NUMBER 1
+target_dp = upstream_pressure - manifold_pressure
 while film_percent <= max_film_percent:
     m_dot_film = m_dot_ipa * film_percent / 100
-    line_velocity = m_dot_film / (density * area_i)
-    d0 = 0.001 * IN2M
+    #line_velocity = m_dot_film / (density * area_i) # NUMBER 1
+    d0 = 0.0001 * IN2M
     dp = np.inf
-    target_dp = upstream_pressure - manifold_pressure
 
     while dp > target_dp and d0 < d:
         K0 = calc_K_sharp_edged_orifice(d, d0)
-        dp = density * (line_velocity**2 / 2) * K0 * (d**4 / d0**4)
+        A0 = np.pi * d0**2 / 4 # NUMBER 2
+        v_orifice = m_dot_film / (density * A0) # NUMBER 2
+        dp = K0 * 0.5 * density * v_orifice**2 # NUMBER 2
+        #dp = density * (line_velocity**2 / 2) * K0 * (d**4 / d0**4) # NUMBER 1
         if dp > target_dp:
-            d0 += 0.001 * IN2M
+            d0 += 0.0001 * IN2M
     film_percent_history.append(film_percent)
     m_dot_film_history.append(m_dot_film)
     dp_history.append(dp)
     d0_history.append(d0)
-    film_percent += 0.1
+    film_percent += 0.001
 
 plt.plot(np.array(d0_history) * M2IN, film_percent_history)
 plt.xlabel("Diameter of Orifice [in]")
@@ -108,5 +103,32 @@ plt.show()
 plt.plot(film_percent_history, np.array(dp_history) * PA2PSI)
 plt.xlabel("Film %")
 plt.ylabel("Pressure Drop [psi]")
+plt.axhline(y = target_dp, color = 'r')
 plt.title("Film % vs Pressure Drop")
+plt.grid()
+plt.show()
+
+plt.plot(np.array(d0_history) * M2IN, np.array(dp_history) * PA2PSI)
+plt.xlabel("Diameter of Orifice [in]")
+plt.ylabel("Pressure Drop [psi]")
+plt.axhline(y = target_dp, color = 'r')
+plt.title("Diameter of Orifice vs Pressure Drop [psi]")
+plt.grid()
+plt.show()
+
+
+##### Validation using cd equation #####
+cd = 1/np.sqrt(K0)
+testing_history = []
+for dp, d0 in zip(dp_history, d0_history):
+    A0 = np.pi * d0**2 / 4
+    mdot = cd * A0 * np.sqrt(2 * density * dp)
+    film_percent = 100 * mdot / m_dot_ipa
+    testing_history.append(film_percent)
+
+plt.plot(film_percent_history, testing_history)
+plt.title("Ensure that x = y")
+plt.xlabel("Film % Calculated")
+plt.ylabel("What film % Should be")
+plt.grid()
 plt.show()
