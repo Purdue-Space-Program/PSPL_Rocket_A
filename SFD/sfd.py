@@ -373,9 +373,9 @@ def calcTerminalVelocity(mass, gravity, cd, rho, area):
     terminal_velocity = np.sqrt((2 * mass * gravity) / (cd * rho * area))
     return terminal_velocity
 
-def calcShearRecovery(drag_force, recovery_bay_start, lateral_acceleration, linear_density_array, length_along_rocket_linspace, angular_acceleration, cg):
+def calcShearRecovery(drag_force_perpendicular, recovery_bay_start, lateral_acceleration, linear_density_array, length_along_rocket_linspace, angular_acceleration, cg):
     '''
-    drag_force: Parachute drag force [N]
+    drag_force_perpendicular: Parachute drag force perpendicular to rocket axis [N]
     lateral_acceleration: Lateral acceleration [m / s^2]
     linear_density_array: Array of linear density across rocket length [kg / m]
     length_along_rocket_linspace: Array of rocket lengths [m]
@@ -388,13 +388,13 @@ def calcShearRecovery(drag_force, recovery_bay_start, lateral_acceleration, line
     mass_model = np.cumsum(linear_density_array * dx) # aft to nose
     cumulative_moment_about_cg = np.cumsum(linear_density_array * dx * cg_rel_lengths) # aft to nose
     shear_array = (-1) * lateral_acceleration * mass_model - angular_acceleration * cumulative_moment_about_cg
-    shear_array[int(recovery_bay_start / dx) - 1:] += drag_force
+    shear_array[int(recovery_bay_start / dx) - 1:] += drag_force_perpendicular
 
     return shear_array
 
 def calcAxialRecovery(drag_force, linear_density_array, length_along_rocket_linspace, total_mass):
     '''
-    drag_force: Parachute drag force [N]
+    drag_force: Parachute drag force parallel to rocket axis [N]
     linear_density_array: Array of linear density across rocket length [kg / m]
     length_along_rocket_linspace: Array of rocket lengths [m]
     axial_array: Array of axial forces across rocket length [N]
