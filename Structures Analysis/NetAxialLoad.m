@@ -5,8 +5,6 @@ function [maxCompression, maxTension] = NetAxialLoad(location, radius, graphStat
 % STRUTS. This function works for any point on the rocket.This function
 % returns the maximum force that could appear at that location according to
 % the latest running of the SFD and RFD. 
-%radius = 1;
-%location = [60,70];
 
 %% Importing SFD and RFD
 currentDirectory = pwd;

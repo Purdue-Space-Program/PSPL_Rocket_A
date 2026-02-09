@@ -13,29 +13,29 @@ FT2M = 1 / M2FT;  % [m/ft] Conversion factor from ft to m
 
 upper_strut = StrutClass;
 upper_strut.name = 'Upper Strut';
-upper_strut.shape = "Circle";
-upper_strut.OD = 1; % [in]
-upper_strut.ID = 1/2; % [in]
-% upper_strut.width = 1; % Width, of the side weak to bending [in]
-% upper_strut.wallThickness = 0.5; % Wall thickness, of the side weak to bending [in]
+upper_strut.shape = "Square";
+% upper_strut.OD = 3/4; % [in]
+% upper_strut.ID = 1/2; % [in]
+upper_strut.width = 3/4; % Width, of the side weak to bending [in]
+upper_strut.wallThickness = 0.125; % Wall thickness, of the side weak to bending [in]
 
 % upper_strut.length = parameters.upper_length * M2IN; % Length of strut (in)
 upper_strut.length = 6; % from CAD (in)
 upper_strut.distance = wet_mass_distribution.upper.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut (in)
 upper_strut.radius = 2.25; % Distance from center axis (in) 
-upper_strut.material = Aluminum_6061_T6_Material_Properties;
+upper_strut.material = Aluminum_6063_T52_Material_Properties;
 
 mid_strut = StrutClass;
 mid_strut.name = 'Mid Strut';
-mid_strut.shape = "Circle";
-% mid_strut.width = 1; % Width, of the side weak to bending [in]
-% mid_strut.wallThickness = 0.5; % Wall thickness, of the side weak to bending [in]
-mid_strut.OD = 1;
-mid_strut.ID = 1/2;
+mid_strut.shape = "Square";
+mid_strut.width = 3/4; % Width, of the side weak to bending [in]
+mid_strut.wallThickness = 0.125; % Wall thickness, of the side weak to bending [in]
+% mid_strut.OD = 1;
+% mid_strut.ID = 1/2;
 mid_strut.length = parameters.mid_length * M2IN; % Length of strut (in)
 mid_strut.distance = wet_mass_distribution.mid.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut (in)
 mid_strut.radius = 2.25; % Distance from center axis (in) 
-mid_strut.material = Aluminum_6061_T6_Material_Properties;
+mid_strut.material = Aluminum_6063_T52_Material_Properties;
 
 lower_strut = StrutClass;
 lower_strut.name = "Lower Strut";

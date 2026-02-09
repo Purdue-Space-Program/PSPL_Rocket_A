@@ -1,4 +1,4 @@
-function StrutAnalysis(objectInQuestion)
+function [maxCompression, maxTension] = StrutAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
 
@@ -89,23 +89,28 @@ MoSTension = ((area * material.yieldTensionStrength) / (tensileStress * safetyFa
 %% ____________________
 %% FORMATTED TEXT/FIGURE DISPLAYS
 fprintf("Analysis of %s\n", name)
-fprintf("Max strut compression case: %.2f lbf\n", maxCompression);
-fprintf("Max strut tension case: %.2f lbf\n\n", maxTension);
+fprintf("\tMaterial: %s\n", objectInQuestion.material.name)
+fprintf("\tShape: %s\n", objectInQuestion.shape)
+fprintf("\tWidth: %.2f\n", objectInQuestion.width)
+fprintf("\tWall Thickness: %.2f\n", objectInQuestion.wallThickness)
+fprintf("\tMass of %s: %.2f lbs\n", name, mass);
+
+fprintf("\n\tAvailable Axial Strength (ASD): %.2f lbs\n", pAllow);
+fprintf("\tMax strut compression case: %.2f lbf\n", maxCompression);
+fprintf("\tMax strut tension case: %.2f lbf\n", maxTension);
 
 if consideringLocalBuckling == 1
-    fprintf("Non-slender - local buckling not critical.\n")
+    fprintf("\tNon-slender - local buckling not critical.\n")
 else
-    fprintf("Slender = local buckling must be considered.\n");
+    fprintf("\tSlender = local buckling must be considered.\n");
 end
 % fprintf("Slenderness Ratio: %.2f\n", slendernessRatio)
 % fprintf("Buckling Load Limit: %.2f lbf\n", buckleLimit)
 % %fprintf("Euler Buckling Load Limit: %.2f lbf\n", eulerLimit)
 % fprintf("Compression Load Limit: %.2f lbf\n", compressionLimit)
 % fprintf("Tension Load Limit: %.2f lbf\n", tensionLimit)
-fprintf("Available Axial Strength (ASD): %.2f lbs\n", pAllow);
-fprintf("Mass of %s: %.2f lbs\n", name, mass);
-fprintf("Compression MoS: %.2f\n", MoSCompression);
-fprintf("Tension Yield MoS: %.2f\n", MoSTension);
+fprintf("\tCompression MoS: %.2f\n", MoSCompression);
+fprintf("\tTension Yield MoS: %.2f\n", MoSTension);
 fprintf("------------------------------------------------------\n\n\n")
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
 % fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))

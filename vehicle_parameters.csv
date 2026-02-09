@@ -1,4 +1,4 @@
-# Accessed: 2026-02-08_12-38-42 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-02-09_15-21-20 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: main.py
 parameter_name,value
 yield_FoS,1.5
@@ -44,7 +44,7 @@ injector_length,0.012065
 lower_length,0.508
 bulkhead_length,0.030987999999999998
 mid_length,0.127
-upper_length,0.635
+upper_length,0.762
 recovery_bay_length,0.6095999999999999
 nosecone_length,0.381
 COPV_volume,0.0047
@@ -52,7 +52,7 @@ COPV_starting_pressure,29647468.0
 root_chord,0.4064
 tip_chord,0.15239999999999998
 sweep_length,0.254
-wingspan,0.19304
+wingspan,0.18796
 number_of_fins,3
 fin_top,0.6770115999999999
 one_DoF_off_the_rail_TWR,7.43
@@ -68,10 +68,10 @@ six_DoF_off_the_rail_velocity,28.7
 six_DoF_max_mach,0.368
 six_DoF_max_velocity,126.224
 six_DoF_estimated_apogee,747.6
-wet_mass,37.439600513847004
-dry_mass,33.818212704247
-total_length,2.9233876
-dry_COM_location_from_bottom,1.1001078064456227
-dry_COM_location_from_top,1.8232797935543772
-wet_COM_location_from_bottom,1.0950790265421995
-wet_COM_location_from_top,1.8283085734578004
+wet_mass,37.94999112293319
+dry_mass,34.3286033133332
+total_length,3.0503875999999996
+dry_COM_location_from_bottom,1.151335442510078
+dry_COM_location_from_top,1.8990521574899217
+wet_COM_location_from_bottom,1.1414382284693259
+wet_COM_location_from_top,1.9089493715306738

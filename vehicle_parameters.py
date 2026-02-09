@@ -329,7 +329,6 @@ def calcCG(linear_density_array, length_along_rocket_linspace):
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
     totalMass = np.sum(linear_density_array * dx)
-    # print(totalMass / LB2KG)
     lengths = np.array(length_along_rocket_linspace)
     masses = np.array(linear_density_array * dx)
     moments = np.sum(lengths * masses)
@@ -469,4 +468,4 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    # plt.show()
+    plt.show()

@@ -3,7 +3,10 @@ cd('C:..')
 
 python_executable_path = "python";
 python_script_path = "main.py";
-[~, ~] = system(python_executable_path + " " + python_script_path);
+[exit_status, command_output] = system(python_executable_path + " " + python_script_path);
+
+% fprintf("exit_status: %d\n", exit_status);
+% fprintf("command_output:\n%s\n", command_output);
 
 vehicle_parameters_csv_path = fullfile("vehicle_parameters.csv");
 csv_import_options = detectImportOptions(vehicle_parameters_csv_path);
