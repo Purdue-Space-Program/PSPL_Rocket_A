@@ -59,39 +59,46 @@ while diameter < 0.4:
     diameter_history.append(diameter)
     diameter += 0.01 """
 
+dp_error_percent = 0.1 # 1% error from desired pressure drop acceptable
 d = 1.5 * IN2M # Diameter of manifold hole 
 d0 = 0.0001 * IN2M # Diameter of orifice plate
 di = 0.18 * IN2M # Inner Diameter of tube before metering orifice
 upstream_pressure = 350 * PSI2PA # Pressure before metering orifice, to be changed
 dp = np.inf # Initializing pressure drop
-film_percent = 0.001 # Initializing
+film_percent = 0.1 # Initializing
 film_percent_history = []
 m_dot_film_history = []
 dp_history = []
 d0_history = []
+K0_history = []
+
+print("Please wait this might take a second....")
 
 ##### Find d0 for all mass flow rates for which desired manifold pressure is achieved #####
 area_i = np.pi * di**2 / 4 # Inner area of tube before metering orifice # NUMBER 1
 target_dp = upstream_pressure - manifold_pressure
+dp_error_allowed = (dp_error_percent / 100) * target_dp
 while film_percent <= max_film_percent:
     m_dot_film = m_dot_ipa * film_percent / 100
     #line_velocity = m_dot_film / (density * area_i) # NUMBER 1
-    d0 = 0.0001 * IN2M
+    d0 = 0.00001 * IN2M
     dp = np.inf
-
-    while dp > target_dp and d0 < d:
+    while d0 < d:
         K0 = calc_K_sharp_edged_orifice(d, d0)
         A0 = np.pi * d0**2 / 4 # NUMBER 2
         v_orifice = m_dot_film / (density * A0) # NUMBER 2
         dp = K0 * 0.5 * density * v_orifice**2 # NUMBER 2
         #dp = density * (line_velocity**2 / 2) * K0 * (d**4 / d0**4) # NUMBER 1
-        if dp > target_dp:
-            d0 += 0.0001 * IN2M
+        err = abs(dp - target_dp)
+        if err < dp_error_allowed:
+            break
+
+        d0 += 0.00001 * IN2M
     film_percent_history.append(film_percent)
     m_dot_film_history.append(m_dot_film)
     dp_history.append(dp)
     d0_history.append(d0)
-    film_percent += 0.001
+    film_percent += 0.1
 
 plt.plot(np.array(d0_history) * M2IN, film_percent_history)
 plt.xlabel("Diameter of Orifice [in]")
@@ -103,7 +110,7 @@ plt.show()
 plt.plot(film_percent_history, np.array(dp_history) * PA2PSI)
 plt.xlabel("Film %")
 plt.ylabel("Pressure Drop [psi]")
-plt.axhline(y = target_dp, color = 'r')
+plt.axhline(y = target_dp * PA2PSI, color = 'r')
 plt.title("Film % vs Pressure Drop")
 plt.grid()
 plt.show()
@@ -111,7 +118,7 @@ plt.show()
 plt.plot(np.array(d0_history) * M2IN, np.array(dp_history) * PA2PSI)
 plt.xlabel("Diameter of Orifice [in]")
 plt.ylabel("Pressure Drop [psi]")
-plt.axhline(y = target_dp, color = 'r')
+plt.axhline(y = target_dp * PA2PSI, color = 'r')
 plt.title("Diameter of Orifice vs Pressure Drop [psi]")
 plt.grid()
 plt.show()
