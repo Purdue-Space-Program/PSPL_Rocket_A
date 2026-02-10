@@ -121,7 +121,7 @@ if __name__ == "__main__":
     print(f"upper_bound_preload_pintle: {upper_bound_preload_pintle:.2f}")
     print(f"calculated_number_of_bolts_pintle: {calculated_number_of_bolts_pintle:.2f}")
 
-    actual_number_bolts_pintle = 4
+    actual_number_bolts_pintle = 6
     MOS_pintle = MOS(calculated_number_of_bolts_pintle, actual_number_bolts_pintle)
     print(f"actual_number_bolts_pintle: {actual_number_bolts_pintle:.2f}")
     print(f"MOS_pintle: {MOS_pintle:.2f}")
