@@ -20,7 +20,7 @@ upper_strut.width = 3/4; % Width, of the side weak to bending [in]
 upper_strut.wallThickness = 0.125; % Wall thickness, of the side weak to bending [in]
 
 % upper_strut.length = parameters.upper_length * M2IN; % Length of strut (in)
-upper_strut.length = 6; % from CAD (in)
+upper_strut.length = 12; % from CAD (in)
 upper_strut.distance = wet_mass_distribution.upper.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut (in)
 upper_strut.radius = 2.25; % Distance from center axis (in) 
 upper_strut.material = Aluminum_6063_T52_Material_Properties;
