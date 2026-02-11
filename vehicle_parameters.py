@@ -416,6 +416,12 @@ parameters.freeze()
 
 if __name__ == "__main__":
     
+    print(f"Thrust: {parameters.jet_thrust * c.N2LBF:.2f} LBF")
+    print(f"Vehicle Wet Weight: {vehicle_wet_mass * 9.81 * c.N2LBF:.2f} LBF")
+    
+    print(f"TWR: {parameters.jet_thrust/(vehicle_wet_mass * 9.81)}")
+    
+    
     print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg")
     print(f"Vehicle Dry Mass: {vehicle_dry_mass * c.KG2LBM:.2f} lbm, {vehicle_dry_mass:.2f} kg")
     
@@ -468,4 +474,4 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    plt.show()
+    # plt.show()

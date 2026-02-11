@@ -18,12 +18,11 @@ upper_strut.shape = "Square";
 % upper_strut.ID = 1/2; % [in]
 upper_strut.width = 3/4; % Width, of the side weak to bending [in]
 upper_strut.wallThickness = 0.125; % Wall thickness, of the side weak to bending [in]
-
-% upper_strut.length = parameters.upper_length * M2IN; % Length of strut (in)
-upper_strut.length = 12; % from CAD (in)
-upper_strut.distance = wet_mass_distribution.upper.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut (in)
-upper_strut.radius = 2.25; % Distance from center axis (in) 
+upper_strut.length = 11; % from CAD because parameters.upper_length isn't accurate since it goes to top of COPV tube [in]
+upper_strut.distance = wet_mass_distribution.upper.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut [in]
+upper_strut.radius = 2.25; % Distance from center axis [in] 
 upper_strut.material = Aluminum_6063_T52_Material_Properties;
+
 
 mid_strut = StrutClass;
 mid_strut.name = 'Mid Strut';
@@ -32,20 +31,22 @@ mid_strut.width = 3/4; % Width, of the side weak to bending [in]
 mid_strut.wallThickness = 0.125; % Wall thickness, of the side weak to bending [in]
 % mid_strut.OD = 1;
 % mid_strut.ID = 1/2;
-mid_strut.length = parameters.mid_length * M2IN; % Length of strut (in)
-mid_strut.distance = wet_mass_distribution.mid.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut (in)
-mid_strut.radius = 2.25; % Distance from center axis (in) 
+mid_strut.length = parameters.mid_length * M2IN; % Length of strut [in]
+mid_strut.distance = wet_mass_distribution.mid.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut [in]
+mid_strut.radius = 2.25; % Distance from center axis [in] 
 mid_strut.material = Aluminum_6063_T52_Material_Properties;
+
 
 lower_strut = StrutClass;
 lower_strut.name = "Lower Strut";
 lower_strut.shape = "Asym T";
-lower_strut.width = 3/4; % [in]
-lower_strut.wallThickness = 1/8; % [in]
+lower_strut.width = 0.52952978; % [in]
+lower_strut.wallThickness = 0.15; % [in]
 lower_strut.length = parameters.lower_length * M2IN;
 lower_strut.distance = wet_mass_distribution.lower.top_distance_from_aft * M2IN; % [in]
 lower_strut.radius = 2; % [in]
 lower_strut.material = Aluminum_6061_T6_Material_Properties;
+
 % from cad
-lower_strut.crossArea = 0.5837; % [in^2]
-lower_strut.radiusGyration = 2.6247; % [in]
+lower_strut.crossArea = 0.33087107; % [in^2]
+lower_strut.radiusGyration = 2.00247428; % [in]
