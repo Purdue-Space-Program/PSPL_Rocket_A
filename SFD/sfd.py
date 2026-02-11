@@ -416,3 +416,42 @@ def inflation_time(canopy_factor, diamater, velocity):
     '''
     inflation_time = (canopy_factor * diamater) / (velocity**0.85)
     return inflation_time
+
+def calcInternalForce(f_drag, orientation, recovery_bay_start, linear_density_array, length_along_rocket_linspace, cg, total_mass):
+    '''
+    f_drag: Parachute drag force [vector] [N]
+    orientation: Orientation of rocket measured from horizontal [radians]
+    recovery_bay_start: Location of recovery bay start from aft [m]
+    linear_density_array: Array of linear density across rocket length [kg / m]
+    length_along_rocket_linspace: Array of rocket lengths [m]
+    cg: Location of center of gravity of rocket [m]
+    total_mass: Total mass of rocket [kg]
+    '''  
+    print(f"f_drag: {f_drag} N")
+    print(f"orientation: {orientation:.2f} radians")
+    orientation_cartesian = np.array([np.cos(orientation), np.sin(orientation), 0])
+    print(f"orientation_cartesian: {orientation_cartesian}")
+    dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
+    mass_model = np.cumsum(linear_density_array * dx) # aft to nose
+    cg_rel_lengths = np.array(-1 * length_along_rocket_linspace + cg)
+    cumulative_moment_about_cg = np.cumsum(linear_density_array * dx * cg_rel_lengths) # aft to nose
+
+    f_drag_parallel = np.dot(f_drag, orientation_cartesian)
+    orientation_2 = orientation + np.pi / 2
+    orientation_cartesian_2 = np.array([np.cos(orientation_2), np.sin(orientation_2), 0])
+    f_drag_perpendicular = np.dot(f_drag, orientation_cartesian_2)
+    print(f"f_drag_parallel: {f_drag_parallel:.2f} N")
+    print(f"f_drag_perpendicular: {f_drag_perpendicular:.2f} N")
+    print(f"Multiply perpendicular by distance: {f_drag_perpendicular * np.abs(recovery_bay_start - cg):.2f} N m")
+    ax = f_drag_parallel / total_mass
+    ay = f_drag_perpendicular / total_mass
+    angular_acceleration = (f_drag_perpendicular * np.abs(recovery_bay_start - cg)) / calcRotationalInertia(linear_density_array, length_along_rocket_linspace, cg)
+    print(f"Angular acceleration: {angular_acceleration:.2f} radians/s^2")
+
+    shear_array = (-1) * ay * mass_model - angular_acceleration * cumulative_moment_about_cg
+    shear_array[int(recovery_bay_start / dx) - 1:] += f_drag_perpendicular
+
+    axial_array = ax * mass_model
+
+    bending_array = np.cumsum(shear_array) * dx
+    return shear_array, axial_array, bending_array

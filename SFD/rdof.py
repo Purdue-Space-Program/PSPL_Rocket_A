@@ -64,12 +64,13 @@ canopy_factor = 2.5 # [-] Canopy factor for low porosity canopies, will be used 
 # Calculate AOA_recovery
 orientation_start = 0 # [radians] Starting orientation at apogee measured from the horizontal
 time_before_deployment = 0 # [s] Time from apogee to parachute deployment
-position_initial = np.array([0, max_height]) # [m] Position at parachute deployment
+position_initial = np.array([0, max_height, 0]) # [m] Position at parachute deployment
 vertical_velocity_deploy = (-1) * gravity * time_before_deployment # [m / s] Vertical velocity at parachute deployment
-velocity_deploy = np.array([horizontal_velocity + wind_gust_speed, vertical_velocity_deploy]) # [m / s] Total relative velocity at parachute deployment
+velocity_deploy = np.array([horizontal_velocity + wind_gust_speed, vertical_velocity_deploy, 0]) # [m / s] Total relative velocity at parachute deployment
 angle_from_horizontal_parachute_deploy = np.arctan(vertical_velocity_deploy / (horizontal_velocity + wind_gust_speed)) # [radians] Angle of rocket vs parachute velocity vector at parachute deployment
+print(f"angle_from_horizontal_parachute_deploy: {angle_from_horizontal_parachute_deploy:.2f} radians")
 AOA_recovery = orientation_start - angle_from_horizontal_parachute_deploy # [radians] Angle of attack at parachute deployment
-orientation_start_recovery_list = [np.pi / 2] # [radians] List of angles of attack at recovery for plotting
+orientation_start_recovery_list = [0] # [radians] List of angles of attack at recovery for plotting
 # ------------------------------------------------------------------------------
 
 # Mass Model
@@ -255,8 +256,7 @@ descent_time = max_height/terminal_velocity # [s]
 
 inflation_time = sfd.inflation_time(canopy_factor, canopy_outer_diameter, magnitude(velocity_deploy)) # [s]
 open_rate = canopy_area / inflation_time # [m^2 / s] Rate at which canopy area opens
-dt = 0.1 # [s]
-
+dt = 0.01 # [s]
 
 cg = calcCG(linear_density_array, length_along_rocket_linspace) # [m] Center of gravity
 parachute_to_cg = recovery_bay_start - cg # [m] Distance from parachute attachment point to CG
@@ -299,6 +299,8 @@ if __name__ == "__main__":
     print(f"Canopy area: {canopy_area:.2f} m^2")
     print(f"Drag coefficient at recovery: {drag_coefficient:.2f}")
     print(f"Rocket mass at recovery: {total_mass:.2f} kg")
+    print(f"Inertia at recovery: {inertia:.2f} kg m^2")
+    print(f"Distance from parachute to CG: {parachute_to_cg:.2f} m")
     print("-----------------------------------")
 
     print("Calculated values:")
@@ -322,25 +324,29 @@ for orientation_initial in orientation_start_recovery_list:
     shear_force_array = []
     bending_moment_array = []
     axial_force_array = []
+
+    time_array = []
     
+    angular_acceleration_array = []
     angle = orientation_initial - angle_from_horizontal_parachute_deploy
-    
-    aoa = angle
     
     # Remove the section between the comments for the old code
     ####### SOMEWHERE BETWEEN THIS AND THE END OF THIS LOOP ---------------------------------------------------
     
+    aoa = orientation_initial - angle_from_horizontal_parachute_deploy
+    acceleration = np.array([0, (-1) * total_mass * gravity, 0]) # [m / s^2]
     velocity = velocity_deploy
     position = position_initial
     orientation = orientation_initial
     torque = 0
-    angular_acceleration_test = 0
     angular_acceleration = 0
     angular_velocity = 0
-    acceleration = np.array([0, (-1) * total_mass * gravity]) # [m / s^2]
     table += f"Initial orientation at recovery: {orientation * (180 / np.pi):.2f} degrees\n"
+    F_g = total_mass * gravity * np.array([0, -1, 0]) # [N] Gravity force vector
 
-    for t in np.arange(0, inflation_time, dt):
+    for t in np.arange(0, 2, dt):
+        time_array.append(t)
+        print(f"Time: {t:.2f} seconds")
         table += f"Time: {t:.2f} seconds\n"
 
         area = open_rate * t
@@ -348,49 +354,66 @@ for orientation_initial in orientation_start_recovery_list:
             area = canopy_area
         table += f"Canopy area at time {t:.2f} seconds: {area:.2f} m^2\n"
 
+        F_drag = 0.5 * air_density * magnitude(velocity)**2 * area * drag_coefficient
+        F_drag = F_drag * norm(velocity) * (-1) # [N] Drag force vector
+
+        shear_array_i, axial_array_i, bending_array_i = sfd.calcInternalForce(F_drag, orientation, recovery_bay_start, linear_density_array, length_along_rocket_linspace, cg, total_mass)
+        
+        F_net = F_g + F_drag
+        table += f"Drag force at time {t:.2f} seconds: {magnitude(F_drag):.2f} N\n"
+        table += f"Drag force vector at time {t:.2f} seconds: {F_drag} N\n"
+        table += f"Gravity force at time {t:.2f} seconds: {magnitude(F_g):.2f} N\n"
+        table += f"Net force at time {t:.2f} seconds: [{F_net[0]:.2f}, {F_net[1]:.2f}] N\n"
+        
         table += f"Acceleration at time {t:.2f} seconds: [{acceleration[0]:.2f}, {acceleration[1]:.2f}] m/s^2\n"
         table += f"Velocity at time {t:.2f} seconds: [{velocity[0]:.2f}, {velocity[1]:.2f}] m/s\n"
         table += f"Position at time {t:.2f} seconds: [{position[0]:.2f}, {position[1]:.2f}] m\n"
 
-        orientation_cartesian = np.array([np.cos(orientation), np.sin(orientation)])
-        aoa = np.arccos(np.dot(norm(orientation_cartesian), norm(velocity)))
-
-        F_drag = 0.5 * air_density * magnitude(velocity)**2 * area * drag_coefficient
-        F_g = total_mass * gravity
-        F_net = F_g * np.array([0, -1]) + F_drag * (-1) * norm(velocity)
-        table += f"Drag force at time {t:.2f} seconds: {F_drag:.2f} N\n"
-        table += f"Gravity force at time {t:.2f} seconds: {F_g:.2f} N\n"
-        table += f"Net force at time {t:.2f} seconds: [{F_net[0]:.2f}, {F_net[1]:.2f}] N\n"
-
-        torque = np.cross(parachute_to_cg * norm(orientation_cartesian), F_drag * (-1) * norm(velocity)) # [N m]
-        angular_acceleration_test = ((F_drag * np.sin(aoa)) * (abs(parachute_to_cg))) / inertia
-        angular_acceleration = torque / inertia # [radians / s^2]
-        angular_velocity += angular_acceleration * dt # [radians / s]
-        orientation += angular_velocity * dt # [radians]
         table += f"Torque at time {t:.2f} seconds: {torque:.2f} N m\n"
-        table += f"Angular acceleration test at time {t:.2f} seconds: {angular_acceleration_test:.2f} N m\n"
         table += f"Angular acceleration at time {t:.2f} seconds: {angular_acceleration:.2f} radians/s^2\n"
         table += f"Angular velocity at time {t:.2f} seconds: {angular_velocity:.2f} radians/s\n"
         table += f"Orientation at time {t:.2f} seconds: {orientation * (180 / np.pi):.2f} degrees\n"
-        table += f"Orientation in cartesian coordinates at time {t:.2f} seconds: [{orientation_cartesian[0]:.2f}, {orientation_cartesian[1]:.2f}]\n"
         table += f"Angle of attack at time {t:.2f} seconds: {aoa * (180 / np.pi):.2f} degrees\n"
+        
+        orientation_cartesian = np.array([np.cos(orientation), np.sin(orientation), 0])
+        print(f"orientation: {orientation:.2f} radians")
+        print(f"orientation_cartesian: [{orientation_cartesian[0]:.2f}, {orientation_cartesian[1]:.2f}, {orientation_cartesian[2]:.2f}]")
+        if magnitude(F_drag) == 0 or magnitude(orientation_cartesian) == 0:
+            aoa = 0
+        else:
+            aoa = np.arccos(np.dot(F_drag, orientation_cartesian) / (np.linalg.norm(F_drag) * np.linalg.norm(orientation_cartesian)))
+        print(f"dot product: {np.dot(F_drag, orientation_cartesian)}")
+        print(f"norm of F_drag: {np.linalg.norm(F_drag)}")
+        print(f"norm of orientation_cartesian: {np.linalg.norm(orientation_cartesian)}")
+        print(f"aoa: {aoa:.2f} radians")
+        torque = parachute_to_cg * magnitude(F_drag) * np.sin(aoa) # [N m]
+        torque -= ((air_density * position[1] * 2 * 3 * c.IN2M * (10 * c.FT2M)**4 * angular_velocity * np.abs(angular_velocity)) / 12)
+        print(f"torque: {torque:.2f} N m")
+        angular_acceleration = torque / inertia # [radians / s^2]
+        print(f"aoa: {aoa:.2f} radians")
+        #angular_acceleration = (magnitude(F_drag) * np.sin(aoa) * np.abs(recovery_bay_start - cg)) / inertia
+        angular_acceleration_array.append(angular_acceleration)
+        print(f"angular_acceleration: {angular_acceleration:.2f} radians/s^2")
+        angular_velocity += angular_acceleration * dt # [radians / s]
+        orientation += angular_velocity * dt # [radians]
 
         acceleration = F_net / total_mass # [m / s^2]
         velocity += acceleration * dt # [m / s]
         position += velocity * dt # [m]
 
-        acceleration_lateral = F_drag / total_mass * np.sin(aoa) # [m / s^2]
-        F_drag_perpendicular = F_drag * np.sin(aoa) # [N]
-        F_drag_parallel = F_drag * np.cos(aoa) # [N]
+        #acceleration_lateral = F_drag / total_mass * np.sin(aoa) # [m / s^2]
+        #F_drag_perpendicular = F_drag * np.sin(aoa) # [N]
+        #F_drag_parallel = F_drag * np.cos(aoa) # [N]
 
-        shear_array_i = np.array(sfd.calcShearRecovery(F_drag_perpendicular, recovery_bay_start, acceleration_lateral, linear_density_array, length_along_rocket_linspace, angular_acceleration, cg))
-        bending_array_i = np.array(sfd.calcBending(shear_array_i, length_along_rocket_linspace))
-        axial_array_i = np.array(sfd.calcAxialRecovery(F_drag_parallel, linear_density_array, length_along_rocket_linspace, total_mass))
+        #shear_array_i = np.array(sfd.calcShearRecovery(F_drag_perpendicular, recovery_bay_start, acceleration_lateral, linear_density_array, length_along_rocket_linspace, angular_acceleration, cg))
+        #bending_array_i = np.array(sfd.calcBending(shear_array_i, length_along_rocket_linspace))
+        #axial_array_i = np.array(sfd.calcAxialRecovery(F_drag_parallel, linear_density_array, length_along_rocket_linspace, total_mass))
 
         shear_force_array.append(shear_array_i)
         bending_moment_array.append(bending_array_i)
         axial_force_array.append(axial_array_i)
         table += "--------------------------------\n"
+        print("--------------------------------")
     print(table)
     max_shear_array = np.max(shear_force_array, axis=0)
     max_bending_array = np.max(bending_moment_array, axis=0)
@@ -462,7 +485,7 @@ for orientation_initial in orientation_start_recovery_list:
     axial_array = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, angle)) # [N] Axial forces array if rocket at angle at recovery
     print(f"r_I: {r_i:.2f} radians/s^2")
 
-    index = 2
+    index = 8
     print(f"Graphs are at time {index * dt:.2f} seconds after inflation")
     shear_array = shear_force_array[index]
     bending_array = bending_moment_array[index]
@@ -513,3 +536,9 @@ if len(orientation_start_recovery_list) > 1:
 if __name__ == "__main__":
     plt.show()
 print(drag_force)
+print(cg)
+print(open_rate)
+
+plt.figure()
+plt.plot(time_array, angular_acceleration_array)
+plt.show()
