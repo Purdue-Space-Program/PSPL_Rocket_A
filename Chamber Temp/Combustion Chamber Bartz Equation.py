@@ -21,7 +21,7 @@ import CEA_Wrap as CEA
 def main():
 
     #cylinder part of the chamber geometry parameters
-    D_star = vp.parameters.chamber_inner_diameter #throat diameter (m) 
+    D_star = vp.parameters.chamber_throat_diameter #throat diameter (m) 
     A_star = pi * (D_star / 2)**2 #throat area (m^2)
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
@@ -41,12 +41,15 @@ def main():
     Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
     T_infinty_total = np.zeros_like(station_area_ratios) #ambient temperature at each axial position
     Heat_flux_total = np.zeros_like(station_area_ratios) #heat flux at each axial position
+    c_star_total = np.zeros_like(station_area_ratios) #characteristic exhaust velocity at each axial position
+    Twg_total = np.zeros_like(station_area_ratios) #adiabatic wall temperature at each axial position
+    P_total = np.zeros_like(station_area_ratios) #pressure at each axial position
 
+    cea_results = RunCEA(vp.parameters.chamber_pressure, "ipa", "liquid oxygen", vp.parameters.OF_ratio)
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
 
-        cea_results = RunCEA(vp.parameters.chamber_pressure, "ipa", "liquid oxygen", vp.parameters.OF_ratio)
         gamma_loc = cea_results["gamma"] #specific heat ratio
         Pr_loc = cea_results["pran"] #prandtl number
         cp_loc = cea_results["cp"] * 1000 #specific heat J/(kg * K)
@@ -54,28 +57,27 @@ def main():
         cstar_loc = cea_results["c_star"] #characteristic exhaust velocity (m/s)
         t_loc = cea_results["t"] #stagnation temperature (K)
         P_loc = cea_results["p"] * c.BAR2PA #chamber pressure in Pascals
+        mach_loc = cea_results["mach"] #mach number 
 
         
         #new stuff
         branch = "subsonic" if x_relative[station_index] <= 0 else "supersonic"
         initial_guess = Mach_total[station_index -1] if station_index > 0 else (0.5 if branch == "subsonic" else 2.0) 
+        #M_local = mach_loc
         M_local = calculating_MachNumber(gamma = gamma_loc, area_ratio_value = A_ratio, initial_guess = initial_guess, branch = branch)
         Mach_total[station_index] = M_local 
         
         Dt = 2 * station_inner_radii[station_index]  # local diameter
-                
-        #updating initial guess for next iteration
-        initial_guess = M_local  
 
         h_local = heat_transfer_coefficient(
             Dt = Dt,  # local diameter
-            Rt = ((1.5 * 1.15 * c.IN2M) + (0.382 * 1.15 * c.IN2M)) / 2,     #radius of throat curve (m)
+            Rt = ((1.5 * (vp.parameters.chamber_throat_diameter/2)) + (0.382 *(vp.parameters.chamber_throat_diameter/2) )) / 2,     #radius of throat curve (m)
             Pr = Pr_loc, #Prandtl number of the combustion gas (n/a)
             gamma = gamma_loc, #specific heat ratio of the combustion gas (n/a)
             c_star = cstar_loc, #characteristic exhaust velocity (m/s)
             T0 = t_loc, #stagnation temperature of the combustion gas ((K))
             Twg = recovery_temperature( #recovery temperature at the wall
-                T_c = t_loc,
+                T0 = t_loc,
                 gamma = gamma_loc,
                 M = M_local,
                 Pr = Pr_loc
@@ -104,6 +106,10 @@ def main():
         )
         
         T_infinty_total[station_index] = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc)
+        c_star_total[station_index] =  cstar_loc
+        Twg_total[station_index] = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc)
+        P_total[station_index] = P_loc
+
             
 
         #plots
@@ -123,6 +129,36 @@ def main():
     plt.grid(True)
     plt.show()
 
+    #recovery temp does npt match up
+    plt.figure()
+    plt.plot(station_depths * c.M2IN, Twg_total)
+    plt.xlabel("Axial Position Relative to Throat (in) ")
+    plt.ylabel("Adiabatic Wall Temperature (K) ")
+    plt.title("Adiabatic Wall Temperature vs Axial Position")
+    plt.grid(True)
+    plt.show()
+
+    
+    #c_star matches up
+    '''
+    plt.figure()
+    plt.plot(station_depths * c.M2IN, c_star_total)
+    plt.xlabel("Axial Position Relative to Throat (in) ")
+    plt.ylabel("Characteristic Exhaust Velocity (m/s) ")
+    plt.title("Characteristic Exhaust Velocity vs Axial Position")
+    plt.grid(True)
+    plt.show()
+    '''
+    #mach number matches up
+    '''
+    plt.figure()
+    plt.plot(station_depths * c.M2IN, Mach_total)
+    plt.xlabel("Axial Position Relative to Throat (in) ")
+    plt.ylabel("Mach Number ")
+    plt.title("Mach Number vs Axial Position")
+    plt.grid(True)
+    plt.show()
+    '''
     print("max temp in Kelvin:", max(Temp_surface_total))
     print("max heat transfer coefficient:", max(h_total))
 
@@ -137,6 +173,9 @@ def main():
 
     heat_transfer_coefficient_array = np.transpose(np.array([h_total]))
     np.savetxt("chamber_heat_transfer_coefficient.csv", heat_transfer_coefficient_array, delimiter=',')
+
+    pressure_array = np.transpose(np.array([P_total]))
+    np.savetxt("chamber_pressure.csv", pressure_array, delimiter=',')
 
     
 
@@ -187,12 +226,13 @@ def RunCEA(
         "pran":  cea_results.pran,
         "c_star": cea_results.cstar,
         "p":     cea_results.p,
+        "mach":  cea_results.mach,
     }
     
-def recovery_temperature(T_c, gamma, M, Pr):
+def recovery_temperature(T0, gamma, M, Pr):
 
     r = Pr ** (1/3)
-    T_r = T_c * (1 + ((r*(gamma-1)/2) * M**2))
+    T_r = T0 * (1 + ((r*(gamma-1)/2) * M**2))
 
     return T_r
 
@@ -239,14 +279,16 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
     
 
 def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k, t = vp.parameters.burn_time):
-    Ti = 294 #K, initial temperature of the chamber wall
+    Ti = 300 #K, initial temperature of the chamber wall
     alpha = thermal_diffusivity_calc(k) #thermal diffusivity of the chamber wall material (m^2/s)
 
-    term_conduction = k / ((pi * alpha * t) ** 0.5)     # conduction resistance term
-    Ts = (heat_transfer_coefficient_value * T_infinity + term_conduction * Ti) / (heat_transfer_coefficient_value + term_conduction)
+    #term_conduction = k / ((pi * alpha * t) ** 0.5)     # conduction resistance term
+    #Ts = (heat_transfer_coefficient_value * T_infinity + term_conduction * Ti) / (heat_transfer_coefficient_value + term_conduction)
+
+    Ts = (((-k / axial_position) * (Ti)) - (heat_transfer_coefficient_value * T_infinity)) / (-heat_transfer_coefficient_value + (k / axial_position))
 
     return Ts
-
+    
 def thermal_diffusivity_calc(k = 51.9): #thermal diffusivity of 1018 Stainless Steel 
     rho = 7.87*1000 #kg/m^3
     C_p = 0.486*1000 #J/kg-K

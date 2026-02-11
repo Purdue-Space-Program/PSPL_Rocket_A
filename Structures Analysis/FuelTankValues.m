@@ -1,6 +1,7 @@
 classdef FuelTankValues
     properties
         name = 'Fuel tank'
+        shape = "Circle"
         length = 8 % Length of strut (in)
         distance = 43.6535 % Location of strut from aft, top of strut (in)
         radius = 3; % Distance from center axis (in) 

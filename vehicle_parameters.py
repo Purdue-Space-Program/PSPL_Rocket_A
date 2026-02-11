@@ -76,13 +76,13 @@ class VehicleParameters:
     
     # all from CAD
     engine_length: float =         10.179 * c.IN2M
-    injector_length: float =       0.475 * c.IN2M
+    injector_length: float =       1.01 * c.IN2M
     lower_length: float =          20 * c.IN2M
-    bulkhead_length: float =       1.22 * c.IN2M
+    tank_bulkhead_length: float =       1.22 * c.IN2M
     mid_length: float =            5 * c.IN2M
 
-    upper_length: float =          30 * c.IN2M
-    recovery_bay_length: float =   24 * c.IN2M
+    upper_length: float =          33 * c.IN2M
+    recovery_bay_length: float =   30 * c.IN2M
     nosecone_length: float =       15 * c.IN2M
 
     # COPV Parameters
@@ -209,8 +209,8 @@ if use_bulkhead_mass_estimate == True:
     bulkhead_top_thickness = 0.76 * c.IN2M
 
     bulkhead_mass =  c.DENSITY_AL * (
-        (CalcCylinderVolume(propellant_tank_outer_diameter, parameters.bulkhead_length) - 
-        CalcCylinderVolume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), parameters.bulkhead_length - bulkhead_top_thickness))
+        (CalcCylinderVolume(propellant_tank_outer_diameter, parameters.tank_bulkhead_length) - 
+        CalcCylinderVolume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), parameters.tank_bulkhead_length - bulkhead_top_thickness))
     )
 else:
     bulkhead_mass = 1.971 * c.LBM2KG # [lbm] measured CAD value
@@ -292,13 +292,13 @@ wet_mass_distribution = MassDistribution(
     engine =                  MassComponent(name = "engine",                      mass = engine_mass,                      length = parameters.engine_length),
     injector =                MassComponent(name = "injector",                    mass = injector_mass,                    length = parameters.injector_length),
     lower =                   MassComponent(name = "lower",                       mass = lower_mass,                       length = parameters.lower_length),
-    lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
     fuel_tank =               MassComponent(name = "wet_fuel_tank",               mass = fuel_tank_wet_mass,               length = parameters.fuel_tank_length),
-    upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
     mid =                     MassComponent(name = "mid",                         mass = mid_mass,                         length = parameters.mid_length),
-    lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
     oxidizer_tank =       MassComponent(name = "wet_oxidizer_tank",           mass = oxidizer_tank_wet_mass,           length = parameters.oxidizer_tank_length),
-    upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
     upper =                   MassComponent(name = "upper",                       mass = upper_mass,                       length = parameters.upper_length),
     recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,                length = parameters.recovery_bay_length),
     nosecone =                MassComponent(name = "nosecone",                    mass = nosecone_mass,                    length = parameters.nosecone_length),
@@ -308,13 +308,13 @@ dry_mass_distribution = MassDistribution(
     engine =                  MassComponent(name = "engine",                      mass = engine_mass,                      length = parameters.engine_length),
     injector =                MassComponent(name = "injector",                    mass = injector_mass,                    length = parameters.injector_length),
     lower =                   MassComponent(name = "lower",                       mass = lower_mass,                       length = parameters.lower_length),
-    lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
     fuel_tank =               MassComponent(name = "dry_fuel_tank",               mass = fuel_tank_dry_mass,               length = parameters.fuel_tank_length),
-    upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
     mid =                     MassComponent(name = "mid",                         mass = mid_mass,                         length = parameters.mid_length),
-    lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
     oxidizer_tank =       MassComponent(name = "dry_oxidizer_tank",           mass = oxidizer_tank_dry_mass,           length = parameters.oxidizer_tank_length),
-    upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.bulkhead_length),
+    upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
     upper =                   MassComponent(name = "upper",                       mass = upper_mass,                       length = parameters.upper_length),
     recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,                length = parameters.recovery_bay_length),
     nosecone =                MassComponent(name = "nosecone",                    mass = nosecone_mass,                    length = parameters.nosecone_length),
@@ -329,7 +329,6 @@ def calcCG(linear_density_array, length_along_rocket_linspace):
     '''
     dx = length_along_rocket_linspace[1] - length_along_rocket_linspace[0]
     totalMass = np.sum(linear_density_array * dx)
-    # print(totalMass / LB2KG)
     lengths = np.array(length_along_rocket_linspace)
     masses = np.array(linear_density_array * dx)
     moments = np.sum(lengths * masses)
@@ -416,6 +415,12 @@ parameters.freeze()
 
 
 if __name__ == "__main__":
+    
+    print(f"Thrust: {parameters.jet_thrust * c.N2LBF:.2f} LBF")
+    print(f"Vehicle Wet Weight: {vehicle_wet_mass * 9.81 * c.N2LBF:.2f} LBF")
+    
+    print(f"TWR: {parameters.jet_thrust/(vehicle_wet_mass * 9.81)}")
+    
     
     print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg")
     print(f"Vehicle Dry Mass: {vehicle_dry_mass * c.KG2LBM:.2f} lbm, {vehicle_dry_mass:.2f} kg")

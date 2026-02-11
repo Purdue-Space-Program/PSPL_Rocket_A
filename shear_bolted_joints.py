@@ -118,23 +118,23 @@ def CalculateShearJoint(bolt_thread_size, bolt_material, number_of_bolts, joint_
     print(f"\tBolt shear strength: {bolt_maximum_allowable_shear_ultimate_load:.2f} ")
     
     
-    tank_wall_maximum_allowable_bearing_yield_load = CalculateMaximumAllowableBearingLoad(joint_member_F_bry, bolt_hole_diameter, joint_member_1_thickness)
-    clamped_material_maximum_allowable_bearing_ultimate_load = CalculateMaximumAllowableBearingLoad(joint_member_F_bru, bolt_hole_diameter, joint_member_1_thickness)
-    print(f"\tTank_wall_maximum_allowable_bearing_yield_load: {tank_wall_maximum_allowable_bearing_yield_load:.2f}")
-    print(f"\tTank_wall_maximum_allowable_bearing_ultimate_load: {clamped_material_maximum_allowable_bearing_ultimate_load * c.N2LBF:.2f} LBF, {clamped_material_maximum_allowable_bearing_ultimate_load:.2f} N")
+    joint_member_1_maximum_allowable_bearing_yield_load = CalculateMaximumAllowableBearingLoad(joint_member_F_bry, bolt_hole_diameter, joint_member_1_thickness)
+    joint_member_1_maximum_allowable_bearing_ultimate_load = CalculateMaximumAllowableBearingLoad(joint_member_F_bru, bolt_hole_diameter, joint_member_1_thickness)
+    print(f"\tjoint_member_1_maximum_allowable_bearing_yield_load: {joint_member_1_maximum_allowable_bearing_yield_load * c.N2LBF:.2f} LBF, {joint_member_1_maximum_allowable_bearing_yield_load:.2f} N")
+    print(f"\tjoint_member_1_maximum_allowable_bearing_ultimate_load: {joint_member_1_maximum_allowable_bearing_ultimate_load * c.N2LBF:.2f} LBF, {joint_member_1_maximum_allowable_bearing_ultimate_load:.2f} N")
 
     limit_shear_load_per_bolt = joint_member_1_shear_limit_load/number_of_bolts
     
     initial_fitting_factor = 1 # since we dont know if the joint is shear or bearing critical yet (idk if this is the right way to do it tbh)
     
-    # bolt_shear_yield_MoS ?????????????????????????
+    # bolt_shear_yield_MoS ????????????????????????? i have not found a shear yield strength value for any material so i guess it doesnt exist...
     bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, initial_fitting_factor)
-    clamped_material_bearing_ultimate_MoS = CalculateMoS(clamped_material_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, initial_fitting_factor)
+    clamped_material_bearing_ultimate_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, initial_fitting_factor)
     
-    if (bolt_maximum_allowable_shear_ultimate_load > clamped_material_maximum_allowable_bearing_ultimate_load):
+    if (bolt_maximum_allowable_shear_ultimate_load > joint_member_1_maximum_allowable_bearing_ultimate_load):
         fitting_factor = 1.15
         print(f"\tBearing Critical! 😄, Fitting Factor: {fitting_factor}")
-    elif (bolt_maximum_allowable_shear_ultimate_load <= clamped_material_maximum_allowable_bearing_ultimate_load):
+    elif (bolt_maximum_allowable_shear_ultimate_load <= joint_member_1_maximum_allowable_bearing_ultimate_load):
         fitting_factor = 2.0
         print(f"\tShear Critical! 😢, Fitting Factor: {fitting_factor}")
     else:
@@ -142,8 +142,8 @@ def CalculateShearJoint(bolt_thread_size, bolt_material, number_of_bolts, joint_
     
     
     bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
-    clamped_material_bearing_ultimate_MoS = CalculateMoS(clamped_material_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
-    bearingYieldMOS = CalculateMoS(tank_wall_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, parameters.yield_FoS, fitting_factor)
+    clamped_material_bearing_ultimate_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
+    bearingYieldMOS = CalculateMoS(joint_member_1_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, parameters.yield_FoS, fitting_factor)
     
     print(f"\tshearUltimateMOS: {bolt_shear_ultimate_MoS:.3f}")
     print(f"\tbearingUltimateMOS: {clamped_material_bearing_ultimate_MoS:.3f}")
@@ -178,58 +178,58 @@ class ShearBoltedJoint:
 
 if __name__ == "__main__":
         
-    print("-------------Tank Wall to Bulkhead Bolted Joint-------------")
-    bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
-    bulkhead_blowoff_load = (parameters.tank_pressure * bulkhead_area) * parameters.proof_factor
-    print(f"\tBulkhead blowoff load: {bulkhead_blowoff_load:.2f} N, {bulkhead_blowoff_load * c.N2LBF :.2f} LBF")
+    # print("-------------Tank Wall to Bulkhead Bolted Joint-------------")
+    # bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
+    # bulkhead_blowoff_load = (parameters.tank_pressure * bulkhead_area) * parameters.proof_factor
+    # print(f"\tBulkhead blowoff load: {bulkhead_blowoff_load:.2f} N, {bulkhead_blowoff_load * c.N2LBF :.2f} LBF")
         
-    tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
-                                                        bolt_thread_size = "5/16\"", 
-                                                        number_of_bolts = 18,
-                                                        joint_member_1_material = "Aluminum 6061-T6",
-                                                        joint_member_1_thickness = 0.125 * c.IN2M,
-                                                        E_d_ratio = 1.5,
-                                                        joint_member_1_shear_limit_load = bulkhead_blowoff_load,
-                                                        shear_joint_type = "Single")
-    tank_wall_to_bulkhead_joint.CalculateShearJoint()
+    # tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
+    #                                                     bolt_thread_size = "5/16\"", 
+    #                                                     number_of_bolts = 18,
+    #                                                     joint_member_1_material = "Aluminum 6061-T6",
+    #                                                     joint_member_1_thickness = 0.125 * c.IN2M,
+    #                                                     E_d_ratio = 1.5,
+    #                                                     joint_member_1_shear_limit_load = bulkhead_blowoff_load,
+    #                                                     shear_joint_type = "Single")
+    # tank_wall_to_bulkhead_joint.CalculateShearJoint()
 
 
     
     print("-------------Tank Bulkhead to Strut Bolted Joint-------------")
     tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
-                                                        bolt_thread_size = "5/16\"", 
-                                                        number_of_bolts = 2,
-                                                        joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
-                                                        joint_member_1_thickness = 0.25 * c.IN2M,
-                                                        E_d_ratio = 2,
-                                                        joint_member_1_shear_limit_load = 2500 * c.LBF2N,
-                                                        shear_joint_type = "Single")
-    tank_bulkhead_to_strut_joint.CalculateShearJoint()
-
-
-    print("-------------Launch Lug Bolted Joint-------------")
-    tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
                                                         bolt_thread_size = "#10", 
                                                         number_of_bolts = 2,
                                                         joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
-                                                        joint_member_1_thickness = 0.5 * c.IN2M,
+                                                        joint_member_1_thickness = 0.125 * c.IN2M,
                                                         E_d_ratio = 2,
-                                                        joint_member_1_shear_limit_load = 668 * c.LBF2N,
+                                                        joint_member_1_shear_limit_load = 586.13 * c.LBF2N,
                                                         shear_joint_type = "Single")
     tank_bulkhead_to_strut_joint.CalculateShearJoint()
 
 
+    # print("-------------Launch Lug Bolted Joint-------------")
+    # tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
+    #                                                     bolt_thread_size = "#10", 
+    #                                                     number_of_bolts = 2,
+    #                                                     joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
+    #                                                     joint_member_1_thickness = 0.5 * c.IN2M,
+    #                                                     E_d_ratio = 2,
+    #                                                     joint_member_1_shear_limit_load = 668 * c.LBF2N,
+    #                                                     shear_joint_type = "Single")
+    # tank_bulkhead_to_strut_joint.CalculateShearJoint()
 
-    print("-------------Recovery Bulkhead Bolted Joint-------------")    
-    injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "Alloy Steel", 
-                                                        bolt_thread_size = "1/4", 
-                                                        number_of_bolts = 12,
-                                                        joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
-                                                        joint_member_1_thickness = 0.125 * c.IN2M,
-                                                        E_d_ratio = 2,
-                                                        joint_member_1_shear_limit_load = 2500 * c.LBF2N,
-                                                        shear_joint_type = "Single")
-    injector_upper_half_to_fin_can_strut.CalculateShearJoint()
+
+
+    # print("-------------Recovery Bulkhead Bolted Joint-------------")    
+    # injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "Alloy Steel", 
+    #                                                     bolt_thread_size = "1/4", 
+    #                                                     number_of_bolts = 12,
+    #                                                     joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
+    #                                                     joint_member_1_thickness = 0.125 * c.IN2M,
+    #                                                     E_d_ratio = 2,
+    #                                                     joint_member_1_shear_limit_load = 2500 * c.LBF2N,
+    #                                                     shear_joint_type = "Single")
+    # injector_upper_half_to_fin_can_strut.CalculateShearJoint()
     
     
     
