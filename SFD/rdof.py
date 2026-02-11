@@ -15,11 +15,11 @@ import constants as c
 try:
     from SFD import parseWind
     from SFD import sfd
-    from SFD import loads # This will cause plots of loads.py to show up when rdof.py is run
+    from SFD import loads
 except ModuleNotFoundError:
     import parseWind
     import sfd
-    import loads # This will cause plots of loads.py to show up when rdof.py is run
+    import loads
 # ------------------------------------------------------------------------------
 
 def CalculateCircleArea(diameter):

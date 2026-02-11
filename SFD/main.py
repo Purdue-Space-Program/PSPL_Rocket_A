@@ -1,5 +1,5 @@
 '''
-Pathfiinder 3DOF SFD and RDOF
+Pathfinder 3DOF SFD and RDOF
 
 Author: Gary Huang
 Updated: February 1, 2026
