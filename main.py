@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
-from scipy.io import savemat
+import scipy.io as sio 
+import numpy as np
 from dataclasses import fields, asdict
 
 import vehicle_parameters
@@ -46,7 +47,102 @@ def convert_mass_distribution_to_matlab_dict(mass_distribution_object):
 
 os.chdir("..")
 
-savemat(
+sio.savemat(
     r"Structures Analysis/wet_mass_distribution.mat",
     {"wet_mass_distribution": convert_mass_distribution_to_matlab_dict(vehicle_parameters.wet_mass_distribution)}
 )
+
+print(f"os.curdir: {os.curdir}")
+
+import subprocess
+subprocess.run([
+    "matlab",
+    "-batch",
+    "Structures Analysis",
+    "Full_Rocket_Analysis"
+])
+
+
+
+
+# upper_strut_struct = structural_loads["upper_strut"][0][0]
+
+# upper_strut_max_compression = upper_strut_struct["max_compression"][0][0]
+# upper_strut_max_tension = upper_strut_struct["max_tension"][0][0]
+
+# print("Upper Strut Max Compression:", upper_strut_max_compression)
+# print("Upper Strut Max Tension:", upper_strut_max_tension)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def Convert_Matlab_Struct_To_Python_Dictionary(matlab_object):
+    """
+    Recursively convert scipy.io.loadmat struct objects
+    into native Python dictionaries.
+    """
+
+    if isinstance(matlab_object, np.ndarray):
+
+        # If it is a MATLAB struct array
+        if matlab_object.dtype.names is not None:
+            return _convert_struct_array(matlab_object)
+
+        # If it is a numeric array
+        if matlab_object.size == 1:
+            return matlab_object.item()
+
+        return matlab_object
+
+    return matlab_object
+
+
+def _convert_struct_array(matlab_struct_array):
+    python_dictionary = {}
+
+    struct_element = matlab_struct_array[0, 0]
+
+    for field_name in struct_element.dtype.names:
+        field_value = struct_element[field_name]
+        python_dictionary[field_name] = Convert_Matlab_Struct_To_Python_Dictionary(field_value)
+
+    return python_dictionary
+
+
+def load_matlab_file_as_clean_dictionary(file_path_string):
+    raw_matlab_data_dictionary = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=False)
+
+    clean_dictionary = {}
+
+    for key in raw_matlab_data_dictionary:
+        if key.startswith("__"):
+            continue
+
+        clean_dictionary[key] = Convert_Matlab_Struct_To_Python_Dictionary(
+            raw_matlab_data_dictionary[key]
+        )
+
+    return clean_dictionary
+
+
+structural_loads = Convert_Matlab_Struct_To_Python_Dictionary(sio.loadmat(r"Structures Analysis/structural_loads.mat")["structural_loads"])
+
+# print(structural_loads)

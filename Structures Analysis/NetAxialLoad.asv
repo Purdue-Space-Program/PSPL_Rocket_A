@@ -32,13 +32,13 @@ if override_loads == false
     shearLoadsrfd = rfdData.shear_array_recovery * N2LBF; % Shear loads converted to pounds
     momentLoadsrfd = rfdData.bending_array_recovery * 8.85; % Moment loads conevrted to inch-pounds
 else
-    axialLoadssfd = 200 * ones(1, numel(lengthLoadssfd));
-    shearLoadssfd = 200 * ones(1, numel(lengthLoadssfd));
-    momentLoadssfd = 30 * ones(1, numel(lengthLoadssfd));
-
-    axialLoadsrfd = 200 * ones(1, numel(lengthLoadsrfd));
-    shearLoadsrfd = 200 * ones(1, numel(lengthLoadsrfd));
-    momentLoadsrfd = 30 * ones(1, numel(lengthLoadsrfd));
+    axialLoadssfd= 200 * ones(1, numel(lengthLoadssfd));
+    shearLoadssfd = 200;
+    momentLoadssfd = 30;
+    constant_value * 
+    axialLoadsrfd = 200;
+    shearLoadsrfd = 200;
+    momentLoadsrfd = 30;
 end
 
 cd(currentDirectory)

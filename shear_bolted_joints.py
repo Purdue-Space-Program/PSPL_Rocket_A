@@ -142,16 +142,30 @@ def CalculateShearJoint(bolt_thread_size, bolt_material, number_of_bolts, joint_
     
     
     bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
+    clamped_material_bearing_yield_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, parameters.yield_FoS, fitting_factor)
     clamped_material_bearing_ultimate_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
-    bearingYieldMOS = CalculateMoS(joint_member_1_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, parameters.yield_FoS, fitting_factor)
     
-    print(f"\tshearUltimateMOS: {bolt_shear_ultimate_MoS:.3f}")
-    print(f"\tbearingUltimateMOS: {clamped_material_bearing_ultimate_MoS:.3f}")
-    print(f"\tbearingYieldMOS: {bearingYieldMOS:.3f}")
+    
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    ENDC = '\033[0m'
+    GREEN = '\033[92m'
+    
+    def MoS_Text_Color(MoS):
+        if MoS >= 0:
+            text_color = GREEN
+        else:
+            text_color = RED
+        return(text_color)
+    
+    print(f"\t{MoS_Text_Color(bolt_shear_ultimate_MoS)}Bolt shear ultimate MoS: {bolt_shear_ultimate_MoS:.3f}{ENDC}")
+    print(f"\t{MoS_Text_Color(clamped_material_bearing_ultimate_MoS)}Clamped material bearing ultimate MoS: {clamped_material_bearing_ultimate_MoS:.3f}{ENDC}")
+    print(f"\t{MoS_Text_Color(clamped_material_bearing_yield_MoS)}Clamped material bearing yield MoS: {clamped_material_bearing_yield_MoS:.3f}{ENDC}")
 
     print("")
     
-    return (bolt_shear_ultimate_MoS, clamped_material_bearing_ultimate_MoS, bearingYieldMOS)
+    return (bolt_shear_ultimate_MoS, clamped_material_bearing_ultimate_MoS, clamped_material_bearing_yield_MoS)
 
 
 @dataclass
