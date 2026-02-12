@@ -15,6 +15,6 @@ make_tanks
 
 [structural_loads.fuel_tank.max_compression, structural_loads.fuel_tank.max_tension] = StrutucturesAnalysis(FuelTank);
 [structural_loads.oxygen_tank.max_compression, structural_loads.oxygen_tank.max_tension] = StrutucturesAnalysis(OxyTank);
-[structural_loads.copv_tank.max_compression, structural_loads.copv_tank.max_tension] = StrutucturesAnalysis(COPVTank);
+[structural_loads.copv_tank.max_compression, structural_loads.copv_tank.max_tension] = StrutucturesAnalysis(COPVWall);
 
 save("structural_loads.mat", "structural_loads");
