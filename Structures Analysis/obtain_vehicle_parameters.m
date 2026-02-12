@@ -3,7 +3,7 @@ cd('C:..')
 
 python_executable_path = "python";
 python_script_path = "main.py";
-[exit_status, command_output] = system(python_executable_path + " " + python_script_path);
+[exit_status, command_output] = system("set PSPL_INVOKED_BY_MATLAB=1 && " + python_executable_path + " " + python_script_path);
 
 % fprintf("exit_status: %d\n", exit_status);
 % fprintf("command_output:\n%s\n", command_output);

@@ -45,22 +45,25 @@ def convert_mass_distribution_to_matlab_dict(mass_distribution_object):
         matlab_struct_dictionary[dataclass_field.name] = asdict(mass_component_object)
     return matlab_struct_dictionary
 
-os.chdir("..")
+structures_analysis_path = (repository_root_path.parent / "Structures Analysis").resolve()
 
 sio.savemat(
-    r"Structures Analysis/wet_mass_distribution.mat",
+    structures_analysis_path / "wet_mass_distribution.mat",
     {"wet_mass_distribution": convert_mass_distribution_to_matlab_dict(vehicle_parameters.wet_mass_distribution)}
 )
 
-print(f"os.curdir: {os.curdir}")
+invoked_by_matlab = os.getenv("PSPL_INVOKED_BY_MATLAB") == "1"
 
-import subprocess
-subprocess.run([
-    "matlab",
-    "-batch",
-    "Structures Analysis",
-    "Full_Rocket_Analysis"
-])
+if not invoked_by_matlab:
+    import subprocess
+    full_rocket_analysis_script = (structures_analysis_path / "Full_Rocket_Analysis.m").as_posix()
+    subprocess.run([
+        "matlab",
+        "-batch",
+        f"run('{full_rocket_analysis_script}')"
+    ], check=True)
+else:
+    print("Skipping MATLAB launch because main.py was invoked by MATLAB.")
 
 
 
@@ -143,6 +146,9 @@ def load_matlab_file_as_clean_dictionary(file_path_string):
     return clean_dictionary
 
 
-structural_loads = Convert_Matlab_Struct_To_Python_Dictionary(sio.loadmat(r"Structures Analysis/structural_loads.mat")["structural_loads"])
+if not invoked_by_matlab:
+    structural_loads = Convert_Matlab_Struct_To_Python_Dictionary(sio.loadmat(structures_analysis_path / "structural_loads.mat")["structural_loads"])
+else:
+    structural_loads = None
 
 # print(structural_loads)
