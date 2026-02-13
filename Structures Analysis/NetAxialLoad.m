@@ -165,22 +165,6 @@ if timeToPdr
             F2 = M * cos(theta) / (3 * R) + Fg / 3 + M * sin(theta) / (R * sqrt(3));
             fprintf("F1: %2.f\nF2: %2.f\nF3: %2.f\n\n", F1, F2, F3)
 
-            
-            if (maxQ > recovery)
-                fprintf("Max Q is bounding compressive case\n")
-            else
-                fprintf("Recovery is bounding compressive case\n")
-            end
-
-
-            max_Q_tension_limit_load = max([netTensionMaxQ(locationMaxQ(1)), netTensionMaxQ(locationMaxQ(2))]);
-            recovery_tension_limit_load = max([netTensionRecovery(locationMaxQ(1)), netTensionRecovery(locationMaxQ(2))]);
-
-            if (maxQ > recovery)
-                fprintf("Max Q is bounding tension case\n")
-            else
-                fprintf("Recovery is bounding tension case\n")
-            end
         end
     end
 end
