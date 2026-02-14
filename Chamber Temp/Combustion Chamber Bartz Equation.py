@@ -217,6 +217,7 @@ def main():
     '''
     print("max temp in Kelvin:", max(Temp_surface_total))
     print("max heat transfer coefficient:", max(h_total))
+    print("combustion temp", cea_results["c_t"])
 
     
     #saving data to csvs
@@ -290,7 +291,7 @@ def RunCEA(
     
 def recovery_temperature(T_static, gamma, M, Pr):
 
-    r = Pr ** (1/3)
+    r = Pr ** (1/2)
     T_r = T_static * (1 + ((r*(gamma-1)/2) * M**2))
 
     return T_r
@@ -343,8 +344,6 @@ def temperature_surface_calculation(heat_transfer_coefficient_value, axial_posit
 
     term_conduction = k / ((pi * alpha * t) ** 0.5)     # conduction resistance term
     Ts = (heat_transfer_coefficient_value * T_infinity + term_conduction * Ti) / (heat_transfer_coefficient_value + term_conduction)
-
-    #Ts = (((-k / axial_position) * (Ti)) - (heat_transfer_coefficient_value * T_infinity)) / (-heat_transfer_coefficient_value + (k / axial_position))
 
     return Ts
     
