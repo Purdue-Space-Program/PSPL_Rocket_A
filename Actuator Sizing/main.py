@@ -26,8 +26,7 @@ if piston == "test":
     shaft_seal_length = np.pi * shaft_diameter
     piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 series
     shaft_seal_area = 0.21 * IN2M * shaft_seal_length
-    pressure = 250 * PSI2PA
-    
+    pressure = 100 * PSI2PA
 else:
     braking_torque = 240 * LBI2NM
     safety_factor = 3
@@ -225,3 +224,4 @@ elif piston.lower() == "real":
 else:
     print('Invalid piston chosen')
 volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history, outputs)
+
