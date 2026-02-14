@@ -422,14 +422,14 @@ if __name__ == "__main__":
     print(f"TWR: {parameters.jet_thrust/(vehicle_wet_mass * 9.81)}")
     
     
-    print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg")
+    print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg, {(vehicle_wet_mass * c.KG2LBM)/130:.2f} abhis")
     print(f"Vehicle Dry Mass: {vehicle_dry_mass * c.KG2LBM:.2f} lbm, {vehicle_dry_mass:.2f} kg")
     
     panels_mass = lower_panels_mass + mid_panels_mass
     # print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
 
     
-    print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
+    print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft, {(rocket_length * c.M2FT)/5.5833:.2f} abhis tall")
     print(f"Rocket Length: {rocket_length:.2f} m\n")
     
     print(f"Wet CoM location distance from bottom: {parameters.wet_COM_location_from_bottom * c.M2IN:.2f} in, {parameters.wet_COM_location_from_bottom:.3f} m")
@@ -449,7 +449,7 @@ if __name__ == "__main__":
     plt.title("Rocket Wet Mass Distribution")
 
 
-    print_components = True
+    print_components = False
     
     if print_components == True:
         for component in wet_mass_distribution:
