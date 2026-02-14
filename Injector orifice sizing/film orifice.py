@@ -59,13 +59,14 @@ while diameter < 0.4:
     diameter_history.append(diameter)
     diameter += 0.01 """
 
-dp_error_percent = 0.1 # 1% error from desired pressure drop acceptable
-d = 1.5 * IN2M # Diameter of manifold hole 
-d0 = 0.0001 * IN2M # Diameter of orifice plate
-di = 0.18 * IN2M # Inner Diameter of tube before metering orifice
+dp_error_percent = 0.1 # percent error from desired pressure drop acceptable
+d = 0.8 * IN2M # Diameter of manifold hole 
+d0 = 0.00001 * IN2M # Diameter of orifice plate
+# di = 0.18 * IN2M # Inner Diameter of tube before metering orifice
+# area_i = np.pi * di**2 / 4 # Inner area of tube before metering orifice # NUMBER 1
 upstream_pressure = 350 * PSI2PA # Pressure before metering orifice, to be changed
 dp = np.inf # Initializing pressure drop
-film_percent = 0.1 # Initializing
+film_percent = 1 # Initializing
 film_percent_history = []
 m_dot_film_history = []
 dp_history = []
@@ -75,10 +76,9 @@ K0_history = []
 print("Please wait this might take a second....")
 
 ##### Find d0 for all mass flow rates for which desired manifold pressure is achieved #####
-area_i = np.pi * di**2 / 4 # Inner area of tube before metering orifice # NUMBER 1
 target_dp = upstream_pressure - manifold_pressure
 dp_error_allowed = (dp_error_percent / 100) * target_dp
-while film_percent <= max_film_percent:
+for film_percent in np.linspace(3, max_film_percent, 100):
     m_dot_film = m_dot_ipa * film_percent / 100
     #line_velocity = m_dot_film / (density * area_i) # NUMBER 1
     d0 = 0.00001 * IN2M
@@ -98,7 +98,7 @@ while film_percent <= max_film_percent:
     m_dot_film_history.append(m_dot_film)
     dp_history.append(dp)
     d0_history.append(d0)
-    film_percent += 0.1
+
 
 plt.plot(np.array(d0_history) * M2IN, film_percent_history)
 plt.xlabel("Diameter of Orifice [in]")
@@ -138,4 +138,36 @@ plt.title("Ensure that x = y")
 plt.xlabel("Film % Calculated")
 plt.ylabel("What film % Should be")
 plt.grid()
+plt.show()
+
+#### testing cd and K stuff ####
+d = 0.8 * IN2M
+d0 = 0.01 * IN2M
+d0_history_test = []
+K0_history_test = []
+cd_history_test = []
+while d0 <= d:
+    K0 = calc_K_sharp_edged_orifice(d, d0)
+    cd = 1/np.sqrt(K0)
+    d0_history_test.append(d0)
+    K0_history_test.append(K0)
+    cd_history_test.append(cd)
+    d0 += 0.01 * IN2M
+
+plt.plot(np.array(d0_history_test) * M2IN, K0_history_test)
+plt.xlabel("Orifice Diameter (in)")
+plt.ylabel("K")
+plt.title(f"Manifold Diameter: {d * M2IN}in")
+plt.show()
+
+plt.plot(np.array(d0_history_test) * M2IN, cd_history_test)
+plt.xlabel("Orifice Diameter (in)")
+plt.ylabel("Cd")
+plt.title(f"Manifold Diameter: {d * M2IN}in")
+plt.show()
+
+plt.plot(K0_history_test, cd_history_test)
+plt.xlabel("K")
+plt.ylabel("Cd")
+plt.title(f"Manifold Diameter: {d * M2IN}in")
 plt.show()
