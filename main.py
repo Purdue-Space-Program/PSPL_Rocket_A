@@ -109,7 +109,7 @@ structures_analysis_path = (repository_root_path.parent / "Structures Analysis")
 
 # invoked_by_matlab = os.getenv("PSPL_INVOKED_BY_MATLAB") == "1"
 
-    ], check=True)
+#     ], check=True)
 # if not invoked_by_matlab:
 #     import subprocess
 #     full_rocket_analysis_script = (structures_analysis_path / "Full_Rocket_Analysis.m").as_posix()
