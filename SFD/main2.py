@@ -118,7 +118,7 @@ time_dict = {}
 # Time stepping before parachute deployment
 time_before_deploy = 0
 time = 0
-dt = 0.1
+dt = 0.01
 time_steps_1 = int(time_before_deploy / dt)
 
 for t in range(time_steps_1):
@@ -145,7 +145,7 @@ for t in range(time_steps_2):
     print(f"Time: {(time):.2f} s\n Position: {position}\n Velocity: {velocity}\n Acceleration: {acceleration}\n Orientation: {orientation:.2f} radians\n Area: {area:.2f} m^2\n")
     print(f"Angular_acceleration: {angular_acceleration:.4f} rad/s^2\n Angular_velocity: {angular_velocity:.4f} rad/s\n")
     
-    F_drag = 0.5 * air_density * magnitude(velocity)**2 * drag_coefficient * area * normalize(velocity) * (-1)  # Drag force vector [N]
+    F_drag = 0.5 * air_density * magnitude(velocity + wind_gust * np.array([-1, 0, 0]))**2 * drag_coefficient * area * normalize(velocity) * (-1)  # Drag force vector [N]
     
     # Update torque and angular acceleration based on drag force
     orientation_cartesian = np.array([np.cos(orientation), np.sin(orientation), 0.0])  # Orientation vector in Cartesian coordinates
@@ -160,12 +160,14 @@ for t in range(time_steps_2):
     lateral_acceleration = F_drag_perpendicular / total_mass  # Lateral acceleration due to perpendicular drag force [m/s^2]
     parallel_acceleration = F_drag_parallel / total_mass  # Parallel acceleration due to parallel drag force [m/s^2]
     print(f"Lateral Acceleration: {lateral_acceleration}\nParallel Acceleration: {parallel_acceleration}\n")
+    print(f"Magnitude of Lateral Acceleration: {magnitude(lateral_acceleration):.4f} m/s^2\nMagnitude of Parallel Acceleration: {magnitude(parallel_acceleration):.4f} m/s^2\n")
     
     # Calculate internal forces
+    # Make mass and moments of inertia models
     cg_relative_lengths = np.array(-1 * length_along_rocket_linspace + cg)  # Length from each segment to center of gravity [m]
     relative_lengths_index = 0
     moments_array = []
-    mass_array = linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0])  # Mass of each segment [kg]
+    mass_array = linear_density_array * dx  # Mass of each segment [kg]
     cumsum_mass_array = []
     slice_sum = 0
     for slice in mass_array:
@@ -175,10 +177,12 @@ for t in range(time_steps_2):
         cumsum_mass_array.append(slice_sum) # Validated against np.cumsum(mass_array)
         relative_lengths_index += 1
     print(f"Slice sum: {slice_sum}\n")
+
     #print(f"Moments Array: {moments_array}\n")
     #print(f"Validate moments array: {np.cumsum(linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0]) * cg_relative_lengths)}\n")
     moments_array = np.array(moments_array)
     cumsum_mass_array = np.array(cumsum_mass_array)
+
     shear_array_i = magnitude(lateral_acceleration) * cumsum_mass_array + angular_acceleration * moments_array  # Shear force at each segment [N]
     shear_array_i[int(recovery_bay_start / dx) - 1:] += magnitude(F_drag_perpendicular)
     array_i.append(shear_array_i)
@@ -204,6 +208,7 @@ for t in range(time_steps_2):
     time += dt
 
     print(f"Drag Force: {F_drag} N\n")
+    print(f"Magnitude of Drag Force: {magnitude(F_drag)} N\n")
     print(f"Torque: {torque} N*m\n-----------------------------\n")
     area += open_rate * dt
     if area > canopy_area:
@@ -211,7 +216,10 @@ for t in range(time_steps_2):
 
 
 plt.figure()
-plt.plot(length_along_rocket_linspace, time_array[3][3], label="Axial Force")
+plt.plot(length_along_rocket_linspace * c.M2FT, time_array[120][2] * c.N2LBF, label="Axial Force")
+plt.ylabel("Shear Force [lbf]")
+plt.xlabel("Length from aft [ft]")
+#plt.title(f"Shear Force at t = {time_array[3][0]:.2f} s")
 plt.grid()
 plt.show()
 

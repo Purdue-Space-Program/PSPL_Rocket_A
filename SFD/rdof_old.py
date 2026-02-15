@@ -265,11 +265,11 @@ ay = calcParachuteAcceleration(drag_force, total_mass) # [m / s^2] Lateral accel
 
 worst_shear_angle = np.pi / 2
 worst_axial_angle = 0
-r_worst_shear = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, worst_shear_angle) # [radians / s^2] Angular acceleration for worst shear angle
-r_worst_axial = calcAngularAcceleration(drag_force, recovery_bay_start, inertia, cg, worst_axial_angle) # [radians / s^2] Angular acceleration for worst axial angle
-worst_shear_array = np.array(calcShear(drag_force, recovery_bay_start, ay, linear_density_array, length_along_rocket_linspace, r_worst_shear, cg, worst_shear_angle)) # [N] Shear force array
+r_worst_shear = calcAngularAcceleration(464.7261816720011, recovery_bay_start, inertia, cg, worst_shear_angle) # [radians / s^2] Angular acceleration for worst shear angle
+r_worst_axial = calcAngularAcceleration(464.7261816720011, recovery_bay_start, inertia, cg, worst_axial_angle) # [radians / s^2] Angular acceleration for worst axial angle
+worst_shear_array = np.array(calcShear(464.7261816720011, recovery_bay_start, 11.5610, linear_density_array, length_along_rocket_linspace, r_worst_shear, cg, worst_shear_angle)) # [N] Shear force array
 worst_bending_array = np.array(calcBending(worst_shear_array, length_along_rocket_linspace)) # [N m] Bending moment array
-worst_axial_array = np.array(calcAxial(drag_force, linear_density_array, length_along_rocket_linspace, worst_axial_angle)) # [N] Axial forces array
+worst_axial_array = np.array(calcAxial(464.7261816720011, linear_density_array, length_along_rocket_linspace, worst_axial_angle)) # [N] Axial forces array
 # ------------------------------------------------------------------------------
 
 # Converting to matlab file
@@ -501,9 +501,9 @@ for orientation_initial in orientation_start_recovery_list:
     # matlab_dict[f"AOA_recovery_deg"] = angle * (180 / np.pi)
     
     plot_def = [
-        (shear_array, c.N2LBF, "Shear Force [lbf]", "Shear Forces"),
-        (bending_array, c.N2LBF * c.M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
-        (axial_array, c.N2LBF, "Axial Force [lbf]", "Axial Forces")
+        (worst_shear_array, c.N2LBF, "Shear Force [lbf]", "Shear Forces"),
+        (worst_bending_array, c.N2LBF * c.M2FT, "Bending Moment [lbf-ft]", "Bending Moments"),
+        (worst_axial_array, c.N2LBF, "Axial Force [lbf]", "Axial Forces")
     ]
 
     for data, scale, ylabel, base_title in plot_def:
