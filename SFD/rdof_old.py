@@ -533,7 +533,7 @@ matlab_dict[f"bending_array_recovery"] = limit_load_bending_array
 matlab_dict[f"axial_array_recovery"] = limit_load_axial_array
 matlab_dict["length_along_rocket_linspace"] = length_along_rocket_linspace
 
-savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB
+# savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB
 # ------------------------------------------------------------------------------
 
 if len(orientation_start_recovery_list) > 1:
