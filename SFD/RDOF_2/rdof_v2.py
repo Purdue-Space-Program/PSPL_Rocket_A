@@ -15,12 +15,12 @@ import vehicle_parameters as vehicle
 import constants as c
 
 try:
-    from SFD import parseWind
-    from SFD import sfd
+    # from SFD import parseWind
+    # from SFD import sfd
     from SFD import loads
 except ModuleNotFoundError:
-    import parseWind
-    import sfd
+    # import parseWind
+    # import sfd
     import loads
 
 # Plot styling
@@ -469,7 +469,7 @@ if __name__ == "__main__":
 
     # Save to matlab
     # Converting to matlab file
-    matlab_dict = {"axial_array": drogue_axial, "shear_array": drogue_shear, "bending_array": drogue_bending, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
+    matlab_dict = {"axial_array_recovery": drogue_axial, "shear_array_recovery": drogue_shear, "bending_array_recovery": drogue_bending, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
     savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB)
     
     # Save internal loads to excel, for both drogue and main deployments
@@ -581,17 +581,21 @@ if __name__ == "__main__":
     # fig.savefig('RDOF.png', dpi=300, bbox_inches='tight')
 
     # Find ground impact speed
+    # plt.figure()
+    # plt.plot(altitude)
+    # plt.show()
     groundIndex = np.where(altitude <= 5)
     if groundIndex[0].size > 0:
         ind = groundIndex[0][0]
+        descent_time = ind*dt
+        print(f"descent time: {descent_time:.2f} seconds")
         velocity = magnitude([vx[ind], vy[ind]])
         print(f"Rocket velocity at ground: {velocity:.2f} ft/s")
     else:
         print("Rocket doesn't reach ground given timeframe/conditions.")
 
     # Show animation
-    mng = plt.get_current_fig_manager()
-    mng.window.showMaximized()
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
-
+    # mng = plt.get_current_fig_manager()
+    # mng.window.showMaximized()
+    # plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    # plt.show()

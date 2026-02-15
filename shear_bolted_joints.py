@@ -44,7 +44,7 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
 
     # material properties
     F_su_316_Stainless_Steel = 50_000 * c.PSI2PA # [psi] S-basis from MMPDS-2019
-    F_su_Alloy_Steel = 153_000*0.6 * c.PSI2PA # [psi] S-basis from MMPDS-2019
+    F_su_Alloy_Steel = 153_000*0.5 * c.PSI2PA # [psi] out of my ass
 
     # from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
     F_bry_Aluminum_6061_T6_E_d_one_point_five = 50_000 * c.PSI2PA # [psi] 

@@ -13,7 +13,7 @@ def calc_K_sharp_edged_orifice(d, d0):
     return K
 
 ##### Find total area of the orifices needed to sustain a maximum of 30% film #####
-max_film_percent = 30 # [%]
+max_film_percent = 10 # [%]
 m_dot_ipa = vehicle.parameters.core_fuel_mass_flow_rate # [kg/s]
 chamber_pressure = vehicle.parameters.chamber_pressure # [Pa]
 manifold_pressure = chamber_pressure / 0.8 # [Pa] 20% Stiffness to prevent backflow
@@ -25,6 +25,20 @@ area_total = max_m_dot / (cd * np.sqrt(2 * density * dp))
 print("STEP ONE: Calculating Total Area of Orifices")
 print(f"MAX FILM PERCENT: {max_film_percent:.1f}%")
 print(f"TOTAL FILM INJECTION AREA: {area_total * M22IN2:.3f} in^2\n")
+
+film_percent_history_orifices = []
+dp_history_orifices = []
+for film_percent in np.linspace(0.5, 30, 100):
+    m_dot = m_dot_ipa * film_percent / 100
+    dp = ((m_dot / (area_total * cd))**2) / (2 * density)
+    dp_history_orifices.append(dp)
+    film_percent_history_orifices.append(film_percent)
+plt.plot(film_percent_history_orifices, np.array(dp_history_orifices) * PA2PSI)
+plt.xlabel("Film %")
+plt.ylabel("Pressure Drop [psi]")
+plt.title(f"Film % vs Pressure Drop\nFixed total area = {area_total * M22IN2:.3f}in^2\nIgnore values, look at shape")
+plt.grid()
+plt.show()
 
 """
 ##### Graph dp vs mdot through adjustable tap-off orifice and film mass flow rate #####
