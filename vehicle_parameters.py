@@ -30,7 +30,8 @@ class VehicleParameters:
 
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 
-    oxidizer_name: str = "liquid oxygen"
+    oxidizer_name: str = "oxygen"
+    pressurant_name: str = "nitrogen"
     tube_outer_diameter: float = 6.0 * c.IN2M         # Outer diameter of tube used in some sections of the rocket
     tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of tube used in some sections of the rocket
     
@@ -54,6 +55,8 @@ class VehicleParameters:
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
     tank_pressure: float = 425 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
+    oxidizer_tank_pressure: float = tank_pressure     # The estimated required oxidizer tank pressure to sustain the combustion pressure in the engine [Pascals]
+    fuel_tank_pressure: float = tank_pressure     # The estimated required fuel tank pressure to sustain the combustion pressure in the engine [Pascals]
     tank_outer_diameter: float = tube_outer_diameter  # Outer diameter of both tanks of the rocket
     tank_inner_diameter: float = tube_inner_diameter  # Inner diameter of both tanks of the rocket
     tank_wall_thickness: float = (tube_outer_diameter - tube_inner_diameter)/2  # Inner diameter of both tanks of the rocket
@@ -422,14 +425,14 @@ if __name__ == "__main__":
     print(f"TWR: {parameters.jet_thrust/(vehicle_wet_mass * 9.81)}")
     
     
-    print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg")
+    print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg, {(vehicle_wet_mass * c.KG2LBM)/130:.2f} abhis")
     print(f"Vehicle Dry Mass: {vehicle_dry_mass * c.KG2LBM:.2f} lbm, {vehicle_dry_mass:.2f} kg")
     
     panels_mass = lower_panels_mass + mid_panels_mass
     # print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
 
     
-    print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
+    print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft, {(rocket_length * c.M2FT)/5.5833:.2f} abhis tall")
     print(f"Rocket Length: {rocket_length:.2f} m\n")
     
     print(f"Wet CoM location distance from bottom: {parameters.wet_COM_location_from_bottom * c.M2IN:.2f} in, {parameters.wet_COM_location_from_bottom:.3f} m")
@@ -449,7 +452,7 @@ if __name__ == "__main__":
     plt.title("Rocket Wet Mass Distribution")
 
 
-    print_components = True
+    print_components = False
     
     if print_components == True:
         for component in wet_mass_distribution:

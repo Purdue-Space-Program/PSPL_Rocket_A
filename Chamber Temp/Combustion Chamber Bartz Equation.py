@@ -44,30 +44,51 @@ def main():
     c_star_total = np.zeros_like(station_area_ratios) #characteristic exhaust velocity at each axial position
     Twg_total = np.zeros_like(station_area_ratios) #adiabatic wall temperature at each axial position
     P_total = np.zeros_like(station_area_ratios) #pressure at each axial position
+    T_static_total = np.zeros_like(station_area_ratios) #static temperature at each axial position
+    c_visc_total = np.zeros_like(station_area_ratios) #dynamic viscosity at each axial position
 
     cea_results = RunCEA(vp.parameters.chamber_pressure, "ipa", "liquid oxygen", vp.parameters.OF_ratio)
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
+        
 
         gamma_loc = cea_results["gamma"] #specific heat ratio
         Pr_loc = cea_results["pran"] #prandtl number
         cp_loc = cea_results["cp"] * 1000 #specific heat J/(kg * K)
-        visc_loc = cea_results["visc"] #dynamic viscosity
+        #visc_loc = cea_results["visc"] #dynamic viscosity from CEA
         cstar_loc = cea_results["c_star"] #characteristic exhaust velocity (m/s)
-        t_loc = cea_results["t"] #stagnation temperature (K)
-        P_loc = cea_results["p"] * c.BAR2PA #chamber pressure in Pascals
-        mach_loc = cea_results["mach"] #mach number 
+        t_loc = cea_results["c_t"] #stagnation temperature (K)
+        #P_loc = cea_results["p"] * c.BAR2PA #chamber pressure in Pascals from CEA
+        mach_loc = cea_results["mach"] #mach number from CEA
 
         
-        #new stuff
-        branch = "subsonic" if x_relative[station_index] <= 0 else "supersonic"
-        initial_guess = Mach_total[station_index -1] if station_index > 0 else (0.5 if branch == "subsonic" else 2.0) 
-        #M_local = mach_loc
+        if station_index == throat_index:
+
+            M_local = 1.0
+
+        else:
+            if station_index < throat_index:
+
+                branch = "subsonic" 
+                initial_guess = 0.02 if station_index == 0 else Mach_total[station_index -1]
+            else:
+                branch = "supersonic"
+                initial_guess = 1.0 if station_index == len(station_area_ratios) - 1 else Mach_total[station_index -1]
+
         M_local = calculating_MachNumber(gamma = gamma_loc, area_ratio_value = A_ratio, initial_guess = initial_guess, branch = branch)
         Mach_total[station_index] = M_local 
         
         Dt = 2 * station_inner_radii[station_index]  # local diameter
+        T_static = t_loc / (1 + (((gamma_loc - 1)/2) * M_local**2)) #static temperature at the local axial point (K)
+        P_loc = (vp.parameters.chamber_pressure) / ((1 + (((gamma_loc - 1)/2) * M_local**2)) ** (gamma_loc/(gamma_loc-1))) #static pressure at the local axial point (Pascals)
+
+        visc_loc = viscosity_calc(
+            T = T_static, #static temperature at the local axial point (K)
+            T_ref = cea_results["c_t"], #stagnation temperature from CEA (K)
+            mu_ref = cea_results["visc"], #dynamic viscosity from CEA at the stagnation temperature (Pascal - seconds)
+            S = 110.4 #Sutherland's constant for combustion gases (K)
+        )
 
         h_local = heat_transfer_coefficient(
             Dt = Dt,  # local diameter
@@ -77,7 +98,7 @@ def main():
             c_star = cstar_loc, #characteristic exhaust velocity (m/s)
             T0 = t_loc, #stagnation temperature of the combustion gas ((K))
             Twg = recovery_temperature( #recovery temperature at the wall
-                T0 = t_loc,
+                T_static = T_static,
                 gamma = gamma_loc,
                 M = M_local,
                 Pr = Pr_loc
@@ -90,29 +111,30 @@ def main():
             )
         h_total[station_index] = h_local
 
-
         Temp_surface_total[station_index] = temperature_surface_calculation(
             heat_transfer_coefficient_value = h_total[station_index],
             axial_position = station_depths[station_index],
-            T_infinity = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc), #chamber temperature (K)
+            T_infinity = recovery_temperature(T_static, gamma_loc, M_local, Pr_loc), #chamber temperature (K)
             k = 51.9, #thermal conductivity of the chamber wall material (W/(m*K)) #1018 Steel
             t = vp.parameters.burn_time #s, burn time
         )
 
         Heat_flux_total[station_index] = heat_flux_calc(
             h = h_total[station_index], #Bartz heat transfer coefficient (W/m^2 K)
-            T_aw = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc), #adiabatic wall temperature (K)
+            T_aw = recovery_temperature(T_static, gamma_loc, M_local, Pr_loc), #adiabatic wall temperature (K)
             T_w = Temp_surface_total[station_index] #surface temperature (K)
         )
         
-        T_infinty_total[station_index] = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc)
+        T_static_total[station_index] = T_static
+        T_infinty_total[station_index] = recovery_temperature(T_static, gamma_loc, M_local, Pr_loc)
         c_star_total[station_index] =  cstar_loc
-        Twg_total[station_index] = recovery_temperature(t_loc, gamma_loc, M_local, Pr_loc)
+        Twg_total[station_index] = recovery_temperature(T_static, gamma_loc, M_local, Pr_loc)
         P_total[station_index] = P_loc
+        c_visc_total[station_index] = visc_loc
 
             
 
-        #plots
+    #plots
     plt.figure()
     plt.plot(station_depths * c.M2IN, Temp_surface_total)
     plt.xlabel("Axial Position Relative to Throat (in) ")
@@ -129,7 +151,41 @@ def main():
     plt.grid(True)
     plt.show()
 
-    #recovery temp does npt match up
+    #viscosity matches up
+    ''''
+    plt.figure()
+    plt.plot(station_depths * c.M2IN, c_visc_total)
+    plt.xlabel("Axial Position Relative to Throat (in) ")
+    plt.ylabel("Dynamic Viscosity (Pascal - seconds) ")
+    plt.title("Dynamic Viscosity vs Axial Position")
+    plt.grid(True)
+    plt.show()
+    '''
+
+    #gas temperature matches up
+    '''
+    plt.figure()
+    plt.plot(station_depths * c.M2IN, T_static_total)
+    plt.xlabel("Axial Position Relative to Throat (in) ")
+    plt.ylabel("Static Temperature (K) ")
+    plt.title("Static Temperature vs Axial Position")
+    plt.grid(True)
+    plt.show()
+    '''
+
+    #pressure matches up
+    '''
+    plt.figure()
+    plt.plot(station_depths, P_total * c.PA2PSI)
+    plt.xlabel("Axial Position Relative to Throat (m) ")
+    plt.ylabel("Pressure (psi) ")
+    plt.title("Pressure vs Axial Position")
+    plt.grid(True)
+    plt.show()
+    '''
+
+    #recovery temp matches up
+    '''
     plt.figure()
     plt.plot(station_depths * c.M2IN, Twg_total)
     plt.xlabel("Axial Position Relative to Throat (in) ")
@@ -137,7 +193,7 @@ def main():
     plt.title("Adiabatic Wall Temperature vs Axial Position")
     plt.grid(True)
     plt.show()
-
+    '''
     
     #c_star matches up
     '''
@@ -161,7 +217,11 @@ def main():
     '''
     print("max temp in Kelvin:", max(Temp_surface_total))
     print("max heat transfer coefficient:", max(h_total))
+    print("combustion temp", cea_results["c_t"])
 
+    
+    #saving data to csvs
+    
     temp_array = np.transpose(np.array([Temp_surface_total]))
     np.savetxt("chamber_temp.csv", temp_array, delimiter=',')
 
@@ -176,7 +236,7 @@ def main():
 
     pressure_array = np.transpose(np.array([P_total]))
     np.savetxt("chamber_pressure.csv", pressure_array, delimiter=',')
-
+    
     
 
 def RunCEA(
@@ -203,7 +263,7 @@ def RunCEA(
         raise ValueError(f"{oxidizer_name} not supported")
 
     exit_pressure = 1 # [bar]
-    pressure_ratio = chamber_pressure / exit_pressure # assume exit pressure is a constantly at the pressure of air a bit above sea level
+    pressure_ratio = chamber_pressure / exit_pressure # assume exit pressure is constantly at the pressure of air a bit above sea level
 
     rocket = CEA.RocketProblem(
         pressure =       chamber_pressure,
@@ -216,23 +276,23 @@ def RunCEA(
 
     cea_results = rocket.run()
 
-    #print ("CEA result keys:", list(cea_results.keys()))
+    print ("CEA result keys:", list(cea_results.keys()))
 
     return{
-        "gamma": cea_results.gamma,
-        "t":     cea_results.t,
-        "visc":  cea_results.visc,
-        "cp":    cea_results.cp,
-        "pran":  cea_results.pran,
+        "gamma": cea_results.c_gamma,
+        "c_t":   cea_results.c_t,
+        "visc":  cea_results.c_visc,
+        "cp":    cea_results.c_cp,
+        "pran":  cea_results.c_pran,
         "c_star": cea_results.cstar,
         "p":     cea_results.p,
         "mach":  cea_results.mach,
     }
     
-def recovery_temperature(T0, gamma, M, Pr):
+def recovery_temperature(T_static, gamma, M, Pr):
 
-    r = Pr ** (1/3)
-    T_r = T0 * (1 + ((r*(gamma-1)/2) * M**2))
+    r = Pr ** (1/2)
+    T_r = T_static * (1 + ((r*(gamma-1)/2) * M**2))
 
     return T_r
 
@@ -282,10 +342,8 @@ def temperature_surface_calculation(heat_transfer_coefficient_value, axial_posit
     Ti = 300 #K, initial temperature of the chamber wall
     alpha = thermal_diffusivity_calc(k) #thermal diffusivity of the chamber wall material (m^2/s)
 
-    #term_conduction = k / ((pi * alpha * t) ** 0.5)     # conduction resistance term
-    #Ts = (heat_transfer_coefficient_value * T_infinity + term_conduction * Ti) / (heat_transfer_coefficient_value + term_conduction)
-
-    Ts = (((-k / axial_position) * (Ti)) - (heat_transfer_coefficient_value * T_infinity)) / (-heat_transfer_coefficient_value + (k / axial_position))
+    term_conduction = k / ((pi * alpha * t) ** 0.5)     # conduction resistance term
+    Ts = (heat_transfer_coefficient_value * T_infinity + term_conduction * Ti) / (heat_transfer_coefficient_value + term_conduction)
 
     return Ts
     
@@ -297,10 +355,16 @@ def thermal_diffusivity_calc(k = 51.9): #thermal diffusivity of 1018 Stainless S
     return alpha
 
 def heat_flux_calc(h, T_aw, T_w):
+
     q = h * (T_aw - T_w)
+
     return q
 
+def viscosity_calc(T, T_ref, mu_ref, S):
 
+    mu = mu_ref * ((T / T_ref) ** 1.5) * ((T_ref + S) / (T + S))
+
+    return mu  
 
 
 if __name__ == "__main__":

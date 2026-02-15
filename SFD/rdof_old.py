@@ -20,6 +20,13 @@ except ModuleNotFoundError:
     import parseWind
     import sfd
     import loads
+    
+
+# a way to avoid print statements for entire file when its not the main file    
+if __name__ != "__main__":
+    def print(*args, **kwargs):
+        pass    
+
 # ------------------------------------------------------------------------------
 
 def CalculateCircleArea(diameter):
@@ -535,10 +542,10 @@ if len(orientation_start_recovery_list) > 1:
 
 if __name__ == "__main__":
     plt.show()
-print(drag_force)
-print(cg)
-print(open_rate)
+    print(drag_force)
+    print(cg)
+    print(open_rate)
 
-plt.figure()
-plt.plot(time_array, angular_acceleration_array)
-plt.show()
+    plt.figure()
+    plt.plot(time_array, angular_acceleration_array)
+    plt.show()

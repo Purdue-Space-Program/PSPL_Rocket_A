@@ -33,12 +33,12 @@ OxyTank.radius = 3; % Distance from center axis (in)
 OxyTank.material = Aluminum_6061_T6_Material_Properties;
 
 
-COPVTank.name = 'COPV Tank';
-COPVTank.shape = "Circle";
-COPVTank.OD = 6; % [in]
-COPVTank.ID = 5.75; % [in]
-COPVTank.length = 5; % from CAD (in)
-COPVTank.distance = 40; % Location of strut from aft, top of strut (in)
-COPVTank.radius = 3; % Distance from center axis (in) 
-COPVTank.material = Aluminum_6061_T6_Material_Properties;
+COPVWall.name = 'COPV Wall';
+COPVWall.shape = "Circle";
+COPVWall.OD = 6; % [in]
+COPVWall.ID = 5.75; % [in]
+COPVWall.length = 5; % from CAD (in)
+COPVWall.distance = 40; % Location of strut from aft, top of strut (in)
+COPVWall.radius = 3; % Distance from center axis (in) 
+COPVWall.material = Aluminum_6061_T6_Material_Properties;
 

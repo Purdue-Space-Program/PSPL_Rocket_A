@@ -19,7 +19,7 @@ upper_strut.shape = "Square";
 upper_strut.width = 3/4; % Width, of the side weak to bending [in]
 upper_strut.wallThickness = 0.125; % Wall thickness, of the side weak to bending [in]
 upper_strut.length = 11; % from CAD because parameters.upper_length isn't accurate since it goes to top of COPV tube [in]
-upper_strut.distance = wet_mass_distribution.upper.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut [in]
+upper_strut.distance = wet_mass_distribution.upper.top_distance_from_aft * M2IN; % Location of strut from aft to top of strut [in]
 upper_strut.radius = 2.25; % Distance from center axis [in] 
 upper_strut.material = Aluminum_6063_T52_Material_Properties;
 
@@ -32,7 +32,7 @@ mid_strut.wallThickness = 0.125; % Wall thickness, of the side weak to bending [
 % mid_strut.OD = 1;
 % mid_strut.ID = 1/2;
 mid_strut.length = parameters.mid_length * M2IN; % Length of strut [in]
-mid_strut.distance = wet_mass_distribution.mid.top_distance_from_aft * M2IN; % Location of strut from aft, top of strut [in]
+mid_strut.distance = wet_mass_distribution.mid.top_distance_from_aft * M2IN; % Location of strut from aft to top of strut [in]
 mid_strut.radius = 2.25; % Distance from center axis [in] 
 mid_strut.material = Aluminum_6063_T52_Material_Properties;
 
@@ -43,7 +43,7 @@ lower_strut.shape = "Asym T";
 lower_strut.width = 0.52952978; % [in]
 lower_strut.wallThickness = 0.15; % [in]
 lower_strut.length = parameters.lower_length * M2IN;
-lower_strut.distance = wet_mass_distribution.lower.top_distance_from_aft * M2IN; % [in]
+lower_strut.distance = wet_mass_distribution.lower.top_distance_from_aft * M2IN; % Location of strut from aft to top of strut [in]
 lower_strut.radius = 2; % [in]
 lower_strut.material = Aluminum_6061_T6_Material_Properties;
 

@@ -14,6 +14,11 @@ IN2M = 0.0254
 LBF2N = 4.44822
 MPH2MPS = 0.44704
 
+# a way to avoid print statements for entire file when its not the main file    
+if __name__ != "__main__":
+    def print(*args, **kwargs):
+        pass    
+
 # Need q = 1/2 rho v^2 (done)
 # Need AOA = tan^-1(wind_gust / velocity) (done)
 # Need S (cross-sectional area)= pi * (diameter / 2)^2 (done)
