@@ -6,7 +6,6 @@ function [maxCompression, maxTension] = NetAxialLoad(location, radius, graphStat
 % returns the maximum force that could appear at that location according to
 % the latest running of the SFD and RFD. 
 
-
 N2LBF = 0.224809; % https://en.wikipedia.org/wiki/Newton_(unit)
 IN2M = 0.0254;  % [m/in] Conversion factor from in to m
 M2IN = 1 / IN2M;  % [in/m] Conversion factor from m to in
@@ -63,6 +62,10 @@ else
     netCompressionRecovery = axialLoadsrfd + (2 .* momentLoadsrfd ./ radius); 
     netTensionRecovery = axialLoadsrfd - (2 .* momentLoadsrfd / radius);
 end
+
+maxMoment = max([momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2)), momentLoadsrfd(locationRecovery(1)), momentLoadsrfd(locationRecovery(2))]);
+maxAxial = max([axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2)), axialLoadsrfd(locationRecovery(1)), axialLoadsrfd(locationRecovery(2))]);
+
 
 max_Q_compressive_limit_load = max([netCompressionMaxQ(locationMaxQ(1)), netCompressionMaxQ(locationMaxQ(2))]);
 recovery_compressive_limit_load = max([netCompressionRecovery(locationRecovery(1)), netCompressionRecovery(locationRecovery(2))]);

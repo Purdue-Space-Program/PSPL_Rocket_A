@@ -116,8 +116,8 @@ fprintf("\n\tBuckling MoS: %.2f\n", MoSBuckling);
 fprintf("\tCompression Yield MoS: %.2f\n", MoSCompression)
 fprintf("\tTension Yield MoS: %.2f\n", MoSTension);
 fprintf("------------------------------------------------------\n\n\n")
-%fprintf("Buckling Load Limit: %.2f lbf\n", buckleLimit)
-%fprintf("Buckling Load MoS: %.2f \n", buckleLimit / (compressStress) - 1)
+fprintf("Buckling Load Limit: %.2f lbf\n", buckleLimit)
+fprintf("Buckling Load m: %.2f lbf\n", buckleLimit / (compressStress) - 1)
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))
 % fprintf("Max tension load safety factor for the %s: %.2f\n", name, safetyAllowance(2))
 % fprintf("------------------------------------------------------\n")
