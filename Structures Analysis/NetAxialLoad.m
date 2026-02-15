@@ -21,7 +21,7 @@ rfdData = load('rfd_outputs_recovery.mat');
 lengthLoadssfd = sfdData.length_along_rocket_linspace * M2IN; % Length along the rocket converted to inches
 lengthLoadsrfd = rfdData.length_along_rocket_linspace * M2IN; % Length along the rocket converted inches
 
-override_loads = true;
+override_loads = false;
 
 if override_loads == false
     axialLoadssfd = sfdData.axial_array * N2LBF; % Axial loads converted to pounds

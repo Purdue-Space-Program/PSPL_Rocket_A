@@ -97,7 +97,7 @@ fprintf("\tMass of %s: %.2f lbs\n", name, mass);
 
 fprintf("\n\tAvailable Axial Strength (ASD): %.2f lbs\n", pAllow);
 fprintf("\tMax compression case: %.2f lbf\n", maxCompression);
-fprintf("\tMax tension case: %.2f lbf\n", maxTension);
+fprintf("\tMax tension case: -%.2f lbf\n", maxTension);
 
 if consideringLocalBuckling == 1
     fprintf("\tNon-slender - local buckling not critical.\n")
