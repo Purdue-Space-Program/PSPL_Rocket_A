@@ -30,7 +30,8 @@ class VehicleParameters:
 
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 
-    oxidizer_name: str = "liquid oxygen"
+    oxidizer_name: str = "oxygen"
+    pressurant_name: str = "nitrogen"
     tube_outer_diameter: float = 6.0 * c.IN2M         # Outer diameter of tube used in some sections of the rocket
     tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of tube used in some sections of the rocket
     
@@ -54,6 +55,8 @@ class VehicleParameters:
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
     tank_pressure: float = 425 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
+    oxidizer_tank_pressure: float = tank_pressure     # The estimated required oxidizer tank pressure to sustain the combustion pressure in the engine [Pascals]
+    fuel_tank_pressure: float = tank_pressure     # The estimated required fuel tank pressure to sustain the combustion pressure in the engine [Pascals]
     tank_outer_diameter: float = tube_outer_diameter  # Outer diameter of both tanks of the rocket
     tank_inner_diameter: float = tube_inner_diameter  # Inner diameter of both tanks of the rocket
     tank_wall_thickness: float = (tube_outer_diameter - tube_inner_diameter)/2  # Inner diameter of both tanks of the rocket
