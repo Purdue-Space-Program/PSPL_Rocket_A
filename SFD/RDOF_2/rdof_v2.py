@@ -467,6 +467,11 @@ if __name__ == "__main__":
     end_time = time.time()
     print(f"3D Graph Computation time: {end_time - start_time:.2f} seconds")
 
+    # Save to matlab
+    # Converting to matlab file
+    matlab_dict = {"axial_array": drogue_axial, "shear_array": drogue_shear, "bending_array": drogue_bending, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
+    savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB)
+    
     # Save internal loads to excel, for both drogue and main deployments
     import output_formatter
 
