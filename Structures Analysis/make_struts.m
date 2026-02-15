@@ -49,4 +49,4 @@ lower_strut.material = Aluminum_6061_T6_Material_Properties;
 
 % from cad
 lower_strut.crossArea = 0.33087107; % [in^2]
-lower_strut.radiusGyration = 2.00247428; % [in]
+lower_strut.radiusGyration = 2.47398744; % [in]

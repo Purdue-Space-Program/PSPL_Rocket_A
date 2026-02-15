@@ -1,4 +1,4 @@
-function [maxCompression, maxTension] = StrutucturesAnalysis(objectInQuestion)
+function [maxDownwardsForce, maxUpwardsForce] = StrutucturesAnalysis(objectInQuestion)
 %% ____________________
 %% INITIALIZATION
 
@@ -76,13 +76,15 @@ pAllow = (Fcr * area) / safetyFactorBending; % Allowable axial load [lb]
 
 %% Load Limit Properties
 
-[maxCompression, maxTension] = NetAxialLoad(distance, radius); % Max compressive and tensile cases, divided by the three struts
-maxCompression = maxCompression / 3;
-maxTension = abs(maxTension) / 3;
+[maxDownwardsForce, maxUpwardsForce] = NetAxialLoad(distance, radius); % Max compressive and tensile cases, divided by the three struts
+maxDownwardsForce = maxDownwardsForce / 3;
+maxUpwardsForce = abs(maxUpwardsForce) / 3;
 
 % === Tension Check ===
-tensileStress = maxTension / crossArea;
-MoSCompression = (pAllow / maxCompression) - 1;
+tensileStress = maxUpwardsForce / crossArea;
+compressStress = maxDownwardsForce / crossArea;
+MoSBuckling = (pAllow / maxDownwardsForce) - 1;
+MoSCompression = (material.yieldCompressionStrength / compressStress) - 1;
 MoSTension = ((area * material.yieldTensionStrength) / (tensileStress * safetyFactorTension)) - 1;
 
 
@@ -96,20 +98,21 @@ fprintf("\tWall Thickness: %.2f\n", wallThickness)
 fprintf("\tMass of %s: %.2f lbs\n", name, mass);
 
 fprintf("\n\tAvailable Axial Strength (ASD): %.2f lbs\n", pAllow);
-fprintf("\tMax compression case: %.2f lbf\n", maxCompression);
-fprintf("\tMax tension case: -%.2f lbf\n", maxTension);
+fprintf("\tMax compression case: %.2f lbf\n", maxDownwardsForce);
+fprintf("\tMax tension case: -%.2f lbf\n", maxUpwardsForce);
 
 if consideringLocalBuckling == 1
     fprintf("\tNon-slender - local buckling not critical.\n")
 else
-    fprintf("\tSlender = local buckling must be considered.\n");
+    fprintf("\tSlender = local buckling must be considered.\n\n");
 end
 % fprintf("Slenderness Ratio: %.2f\n", slendernessRatio)
 % fprintf("Buckling Load Limit: %.2f lbf\n", buckleLimit)
 % %fprintf("Euler Buckling Load Limit: %.2f lbf\n", eulerLimit)
 % fprintf("Compression Load Limit: %.2f lbf\n", compressionLimit)
 % fprintf("Tension Load Limit: %.2f lbf\n", tensionLimit)
-fprintf("\tCompression MoS: %.2f\n", MoSCompression);
+fprintf("\tBuckling MoS: %.2f\n", MoSBuckling);
+fprintf("\tCompression Yield MoS: %.2f\n", MoSCompression)
 fprintf("\tTension Yield MoS: %.2f\n", MoSTension);
 fprintf("------------------------------------------------------\n\n\n")
 % fprintf("Max compressive load safety factor for the %s: %.2f\n", name, safetyAllowance(1))

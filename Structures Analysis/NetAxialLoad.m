@@ -1,12 +1,10 @@
-function [maxCompression, maxTension] = NetAxialLoad(location, radius, graphStatus, timeToPdr)
+function [maxCompression, maxTension] = NetAxialLoad(location, radius, graphStatus)
 %
 %
 % THIS FUNCTION OUTPUTS THE FORCES RAW, YOU STILL NEED TO DIVIDE BY 3 FOR
 % STRUTS. This function works for any point on the rocket.This function
 % returns the maximum force that could appear at that location according to
 % the latest running of the SFD and RFD. 
-
-
 
 
 N2LBF = 0.224809; % https://en.wikipedia.org/wiki/Newton_(unit)
@@ -28,9 +26,9 @@ if override_loads == false
     shearLoadssfd = sfdData.shear_array * N2LBF; % Shear loads converted to pounds
     momentLoadssfd = sfdData.bending_array * 8.85; % Moment loads converted to inch-pounds
     
-    axialLoadsrfd = rfdData.axial_array_recovery * N2LBF; % Axial loads converted to pounds
-    shearLoadsrfd = rfdData.shear_array_recovery * N2LBF; % Shear loads converted to pounds
-    momentLoadsrfd = rfdData.bending_array_recovery * 8.85; % Moment loads conevrted to inch-pounds
+    axialLoadsrfd = rfdData.axial_array * N2LBF; % Axial loads converted to pounds
+    shearLoadsrfd = rfdData.shear_array * N2LBF; % Shear loads converted to pounds
+    momentLoadsrfd = rfdData.bending_array * 8.85; % Moment loads conevrted to inch-pounds
 else
     axialLoadssfd = 200 * ones(1, numel(lengthLoadssfd));
     shearLoadssfd = 200 * ones(1, numel(lengthLoadssfd));
