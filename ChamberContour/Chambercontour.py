@@ -154,6 +154,8 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     
     return -x_arr* c.M2IN, y_arr* c.M2IN
 
+    return -x_arr* c.M2IN, y_arr* c.M2IN
+
 
 expansion_ratio = 2.288 # [n/a]
 Lstar = 45 * c.IN2M # [meters]

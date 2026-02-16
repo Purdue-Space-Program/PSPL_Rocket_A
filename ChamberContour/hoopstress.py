@@ -17,9 +17,10 @@ xchamb, ychamb = chamber.nozzle_contour(vehicle.parameters.chamber_throat_diamet
 x = np.loadtxt('chamber_contour_inches.csv', delimiter = ',', usecols = 2)
 innerr = np.loadtxt('chamber_contour_inches.csv', delimiter = ',', usecols = 0)
 sf = 1.5
-pf = 1.5
+
+pf = 2
 sof = sf*pf
-mechs = 73000 #(psi) 
+mechs = 72000 #(psi) 
 
 maxstress = mechs/sf # calculates hoopstress
 pressure = 250*pf #psi double nominal chamber pressure

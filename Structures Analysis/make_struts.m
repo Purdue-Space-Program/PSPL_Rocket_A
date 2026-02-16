@@ -40,13 +40,13 @@ mid_strut.material = Aluminum_6063_T52_Material_Properties;
 lower_strut = StrutClass;
 lower_strut.name = "Lower Strut";
 lower_strut.shape = "Asym T";
-lower_strut.width = 0.52952978; % [in]
-lower_strut.wallThickness = 0.15; % [in]
 lower_strut.length = parameters.lower_length * M2IN;
 lower_strut.distance = wet_mass_distribution.lower.top_distance_from_aft * M2IN; % Location of strut from aft to top of strut [in]
-lower_strut.radius = 2; % [in]
 lower_strut.material = Aluminum_6061_T6_Material_Properties;
 
 % from cad
-lower_strut.crossArea = 0.33087107; % [in^2]
-lower_strut.radiusGyration = 2.00247428; % [in]
+lower_strut.crossArea = 0.49; % [in^2]
+lower_strut.radiusGyration = 2.28239244; % [in]
+lower_strut.radius = 1.962; % [in]
+lower_strut.wallThickness = 0.2; % [in]
+lower_strut.width = 1.65; % [in]
