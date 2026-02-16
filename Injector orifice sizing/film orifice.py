@@ -13,7 +13,7 @@ def calc_K_sharp_edged_orifice(d, d0):
     return K
 
 ##### Find total area of the orifices needed to sustain a maximum of 30% film #####
-max_film_percent = 10 # [%]
+max_film_percent = 15 # [%]
 m_dot_ipa = vehicle.parameters.core_fuel_mass_flow_rate # [kg/s]
 chamber_pressure = vehicle.parameters.chamber_pressure # [Pa]
 manifold_pressure = chamber_pressure / 0.8 # [Pa] 20% Stiffness to prevent backflow
