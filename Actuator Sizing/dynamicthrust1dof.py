@@ -451,7 +451,7 @@ def actuation_time_vs_rail_exit():
     dt = 0.1 # pretty large to reduce computation time 
     max_actuation_time = 2 # [second]
     wetMass = v.vehicle_wet_mass
-    mDotTotal = v.parameters.total_mass_flow_rate
+    mDotTotal = v.parameters.total_core_mass_flow_rate
     jetThrust = v.parameters.jet_thrust
     tankOD = v.parameters.tank_outer_diameter
     finNumber =  v.number_of_fins
@@ -511,7 +511,7 @@ def actuation_time_vs_rail_exit():
 #######  PARAMETERS  ########
 #############################
 wetMass = v.vehicle_wet_mass
-mDotTotal = v.parameters.total_mass_flow_rate
+mDotTotal = v.parameters.total_core_mass_flow_rate
 jetThrust = v.parameters.jet_thrust
 tankOD = v.parameters.tank_outer_diameter
 finNumber =  v.number_of_fins

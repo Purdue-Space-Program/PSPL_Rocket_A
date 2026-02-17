@@ -29,6 +29,7 @@ if override_loads == false
     shearLoadsrfd = rfdData.shear_array * N2LBF; % Shear loads converted to pounds
     momentLoadsrfd = rfdData.bending_array * 8.85; % Moment loads conevrted to inch-pounds
 else
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
     axialLoadssfd = 200 * ones(1, numel(lengthLoadssfd));
     shearLoadssfd = 200 * ones(1, numel(lengthLoadssfd));
     momentLoadssfd = 30 * ones(1, numel(lengthLoadssfd));
@@ -46,13 +47,13 @@ cd(currentDirectory)
 topLocation = max(location);
 bottomLocation = min(location);
 
-[~, laocationMaxQ(1)] = min(abs(lengthLoadssfd - topLocation));
-[~, laocationMaxQ(2)] = min(abs(lengthLoadssfd - bottomLocation));
-[~, laocationRecovery(1)] = min(abs(lengthLoadsrfd - topLocation));
-[~, laocationRecovery(2)] = min(abs(lengthLoadsrfd - bottomLocation));
+[~, locationMaxQ(1)] = min(abs(lengthLoadssfd - topLocation));
+[~, locationMaxQ(2)] = min(abs(lengthLoadssfd - bottomLocation));
+[~, locationRecovery(1)] = min(abs(lengthLoadsrfd - topLocation));
+[~, locationRecovery(2)] = min(abs(lengthLoadsrfd - bottomLocation));
 
-locQ = laocationMaxQ(2):laocationMaxQ(1);
-locR = laocationRecovery(2):laocationRecovery(1);
+locQ = locationMaxQ(2):locationMaxQ(1);
+locR = locationRecovery(2):locationRecovery(1);
 
 if radius == 0
     netCompressionMaxQ = axialLoadssfd; 

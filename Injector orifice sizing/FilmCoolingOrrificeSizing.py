@@ -8,7 +8,7 @@ import vehicle_parameters as vp
 import matplotlib.pyplot as plt
 import constants as c
 
-m_dotTotal = vp.parameters.total_mass_flow_rate #total propellant mass flow
+m_dotTotal = vp.parameters.total_core_mass_flow_rate #total propellant mass flow
 f_film = 0.20 #film cooling fraction
 m_dot_film = m_dotTotal * f_film #mass flow rate for film cooling
 

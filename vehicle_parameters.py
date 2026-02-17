@@ -36,23 +36,25 @@ class VehicleParameters:
     tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of tube used in some sections of the rocket
     
     # Engine Parameters
-    chamber_pressure: float = 250 * c.PSI2PA                                    # The target combustion pressure in the engine [Pascals]
-    jet_thrust: float = 668.0 * c.LBF2N                                         # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
-    max_jet_thrust: float = jet_thrust / 0.9                                    # The maximum expected engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
-    ISP: float = 175.0                                                          # The estimated ISP of the engine [seconds]
-    OF_ratio: float = 1.0                                                       # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
-    total_mass_flow_rate: float = 3.82 * c.LBM2KG                               # The targeted mass flow rate through the engine [kilograms/second]
-    oxidizer_mass_flow_rate: float = total_mass_flow_rate/(1 + (1/OF_ratio))    # The targeted mass flow rate for oxidizer through the engine [kilograms/second]
-    core_fuel_mass_flow_rate: float = total_mass_flow_rate/(OF_ratio + 1)       # The targeted mass flow rate for fuel through the engine [kilograms/second]
-    film_fuel_mass_flow_rate: float = 0.3 * core_fuel_mass_flow_rate            # The targeted film mass flow rate for fuel [kilograms/second]
-    burn_time: float = 2.09                                                     # The estimated burn time of the engine [seconds]
-    max_burn_time: float = burn_time / 0.8                                      # The maximum expected burn time of the engine [seconds]
-    contraction_ratio: float = 7.0                                              # The target ratio of chamber area to throat area [dimensionless]
-    exit_pressure: float = 15.0 * c.PSI2PA                                      # The target exit pressure of the exhaust gas [Pascals]
-    # combustion_temperature: float = 2170                                      # The estimated combustion temperature [Kelvin]
-    chamber_outer_diameter: float = 6.0 * c.IN2M                                # The design combustion chamber diameter [meters]
-    chamber_inner_diameter: float = 4.9 * c.IN2M                                # The design combustion chamber diameter [meters]
-    chamber_throat_diameter: float = 1.852 * c.IN2M                             # The design throat diameter [meters]
+    engine_efficiency: float = 0.81                                                          # The assumed engine efficiency [dimensionless]
+    chamber_pressure: float = 250 * c.PSI2PA                                         # The target combustion pressure in the engine [Pascals]
+    jet_thrust: float = 668.0 * c.LBF2N                                              # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
+    maximum_expected_jet_thrust: float = jet_thrust / engine_efficiency                            # The maximum expected engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
+    ISP: float = 175.0                                                               # The estimated ISP of the engine [seconds]
+    OF_ratio: float = 1.0                                                            # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
+    total_core_mass_flow_rate: float = 3.82 * c.LBM2KG                               # The targeted mass flow rate through the engine [kilograms/second]
+    oxidizer_mass_flow_rate: float = total_core_mass_flow_rate/(1 + (1/OF_ratio))    # The targeted mass flow rate for oxidizer through the engine [kilograms/second]
+    core_fuel_mass_flow_rate: float = total_core_mass_flow_rate/(OF_ratio + 1)       # The targeted mass flow rate for fuel through the engine [kilograms/second]
+    film_percentage: float = 0.3                                                     # The targeted film percentage [dimensionless]
+    film_fuel_mass_flow_rate: float = film_percentage * core_fuel_mass_flow_rate                 # The targeted film mass flow rate for fuel [kilograms/second]
+    burn_time: float = 2.09                                                          # The estimated burn time of the engine [seconds]
+    maximum_expected_burn_time: float = burn_time / 0.8                              # The maximum expected burn time of the engine [seconds]
+    contraction_ratio: float = 7.0                                                   # The target ratio of chamber area to throat area [dimensionless]
+    exit_pressure: float = 15.0 * c.PSI2PA                                           # The target exit pressure of the exhaust gas [Pascals]
+    # combustion_temperature: float = 2170                                           # The estimated combustion temperature [Kelvin]
+    chamber_outer_diameter: float = 6.0 * c.IN2M                                     # The design combustion chamber diameter [meters]
+    chamber_inner_diameter: float = 4.9 * c.IN2M                                     # The design combustion chamber diameter [meters]
+    chamber_throat_diameter: float = 1.852 * c.IN2M                                  # The design throat diameter [meters]
     
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
@@ -133,6 +135,16 @@ class VehicleParameters:
     dry_COM_location_from_top: float = None
     wet_COM_location_from_bottom: float = None
     wet_COM_location_from_top: float = None
+    
+    
+    upper_strut_max_load: float = None
+    mid_strut_max_load: float = None
+    lower_strut_max_load: float = None
+    
+    fuel_tank_max_load: float = None
+    oxygen_tank_max_load: float = None
+    copv_tube_max_load: float = None
+    
 
     # internal freeze flag
     _frozen: bool = field(default=False, init=False, repr=False)
@@ -142,6 +154,9 @@ class VehicleParameters:
 
     def freeze(self):
         object.__setattr__(self, "_frozen", True)
+        
+    def unfreeze(self):
+        object.__setattr__(self, "_frozen", False)
 
     def __setattr__(self, name, value):
         if getattr(self, "_frozen", False) and name != "_frozen":

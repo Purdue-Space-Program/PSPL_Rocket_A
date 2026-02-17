@@ -5,23 +5,86 @@ import subprocess
 from datetime import datetime
 import inspect
 import io
-from dataclasses import dataclass, fields, field
-
+from dataclasses import dataclass, fields, field, make_dataclass, asdict
+import scipy.io as sio 
+import numpy as np
 import vehicle_parameters
 
-def ConvertObjectToCSV(object, file_name):
-    repository_root_path, caller_file_path = Get_Repository_Root_Path()
+
+def load_matlab_struct_as_dataclass(file_path_string):
+    matlab_struct_name = Path(file_path_string.parts[-1]).stem
+    weird_matlab_struct = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=True)
+    normal_matlab_data_struct = weird_matlab_struct[matlab_struct_name]
     
-    if isinstance(file_name, Path):
-        export_file_path = file_name
-    else:
-        export_file_path = Path(file_name)
+    # for field_name in normal_matlab_data_struct._fieldnames:
+    #     print(f"field_name: {field_name}")    
+    
+    
+    # the_dataclass = make_dataclass(
+    #     matlab_struct_name,
+    #     [(normal_matlab_data_struct._fieldnames, type(field_values_dictionary[field_name])) for field_name in field_values_dictionary]
+    # )
+    # @dataclass(frozen=True)
+    # class MassComponent:
+    # dataclass = {}
+
+
+        # clean_dictionary[key] = Convert_Matlab_Struct_To_Python_Dictionary(
+        #     raw_matlab_data_dictionary[key]
+        # )
+
+    return normal_matlab_data_struct
+
+
+def Convert_Matlab_Struct_To_Python_Dictionary(matlab_object):
+    if hasattr(matlab_object, "_fieldnames"):
+        field_values_dictionary = {}
+
+        for field_name in matlab_object._fieldnames:
+            field_values_dictionary[field_name] = Convert_Matlab_Struct_To_Python_Dictionary(
+                getattr(matlab_object, field_name)
+            )
+
+        dataclass_type = make_dataclass(
+            "MatlabStruct",
+            [(field_name, type(field_values_dictionary[field_name])) for field_name in field_values_dictionary]
+        )
+
+        return dataclass_type(**field_values_dictionary)
+
+
+def _convert_struct_array(matlab_struct_array):
+    python_dictionary = {}
+
+    struct_element = matlab_struct_array[0, 0]
+
+    for field_name in struct_element.dtype.names:
+        field_value = struct_element[field_name]
+        python_dictionary[field_name] = Convert_Matlab_Struct_To_Python_Dictionary(field_value)
+
+    return python_dictionary
+
+
+
+
+def convert_mass_distribution_to_matlab_dict(mass_distribution_object):
+    matlab_struct_dictionary = {}
+    for dataclass_field in fields(mass_distribution_object):
+        mass_component_object = getattr(mass_distribution_object, dataclass_field.name)
+        matlab_struct_dictionary[dataclass_field.name] = asdict(mass_component_object)
+    return matlab_struct_dictionary
+
+
+
+def ExportObjectToCSV(object, export_file_path):
+    repository_root_path, caller_file_path = Get_Repository_Root_Path()
+    export_file_path = Path(export_file_path)
 
     if export_file_path.suffix != ".csv":
         export_file_path = export_file_path.with_suffix(".csv")
-    if not export_file_path.is_absolute():
-        export_file_path = repository_root_path / export_file_path
-    export_file_path.parent.mkdir(parents=True, exist_ok=True)
+    # if not export_file_path.is_absolute():
+    #     export_file_path = repository_root_path / export_file_path
+    
 
     try:
         caller_file_path = Path(caller_file_path.relative_to(repository_root_path).as_posix())

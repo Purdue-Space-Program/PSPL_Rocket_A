@@ -1,28 +1,35 @@
-# Accessed: 2026-02-12_19-33-52 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-02-17_03-16-01 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: main.py
 parameter_name,value
 yield_FoS,1.5
 ultimate_FoS,2.0
 proof_factor,1.5
 fuel_name,isopropyl alcohol
-oxidizer_name,liquid oxygen
+oxidizer_name,oxygen
+pressurant_name,nitrogen
 tube_outer_diameter,0.15239999999999998
 tube_inner_diameter,0.14604999999999999
+engine_efficiency,0.81
 chamber_pressure,1723690.0
 jet_thrust,2971.4112869146697
+maximum_expected_jet_thrust,3668.40899619095
 ISP,175.0
 OF_ratio,1.0
-total_mass_flow_rate,1.73272144
+total_core_mass_flow_rate,1.73272144
 oxidizer_mass_flow_rate,0.86636072
 core_fuel_mass_flow_rate,0.86636072
+film_percentage,0.3
 film_fuel_mass_flow_rate,0.25990821599999997
 burn_time,2.09
+maximum_expected_burn_time,2.6125
 contraction_ratio,7.0
 exit_pressure,103421.40000000001
 chamber_outer_diameter,0.15239999999999998
 chamber_inner_diameter,0.12446
 chamber_throat_diameter,0.0470408
 tank_pressure,2930273.0
+oxidizer_tank_pressure,2930273.0
+fuel_tank_pressure,2930273.0
 tank_outer_diameter,0.15239999999999998
 tank_inner_diameter,0.14604999999999999
 tank_wall_thickness,0.0031749999999999973
@@ -75,3 +82,9 @@ dry_COM_location_from_bottom,1.2154505217816824
 dry_COM_location_from_top,2.077126078218318
 wet_COM_location_from_bottom,1.200863040631139
 wet_COM_location_from_top,2.0917135593688614
+upper_strut_max_load,
+mid_strut_max_load,
+lower_strut_max_load,
+fuel_tank_max_load,
+oxygen_tank_max_load,
+copv_tube_max_load,

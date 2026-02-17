@@ -6,64 +6,11 @@ import builtins
 from dataclasses import fields, asdict
 import shear_bolted_joints
 
-import vehicle_parameters
+from vehicle_parameters import parameters, wet_mass_distribution
 import vehicle_parameters_functions
-import SFD.rdof
+# import SFD.rdof
 import print_filter
 
-
-def Convert_Matlab_Struct_To_Python_Dictionary(matlab_object):
-    """
-    Recursively convert scipy.io.loadmat struct objects
-    into native Python dictionaries.
-    """
-
-    if isinstance(matlab_object, np.ndarray):
-
-        # If it is a MATLAB struct array
-        if matlab_object.dtype.names is not None:
-            return _convert_struct_array(matlab_object)
-
-        # If it is a numeric array
-        if matlab_object.size == 1:
-            return matlab_object.item()
-
-        return matlab_object
-
-    return matlab_object
-
-
-def _convert_struct_array(matlab_struct_array):
-    python_dictionary = {}
-
-    struct_element = matlab_struct_array[0, 0]
-
-    for field_name in struct_element.dtype.names:
-        field_value = struct_element[field_name]
-        python_dictionary[field_name] = Convert_Matlab_Struct_To_Python_Dictionary(field_value)
-
-    return python_dictionary
-
-
-def load_matlab_file_as_clean_dictionary(file_path_string):
-    raw_matlab_data_dictionary = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=False)
-
-    clean_dictionary = {}
-
-    for key in raw_matlab_data_dictionary:
-        if key.startswith("__"):
-            continue
-
-        clean_dictionary[key] = Convert_Matlab_Struct_To_Python_Dictionary(
-            raw_matlab_data_dictionary[key]
-        )
-
-    return clean_dictionary
-
-
-
-
-######### paused until i figure ts out ##########
 repository_root_path, _ = vehicle_parameters_functions.Get_Repository_Root_Path()
 
 PSPL_ROCKET_A_file_path = repository_root_path / Path(f"vehicle_parameters.csv")
@@ -87,21 +34,13 @@ try:
     export_path_list.append(Six_DoF_csv_file_path)
 except:
     print("6DOF export failed")
-    pass
+
+vehicle_parameters_functions.ExportObjectToCSV(parameters, PSPL_ROCKET_A_file_path)
+vehicle_parameters_functions.ExportObjectToCSV(parameters, Six_DoF_csv_file_path)
+vehicle_parameters_functions.ExportObjectToCSV(wet_mass_distribution, "wet_mass_distribution")
 
 
-vehicle_parameters_functions.ConvertObjectToCSV(vehicle_parameters.parameters, "vehicle_parameters")
-# vehicle_parameters_functions.ConvertObjectToCSV(vehicle_parameters.wet_mass_distribution, "wet_mass_distribution")
 
-
-def convert_mass_distribution_to_matlab_dict(mass_distribution_object):
-    matlab_struct_dictionary = {}
-    for dataclass_field in fields(mass_distribution_object):
-        mass_component_object = getattr(mass_distribution_object, dataclass_field.name)
-        matlab_struct_dictionary[dataclass_field.name] = asdict(mass_component_object)
-    return matlab_struct_dictionary
-
-structures_analysis_path = (repository_root_path.parent / "Structures_Analysis").resolve()
 
 # sio.savemat(
 #     structures_analysis_path / "wet_mass_distribution.mat",
@@ -125,91 +64,25 @@ structures_analysis_path = (repository_root_path.parent / "Structures_Analysis")
 
 
 
-# upper_strut_struct = structural_loads["upper_strut"][0][0]
 
-# upper_strut_max_compression = upper_strut_struct["max_compression"][0][0]
-# upper_strut_max_tension = upper_strut_struct["max_tension"][0][0]
+structural_loads_path = (repository_root_path / "Structures_Analysis" / "structural_loads.mat").resolve()
+structural_loads = vehicle_parameters_functions.load_matlab_struct_as_dataclass(structural_loads_path)
+# print(f"structural_loads.upper_strut.max_compreession: {structural_loads.upper_strut.max_compression} N")
 
-# print("Upper Strut Max Compression:", upper_strut_max_compression)
-# print("Upper Strut Max Tension:", upper_strut_max_tension)
+parameters.unfreeze()
+parameters.upper_strut_max_load = max(structural_loads.upper_strut.max_compression, structural_loads.upper_strut.max_tension)
+parameters.mid_strut_max_load = max(structural_loads.mid_strut.max_compression, structural_loads.mid_strut.max_tension)
+parameters.lower_strut_max_load = max(structural_loads.lower_strut.max_compression, structural_loads.lower_strut.max_tension)
 
+parameters.fuel_tank_max_load = max(structural_loads.fuel_tank.max_compression, structural_loads.fuel_tank.max_tension)
+parameters.oxygen_tank_max_load = max(structural_loads.oxygen_tank.max_compression, structural_loads.oxygen_tank.max_tension)
+parameters.copv_tube_max_load = max(structural_loads.copv_tube.max_compression, structural_loads.copv_tube.max_tension)
+parameters.freeze()
 
+print(f"parameters.upper_strut_max_load: {parameters.upper_strut_max_load:.2f}")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def Convert_Matlab_Struct_To_Python_Dictionary(matlab_object):
-    """
-    Recursively convert scipy.io.loadmat struct objects
-    into native Python dictionaries.
-    """
-
-    if isinstance(matlab_object, np.ndarray):
-
-        # If it is a MATLAB struct array
-        if matlab_object.dtype.names is not None:
-            return _convert_struct_array(matlab_object)
-
-        # If it is a numeric array
-        if matlab_object.size == 1:
-            return matlab_object.item()
-
-        return matlab_object
-
-    return matlab_object
-
-
-def _convert_struct_array(matlab_struct_array):
-    python_dictionary = {}
-
-    struct_element = matlab_struct_array[0, 0]
-
-    for field_name in struct_element.dtype.names:
-        field_value = struct_element[field_name]
-        python_dictionary[field_name] = Convert_Matlab_Struct_To_Python_Dictionary(field_value)
-
-    return python_dictionary
-
-
-def load_matlab_file_as_clean_dictionary(file_path_string):
-    raw_matlab_data_dictionary = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=False)
-
-    clean_dictionary = {}
-
-    for key in raw_matlab_data_dictionary:
-        if key.startswith("__"):
-            continue
-
-        clean_dictionary[key] = Convert_Matlab_Struct_To_Python_Dictionary(
-            raw_matlab_data_dictionary[key]
-        )
-
-    return clean_dictionary
-
-
-if not invoked_by_matlab:
-    structural_loads = Convert_Matlab_Struct_To_Python_Dictionary(sio.loadmat(structures_analysis_path / "structural_loads.mat")["structural_loads"])
-else:
-    structural_loads = None
-
-# print(structural_loads)
 
 if __name__ == "__main__":
     with print_filter.context_manager(print_everything=False, print_margins=True, print_titles=True):
         shear_bolted_joints.Calculate_Shear_Bolted_Joints()
+

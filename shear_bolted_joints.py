@@ -3,12 +3,16 @@ import sys
 import os
 from dataclasses import dataclass, fields, field
 import matplotlib.pyplot as plt
+import copy
+import scipy.io as sio
+from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
 from vehicle_parameters import parameters
+import vehicle_parameters_functions
 import print_filter
-import "Structures_Analysis".structural_loads
+
 
 def CalculateCircleAreaWithDiameter(diameter):
     circle_area = np.pi*((diameter/2)**2)
@@ -27,7 +31,7 @@ def CalculateMoS(maximum_allowable_load, limit_load, FOS, fitting_factor):
     return (MoS)
 
 
-def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolts, joint_member_1_material, joint_member_1_thickness, joint_member_1_shear_limit_load, joint_member_1_E_d_ratio, joint_member_1_shear_joint_type):
+def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolts, shear_limit_load, joint_member_1_material, joint_member_1_thickness, joint_member_1_E_d_ratio, joint_member_1_shear_joint_type):
     print(f"\tBolt Name: {bolt_thread_size} UNF")
     print(f"\tBolt Material: {bolt_material}")
     
@@ -39,27 +43,36 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
         case "Single":
             pass
         case "Double":
-            joint_member_1_shear_limit_load /= 2
+            shear_limit_load /= 2
         case _:
             raise ValueError(f"Invalid Shear Joint Type: {joint_member_1_shear_joint_type}")
 
     # material properties
     F_su_316_Stainless_Steel = 50_000 * c.PSI2PA # [psi] S-basis from MMPDS-2019
     F_su_Alloy_Steel = 153_000*0.5 * c.PSI2PA # [psi] out of my ass
-
-    # from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
-    F_bry_Aluminum_6061_T6_E_d_one_point_five = 50_000 * c.PSI2PA # [psi] 
-    F_bru_Aluminum_6061_T6_E_d_one_point_five = 67_000 * c.PSI2PA # [psi]
-    F_bry_Aluminum_6061_T6_E_d_two = 58_000 * c.PSI2PA # [psi] 
-    F_bru_Aluminum_6061_T6_E_d_two = 88_000 * c.PSI2PA # [psi] 
     
-    # F_bry_Aluminum_6063_T5_E_d_one_point_five = ???_000 * c.PSI2PA # [psi] 
-    # F_bru_Aluminum_6063_T5_E_d_one_point_five = ???_000 * c.PSI2PA # [psi]
-    F_bry_Aluminum_6063_T5_E_d_two = 25_600 * c.PSI2PA # [psi] 
-    F_bru_Aluminum_6063_T5_E_d_two = 46_000 * c.PSI2PA # [psi] 
+    # from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
+    F_bru_Aluminum_6061_T6_E_d_one_point_five = 67_000 * c.PSI2PA # [psi]
+    F_bru_Aluminum_6061_T6_E_d_two =            88_000 * c.PSI2PA # [psi] 
+    F_bry_Aluminum_6061_T6_E_d_one_point_five = 50_000 * c.PSI2PA # [psi] 
+    F_bry_Aluminum_6061_T6_E_d_two =            58_000 * c.PSI2PA # [psi] 
+    
+    F_bru_Aluminum_7055_T74511_E_d_one_point_five = 115_000 * c.PSI2PA # [psi]
+    F_bru_Aluminum_7055_T74511_E_d_two =            151_000 * c.PSI2PA # [psi] 
+    F_bry_Aluminum_7055_T74511_E_d_one_point_five = 96_000 * c.PSI2PA # [psi] 
+    F_bry_Aluminum_7055_T74511_E_d_two =            114_000 * c.PSI2PA # [psi] 
+    
+    
+    
 
-    F_bry_304_Stainless_Steel_E_d_two = 123_000 * c.PSI2PA
+    
+    # F_bru_Aluminum_6063_T5_E_d_one_point_five = ???_000 * c.PSI2PA # [psi]
+    F_bru_Aluminum_6063_T5_E_d_two = 46_000 * c.PSI2PA # [psi] 
+    # F_bry_Aluminum_6063_T5_E_d_one_point_five = ???_000 * c.PSI2PA # [psi] 
+    F_bry_Aluminum_6063_T5_E_d_two = 25_600 * c.PSI2PA # [psi] 
+
     F_bru_304_Stainless_Steel_E_d_two = 262_000 * c.PSI2PA
+    F_bry_304_Stainless_Steel_E_d_two = 123_000 * c.PSI2PA
 
     
     # source: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1838153742/magic+numbers
@@ -80,8 +93,6 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     
     bolt_hole_diameter = bolt_minor_diameter
     
-    
-    
     match joint_member_1_E_d_ratio:
         case 1.5:
             match joint_member_1_material:
@@ -91,6 +102,9 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
                 # case "Aluminum 6063-T52":
                     # joint_member_F_bry = F_bry_Aluminum_6063_T5_E_d_one_point_five
                     # joint_member_F_bru = F_bru_Aluminum_6063_T5_E_d_one_point_five
+                case "Aluminum 7055-T74511":
+                    joint_member_F_bry = F_bry_Aluminum_7055_T74511_E_d_one_point_five
+                    joint_member_F_bru = F_bru_Aluminum_7055_T74511_E_d_one_point_five
                 case _:
                     raise ValueError("cock and ball torque")
         case 2.0:
@@ -104,6 +118,9 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
                 case "304 Stainless Steel":
                     joint_member_F_bry = F_bry_304_Stainless_Steel_E_d_two
                     joint_member_F_bru = F_bru_304_Stainless_Steel_E_d_two
+                case "Aluminum 7055-T74511":
+                    joint_member_F_bry = F_bry_Aluminum_7055_T74511_E_d_two
+                    joint_member_F_bru = F_bru_Aluminum_7055_T74511_E_d_two
                 case _:
                     raise ValueError("cock and ball torque")
         case _:
@@ -127,7 +144,7 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     print(f"\tjoint_member_1_maximum_allowable_bearing_yield_load: {joint_member_1_maximum_allowable_bearing_yield_load * c.N2LBF:.2f} LBF, {joint_member_1_maximum_allowable_bearing_yield_load:.2f} N")
     print(f"\tjoint_member_1_maximum_allowable_bearing_ultimate_load: {joint_member_1_maximum_allowable_bearing_ultimate_load * c.N2LBF:.2f} LBF, {joint_member_1_maximum_allowable_bearing_ultimate_load:.2f} N")
 
-    limit_shear_load_per_bolt = joint_member_1_shear_limit_load/number_of_bolts
+    limit_shear_load_per_bolt = shear_limit_load/number_of_bolts
     
     initial_fitting_factor = 1 # since we dont know if the joint is shear or bearing critical yet (idk if this is the right way to do it tbh)
     
@@ -171,17 +188,13 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     
     return (bolt_shear_ultimate_MoS, clamped_material_bearing_ultimate_MoS, clamped_material_bearing_yield_MoS)
 
-
-
 @dataclass
 class JointMember:
     # General Parameters
     material: str
     thickness: float
-    shear_limit_load: float
     E_d_ratio: float
     shear_joint_type: str
-
 
 @dataclass
 class ShearBoltedJoint:
@@ -189,77 +202,90 @@ class ShearBoltedJoint:
     bolt_material: str
     bolt_thread_size: str
     number_of_bolts: float
+    shear_limit_load: float
     joint_member_1: JointMember
-    # joint_member_1_material: str
-    # joint_member_1_thickness: float
-    # joint_member_1_shear_limit_load: float
-    # E_d_ratio: float
-    # shear_joint_type: str
         
     def Calculate_Shear_Bolted_Joint(self):
         return Calculate_Shear_Bolted_Joint(bolt_material =  self.bolt_material, 
                                     bolt_thread_size = self.bolt_thread_size, 
                                     number_of_bolts = self.number_of_bolts,
+                                    shear_limit_load = self.shear_limit_load,
                                     joint_member_1_material = self.joint_member_1.material ,
                                     joint_member_1_thickness = self.joint_member_1.thickness,
-                                    joint_member_1_shear_limit_load = self.joint_member_1.shear_limit_load,        
                                     joint_member_1_E_d_ratio = self.joint_member_1.E_d_ratio,
                                     joint_member_1_shear_joint_type = self.joint_member_1.shear_joint_type)
 
 def Calculate_Shear_Bolted_Joints():
     
-    lower_strut = JointMember(material = "Aluminum 6063-T52",
-                            thickness = 0.125 * c.IN2M,
-                            E_d_ratio = 1.5,
-                            shear_limit_load = 1 * c.LBF2N,
-                            shear_joint_type = "Double"
-    )
-    mid_strut = JointMember(material = "Aluminum 6063-T52",
-                            thickness = 0.125 * c.IN2M,
-                            E_d_ratio = 2,
-                            shear_limit_load = 991 * c.LBF2N,
-                            shear_joint_type = "Double"
-    )
     upper_strut = JointMember(material = "Aluminum 6063-T52",
                             thickness = 0.125 * c.IN2M,
-                            E_d_ratio = 1.5,
-                            shear_limit_load = 991 * c.LBF2N,
+                            E_d_ratio = 2.0,
                             shear_joint_type = "Double"
     )
-    
-    tank_wall = JointMember(material = "Aluminum 6061-T6",
+    mid_strut = copy.deepcopy(upper_strut)    
+    lower_strut = copy.deepcopy(upper_strut)
+
+    tank_wall = JointMember(material = "Aluminum 7055-T74511",
                             thickness = 0.125 * c.IN2M,
                             E_d_ratio = 1.5,
-                            shear_limit_load = 991 * c.LBF2N,
                             shear_joint_type = "Single"
-    )
+                           )
     
-    
-    # print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
-    # bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
-    # bulkhead_blowoff_load = (parameters.tank_pressure * bulkhead_area) * parameters.proof_factor
-    # print(f"\tBulkhead blowoff load: {bulkhead_blowoff_load:.2f} N, {bulkhead_blowoff_load * c.N2LBF :.2f} LBF")
-        
-    # tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
-    #                                                     bolt_thread_size = "5/16\"", 
-    #                                                     number_of_bolts = 18,
-    #                                                     joint_member_1_material = "Aluminum 6061-T6",
-    #                                                     joint_member_1_thickness = 0.125 * c.IN2M,
-    #                                                     E_d_ratio = 1.5,
-    #                                                     joint_member_1_shear_limit_load = bulkhead_blowoff_load,
-    #                                                     shear_joint_type = "Single")
-    # tank_wall_to_bulkhead_joint.Calculate_Shear_Bolted_Joint()
-
+    recovery_bay = copy.deepcopy(tank_wall) 
+    recovery_bay.material = "Aluminum 6061-T6"
 
     
+    print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
+    bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
+    bulkhead_blowoff_load = (parameters.tank_pressure * bulkhead_area) * parameters.proof_factor
+    print(f"\tBulkhead blowoff load: {bulkhead_blowoff_load:.2f} N, {bulkhead_blowoff_load * c.N2LBF :.2f} LBF")
+
+    tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
+                                                   bolt_thread_size = "5/16\"", 
+                                                   number_of_bolts = 18,
+                                                   shear_limit_load = bulkhead_blowoff_load,
+                                                   joint_member_1 = tank_wall
+                                                  )
+    tank_wall_to_bulkhead_joint.Calculate_Shear_Bolted_Joint()
+
+
+    print("------------- Tank Bulkhead to Upper Strut Bolted Joint -------------", i_am_a_title=True)
+    tank_bulkhead_to_upper_strut_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
+                                                          bolt_thread_size = "#10", 
+                                                          number_of_bolts = 2,
+                                                          shear_limit_load = parameters.upper_strut_max_load,
+                                                          joint_member_1 = upper_strut
+                                                         )
+    tank_bulkhead_to_upper_strut_joint.Calculate_Shear_Bolted_Joint()
+
     print("------------- Tank Bulkhead to Mid Strut Bolted Joint -------------", i_am_a_title=True)
-    tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
-                                                        bolt_thread_size = "#10", 
-                                                        number_of_bolts = 2,
-                                                        joint_member_1 = mid_strut)
-    tank_bulkhead_to_strut_joint.Calculate_Shear_Bolted_Joint()
+    tank_bulkhead_to_mid_strut_joint = copy.deepcopy(tank_bulkhead_to_upper_strut_joint)
+    tank_bulkhead_to_mid_strut_joint.joint_member_1 = mid_strut
+    tank_bulkhead_to_mid_strut_joint.shear_limit_load = parameters.mid_strut_max_load
+    tank_bulkhead_to_mid_strut_joint.Calculate_Shear_Bolted_Joint()
+
+    print("------------- Tank Bulkhead to Lower Strut Bolted Joint -------------", i_am_a_title=True)
+    tank_bulkhead_to_lower_strut_joint = copy.deepcopy(tank_bulkhead_to_upper_strut_joint)
+    tank_bulkhead_to_lower_strut_joint.shear_limit_load = parameters.lower_strut_max_load
+    tank_bulkhead_to_lower_strut_joint.joint_member_1 = lower_strut
+    tank_bulkhead_to_lower_strut_joint.Calculate_Shear_Bolted_Joint()
 
 
+
+    print("------------- Recovery Bulkhead Bolted Joint -------------", i_am_a_title=True)    
+    injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
+                                                            bolt_thread_size = "1/4", 
+                                                            number_of_bolts = 12,
+                                                            shear_limit_load = parameters.copv_tube_max_load,
+                                                            joint_member_1 = recovery_bay,
+                                                            )
+    injector_upper_half_to_fin_can_strut.Calculate_Shear_Bolted_Joint()
+    
+    
+    
+    # print("-------------Recovery Bay Connector Bolted Joint-------------\n", i_am_a_title=True)
+    
+    
     # print("-------------Launch Lug Bolted Joint-------------", i_am_a_title=True)
     # tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
     #                                                     bolt_thread_size = "#10", 
@@ -271,41 +297,6 @@ def Calculate_Shear_Bolted_Joints():
     #                                                     joint_member_1_shear_limit_load = 668 * c.LBF2N,
     #                                                     shear_joint_type = "Single")
     # tank_bulkhead_to_strut_joint.Calculate_Shear_Bolted_Joint()
-
-
-
-    print("------------- Recovery Bulkhead Bolted Joint -------------", i_am_a_title=True)    
-    injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
-                                                            bolt_thread_size = "1/4", 
-                                                            number_of_bolts = 12,
-                                                            joint_member_1 = tank_wall,
-                                                            )
-    injector_upper_half_to_fin_can_strut.Calculate_Shear_Bolted_Joint()
-    
-    
-    
-    # print("-------------Recovery Bay Connector Bolted Joint-------------\n", i_am_a_title=True)
-    # # tank wall
-    
-    # tank_wall_to_bulkhead_bolted_joint_bolt_material = "316 Stainless Steel"
-    # tank_wall_to_bulkhead_bolted_joint_joint_member_material = "Aluminum 6061-T6"
-
-    # tank_wall_to_bulkhead_bolted_joint_bolt_name = "5/16"
-    # tank_wall_to_bulkhead_bolted_joint_number_of_bolts = 18
-    # tank_wall_to_bulkhead_bolted_joint_E_d_ratio = 1.5
-
-    # tank_wall_thickness = 0.125 * c.IN2M
-
-    # # bolt
-    # tank_wall_to_bulkhead_bolted_joint_number_of_bolts = 18
-    # tank_wall_to_bulkhead_bolted_joint_E_d_ratio = 1.5
-
-    # CalculateShearJoint(tank_wall_to_bulkhead_bolted_joint_bolt_name, 
-    #                     tank_wall_to_bulkhead_bolted_joint_bolt_material, 
-    #                     tank_wall_to_bulkhead_bolted_joint_number_of_bolts, 
-    #                     tank_wall_to_bulkhead_bolted_joint_joint_member_material, 
-    #                     tank_wall_thickness, 
-    #                     tank_wall_to_bulkhead_bolted_joint_E_d_ratio)
     
 
 
@@ -315,5 +306,6 @@ def main():
 
 
 if __name__ == "__main__":
+    import main
     main()
     
