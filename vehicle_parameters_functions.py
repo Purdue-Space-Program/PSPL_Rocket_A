@@ -147,6 +147,21 @@ def ExportObjectToCSV(object, export_file_path):
 
 
 
+
+
+
+
+
+def ExportObjectToMat(object, export_file_path):
+    sio.savemat(
+        export_file_path,
+        {"wet_mass_distribution": convert_mass_distribution_to_matlab_dict(object)}
+    )
+
+
+
+
+
 # def Generate_CSV_Bytes_From_Parameters(parameters):
 #     string_buffer = io.StringIO()
 #     csv_writer_handle = csv.writer(string_buffer)

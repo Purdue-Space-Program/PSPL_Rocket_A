@@ -34,5 +34,4 @@ end
 
 % disp(structural_loads.upper_strut.max_compression)
 
-
 save("structural_loads.mat", "structural_loads");

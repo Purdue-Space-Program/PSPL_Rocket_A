@@ -3,10 +3,17 @@ cd('C:..')
 
 python_executable_path = "python";
 python_script_path = "main.py";
-[exit_status, command_output] = system("set PSPL_INVOKED_BY_MATLAB=1 && " + python_executable_path + " " + python_script_path);
 
-% fprintf("exit_status: %d\n", exit_status);
-% fprintf("command_output:\n%s\n", command_output);
+launched_by = getenv("LAUNCHED_BY");
+fprintf("launched_by: %s\n", launched_by);
+
+if ~(strcmp(launched_by, "python"))
+    setenv("LAUNCHED_BY", "matlab");
+    [exit_status, command_output] = system(python_executable_path + " " + python_script_path);
+    fprintf("exit_status: %d\n", exit_status);
+    fprintf("command_output:\n%s\n", command_output);
+end
+
 
 vehicle_parameters_csv_path = fullfile("vehicle_parameters.csv");
 csv_import_options = detectImportOptions(vehicle_parameters_csv_path);
