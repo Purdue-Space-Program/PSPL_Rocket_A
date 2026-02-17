@@ -38,6 +38,7 @@ class VehicleParameters:
     # Engine Parameters
     chamber_pressure: float = 250 * c.PSI2PA                                    # The target combustion pressure in the engine [Pascals]
     jet_thrust: float = 668.0 * c.LBF2N                                         # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
+    max_jet_thrust: float = jet_thrust / 0.9                                    # The maximum expected engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
     ISP: float = 175.0                                                          # The estimated ISP of the engine [seconds]
     OF_ratio: float = 1.0                                                       # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
     total_mass_flow_rate: float = 3.82 * c.LBM2KG                               # The targeted mass flow rate through the engine [kilograms/second]
@@ -45,6 +46,7 @@ class VehicleParameters:
     core_fuel_mass_flow_rate: float = total_mass_flow_rate/(OF_ratio + 1)       # The targeted mass flow rate for fuel through the engine [kilograms/second]
     film_fuel_mass_flow_rate: float = 0.3 * core_fuel_mass_flow_rate            # The targeted film mass flow rate for fuel [kilograms/second]
     burn_time: float = 2.09                                                     # The estimated burn time of the engine [seconds]
+    max_burn_time: float = burn_time / 0.8                                      # The maximum expected burn time of the engine [seconds]
     contraction_ratio: float = 7.0                                              # The target ratio of chamber area to throat area [dimensionless]
     exit_pressure: float = 15.0 * c.PSI2PA                                      # The target exit pressure of the exhaust gas [Pascals]
     # combustion_temperature: float = 2170                                      # The estimated combustion temperature [Kelvin]
@@ -97,11 +99,8 @@ class VehicleParameters:
     sweep_length: float = root_chord - tip_chord
     wingspan: float = 7.4 * c.IN2M
     number_of_fins: float = 3 # [-]
-    fin_top: float = None
+    fin_top: float = None # the location of the top of the fin
 
-    # fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft
-    # noseconeToFin = total_length - fin_top
-        
     # 1-DoF Results:
     one_DoF_off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     one_DoF_off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravities]

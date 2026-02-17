@@ -86,6 +86,7 @@ try:
     Six_DoF_csv_file_path.parent.mkdir(parents=True, exist_ok=True)
     export_path_list.append(Six_DoF_csv_file_path)
 except:
+    print("6DOF export failed")
     pass
 
 

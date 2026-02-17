@@ -1,5 +1,5 @@
 clear;
-clc;
+% clc;
 
 structural_loads = struct();
 

@@ -47,6 +47,13 @@ rocket_dict_dry = vehicle.rocket_dict_dry # Import rocket parameters from vehicl
 parachute_mass = vehicle.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
 max_height = vehicle.parameters.six_DoF_estimated_apogee # [m]
+rocket_outer_diameter = vehicle.parameters.tube_outer_diameter # m
+
+CD_drogue = 2.2 # drag coefficient of drogue parachute
+CD_main = 0 # 2.2 # drag coefficient of main parachute
+
+starting_alt = vehicle.parameters.six_DoF_estimated_apogee # [m] Apogee of rocket
+velocity_x_initial = 42 # [m/s]
 
 # Mass Model
 def get_mass_model(rocket_dict, parachute_mass):
@@ -89,8 +96,7 @@ dy = length_along_rocket_linspace[1] - length_along_rocket_linspace[0] # m, leng
 mass_model_slices = linear_density_array * dy # [kg], mass of each slice in mass model
 mass_model = np.cumsum(mass_model_slices)  # kg*m^2, mass model
 total_mass = sum(mass_model_slices)  # kg
-outer_diameter = vehicle.parameters.tube_outer_diameter # m
-radius = outer_diameter / 2  # m
+rocket_radius = rocket_outer_diameter / 2  # m
 
 phi_init = 0 # [degrees] Initial orientation of rocket
 total_length = length_along_rocket_linspace[-1] # m
@@ -103,15 +109,10 @@ CGtoCenter = total_length/2 - CGpos  # CG position from center (m)
 # Moment of inertia calculation, parallel axis theorem
 I_slices = (1/12) * mass_model_slices * (dy**2) # Moment of inertia of each slice about its own center (kg*m^2)
 I_parallel = mass_model_slices * pow(slice_pos - CGpos, 2) # Mass * distance^2 term i n parallel axis theorem (kg*m^2)
-inertia = np.sum(I_slices + I_parallel) + (1/4)*total_mass*(radius**2) # kg*m^2, moment of inertia about CG
+inertia = np.sum(I_slices + I_parallel) + (1/4)*total_mass*(rocket_radius**2) # kg*m^2, moment of inertia about CG
 
 CD_cylinder = 1.1
 
-CD_drogue = 2.2 # drag coefficient of drogue parachute
-CD_main = 0 # 2.2 # drag coefficient of main parachute
-
-starting_alt = vehicle.parameters.six_DoF_estimated_apogee # [m] Apogee of rocket
-velocity_x_initial = 24 # [m/s]
 initial_conditions = [0, 0, velocity_x_initial, 0, starting_alt]  # [phi, omega, vx, vy, altitude]
 
 # Create chute area piecewise function
@@ -181,7 +182,7 @@ def transform_gTor(g_vec, phi):
 def dragArea(vx, vy, phi):
     normal_dir = [-sin(phi), cos(phi)]  # normal direction to rocket axis
     normalized_v = np.array([vx, vy]) / magnitude([vx, vy])  # normalized velocity vector
-    cylinder_side_area = total_length * outer_diameter
+    cylinder_side_area = total_length * rocket_outer_diameter
     return np.abs(np.dot(normalized_v, normal_dir) * cylinder_side_area * CD_cylinder)
 
 # Force calculations
@@ -227,7 +228,7 @@ def M_chute(t, alt, omega, vx, vy, phi, dist):
 
 # Calculate rotational drag, it is a moment
 def rotationalDrag(alt, omega, length):
-    moment = -(Get_Air_Density(alt)*CD_cylinder * radius * pow(length,4)*omega*np.abs(omega))/12
+    moment = -(Get_Air_Density(alt)*CD_cylinder * rocket_radius * pow(length,4)*omega*np.abs(omega))/12
     return moment
 
 # Calculate total moment on rocket at a given time, altitude, velocity, orientation, and position along the rocket
@@ -469,7 +470,7 @@ if __name__ == "__main__":
 
     # Save to matlab
     # Converting to matlab file
-    matlab_dict = {"axial_array_recovery": drogue_axial, "shear_array_recovery": drogue_shear, "bending_array_recovery": drogue_bending, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
+    matlab_dict = {"axial_array": drogue_axial, "shear_array": drogue_shear, "bending_array": drogue_bending, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
     savemat("rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB)
     
     # Save internal loads to excel, for both drogue and main deployments

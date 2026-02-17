@@ -153,11 +153,15 @@ if timeToPdr
         for theta = [0, pi]
             fprintf("theta: %.2f\n", theta);
             if (state == "maxQ")
-                M = largest_value([momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2))]);
-                Fg = largest_value([axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2))]);
+                M = max([momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2))
+                
+                Fg = max([axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2))
+                
             elseif (state == "Recovery")
-                M = largest_value([momentLoadsrfd(locationRecovery(1)), momentLoadsrfd(locationRecovery(2))]);
-                Fg = largest_value([axialLoadsrfd(locationRecovery(1)), axialLoadsrfd(locationRecovery(2))]);
+momentLoadsrfd(locationRecovery(1)) * (state == 2), momentLoadsrfd(locationRecovery(2)) * (state == 2)]);
+        axialLoadsrfd(locationRecovery(1)), axialLoadsrfd(locationRecovery(2)) * (state == 2)]);
+
+
             end
 
             R = radius;
@@ -165,7 +169,7 @@ if timeToPdr
             F3 = (Fg - ((2 * M * cos(theta)) / R)) / 3;
             F1 = M * cos(theta) / (3 * R) + Fg / 3 - M * sin(theta) / (R * sqrt(3));
             F2 = M * cos(theta) / (3 * R) + Fg / 3 + M * sin(theta) / (R * sqrt(3));
-            fprintf("F1: %2.2f\nF2: %2.2f\nF3: %2.2f\n\n", F1, F2, F3)
+            fprintf("F1: %2.f\nF2: %2.f\nF3: %2.f\n\n", F1, F2, F3)
 
         end
     end
