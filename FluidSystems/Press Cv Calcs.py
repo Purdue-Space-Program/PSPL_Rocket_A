@@ -81,7 +81,7 @@ rho_ox_press = PropsSI('D', 'P', parameters.oxidizer_tank_pressure, 'T', T_ox, P
 m_dot_ox_press = rho_ox_press * Q_dot_ox_press # [kg/s] required mass flow rate of press gas into ox tank
 # Assume end-of-burn conditions with isentropic expansion in COPV and adiabatic upper plumbing for coldest press gas going into fuel tank
 
-P2_copv = 1000 * c.PSI2PA # (2 * max(P_OX, P_FU)) # [Pa] ending COPV pressure (assumed, should vary this to check numbers)
+P2_copv = 3000 * c.PSI2PA # (2 * max(P_OX, P_FU)) # [Pa] ending COPV pressure (assumed, should vary this to check numbers)
 s1_copv = PropsSI('S', 'P', parameters.COPV_starting_pressure, 'T', T1_COPV, PRESS_GAS) # [J/kgK] starting COPV entropy
 s2_copv = s1_copv # [J/kgK] ending COPV entropy (assumed isentropic expansion)
 h2_copv = PropsSI('H', 'P', P2_copv, 'S', s2_copv, PRESS_GAS) # [J/kg] ending COPV enthalpy
@@ -91,9 +91,10 @@ m_dot_fu_press = rho_fu_press * Q_dot_fu_press # [kg/s] required mass flow rate 
 
 # Required Cv calcuations
 T2_copv = PropsSI('T', 'P', P2_copv, 'S', s2_copv, PRESS_GAS) # [K] ending COPV temperature
-# Ox tank
+
+
+m_dot_ox_press = 0.25 # override to use value from press sim
 cv_required_ox = Cv_Choked(PRESS_GAS, m_dot_ox_press, P2_copv, T2_copv)
-# Fuel tank
 cv_required_fu = Cv_Choked(PRESS_GAS, m_dot_fu_press, P2_copv, T2_copv)
 
 # Print output

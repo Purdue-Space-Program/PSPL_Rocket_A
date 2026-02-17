@@ -14,7 +14,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-from vehicle_parameters import parameters
+from vehicle_parameters import parameters as p
 
 # Simulation settings
 T_AMBIENT = 293 # [K] ambient temperature
@@ -75,30 +75,31 @@ if vehicle_name == "Copperhead":
 
 if vehicle_name == "Rocket_A":
     ADIABATIC = False # True to ignore heat transfer in the tanks
-    PREPRESS = "adiabatic" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
+    PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
     PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
     
     PRESS_GAS = "nitrogen"
-    P_COPV = parameters.COPV_starting_pressure # [Pa] starting COPV pressure
+    P_COPV = p.COPV_starting_pressure # [Pa] starting COPV pressure
     T_COPV = 300 # [K] starting COPV temperature (assumed)
-    GRAVITY = parameters.one_DoF_off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
-    V_COPV = parameters.COPV_volume # [m^3] COPV volume
+    GRAVITY = p.one_DoF_off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
+    V_COPV = p.COPV_volume # [m^3] COPV volume
+
     # Tanks
-    D_TANK = parameters.tank_outer_diameter # [m] tank outer diameter
-    T_TANK = parameters.tank_wall_thickness # [m] tank wall thickness
+    D_TANK = p.tank_outer_diameter # [m] tank outer diameter
+    T_TANK = p.tank_wall_thickness # [m] tank wall thickness
     RHO_TANK = c.DENSITY_AL # [kg/m^3] tank material density (aluminum)
     M_BULKHEAD = 1.5 * c.LBM2KG # [kg] bulkhead mass (single bulkhead)
     CP_TANK = 500 # [J/kgK] tank material specific heat
     D_PRESS_LINE = (3/8) * c.IN2M # [m] fuel tank pressurization line outer diameter
     T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
-    P_TANK = parameters.oxidizer_tank_pressure
+    P_TANK = p.oxidizer_tank_pressure
     
     # Oxidizer
     OXIDIZER = "oxygen"
     P_FILL = 40 * c.PSI2PA # [Pa] fill pressure for LOx (assumed)
-    M_DOT_OX = parameters.oxidizer_mass_flow_rate # [kg/s] LOx mass flow rate
+    M_DOT_OX = p.oxidizer_mass_flow_rate # [kg/s] LOx mass flow rate
     P_OX = P_TANK # [Pa] oxidizer tank nominal pressure
-    V_OX = parameters.oxidizer_tank_usable_volume # [m^3] oxidizer tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
+    V_OX = p.oxidizer_tank_usable_volume # [m^3] oxidizer tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
@@ -111,9 +112,9 @@ if vehicle_name == "Rocket_A":
     
     # Fuel
     FUEL = "ethanol"
-    M_DOT_FU = parameters.core_fuel_mass_flow_rate # [kg/s] fuel mass flow rate
+    M_DOT_FU = p.core_fuel_mass_flow_rate # [kg/s] fuel mass flow rate
     P_FU = P_TANK # [Pa] fuel tank nominal pressure
-    V_FU = parameters.fuel_tank_usable_volume # [m^3] fuel tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
+    V_FU = p.fuel_tank_usable_volume # [m^3] fuel tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
