@@ -46,10 +46,13 @@ cd(currentDirectory)
 topLocation = max(location);
 bottomLocation = min(location);
 
-[~, locationMaxQ(1)] = min(abs(lengthLoadssfd - topLocation));
-[~, locationMaxQ(2)] = min(abs(lengthLoadssfd - bottomLocation));
-[~, locationRecovery(1)] = min(abs(lengthLoadsrfd - topLocation));
-[~, locationRecovery(2)] = min(abs(lengthLoadsrfd - bottomLocation));
+[~, laocationMaxQ(1)] = min(abs(lengthLoadssfd - topLocation));
+[~, laocationMaxQ(2)] = min(abs(lengthLoadssfd - bottomLocation));
+[~, laocationRecovery(1)] = min(abs(lengthLoadsrfd - topLocation));
+[~, laocationRecovery(2)] = min(abs(lengthLoadsrfd - bottomLocation));
+
+locQ = laocationMaxQ(2):laocationMaxQ(1);
+locR = laocationRecovery(2):laocationRecovery(1);
 
 if radius == 0
     netCompressionMaxQ = axialLoadssfd; 
@@ -63,15 +66,14 @@ else
     netTensionRecovery = axialLoadsrfd - (2 .* momentLoadsrfd / radius);
 end
 
-maxMoment = max([momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2)), momentLoadsrfd(locationRecovery(1)), momentLoadsrfd(locationRecovery(2))]);
-maxAxial = max([axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2)), axialLoadsrfd(locationRecovery(1)), axialLoadsrfd(locationRecovery(2))]);
+maxMoment = max([momentLoadssfd(locQ), momentLoadsrfd(locR)]);
+maxAxial = max([axialLoadssfd(locQ), axialLoadsrfd(locR)]);
 
+max_Q_compressive_limit_load = max([netCompressionMaxQ(locQ)]);
+recovery_compressive_limit_load = max([netCompressionRecovery(locR)]);
 
-max_Q_compressive_limit_load = max([netCompressionMaxQ(locationMaxQ(1)), netCompressionMaxQ(locationMaxQ(2))]);
-recovery_compressive_limit_load = max([netCompressionRecovery(locationRecovery(1)), netCompressionRecovery(locationRecovery(2))]);
-
-maxCompression = max([netCompressionMaxQ(locationMaxQ(1)), netCompressionRecovery(locationRecovery(1)), netCompressionMaxQ(locationMaxQ(2)), netCompressionRecovery(locationRecovery(2))]);
-maxTension = min([netTensionMaxQ(locationMaxQ(1)), netTensionRecovery(locationRecovery(1)), netTensionMaxQ(locationMaxQ(2)), netTensionRecovery(locationRecovery(2))]);
+maxCompression = max([netCompressionMaxQ(locQ), netCompressionRecovery(locR)]);
+maxTension = min([netTensionMaxQ(locQ), netTensionRecovery(locR)]);
 
 %% GRAPHS
 
@@ -82,7 +84,7 @@ if timeToGraph
     subplot(1,3,1)
     plot(lengthLoadssfd, axialLoadssfd);
     hold on;
-    plot([lengthLoadssfd(locationMaxQ(1)), lengthLoadssfd(locationMaxQ(2))], [axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2))], '*r')
+    plot([lengthLoadssfd(locQ)], [axialLoadssfd(locQ)], 'r')
     hold off;
     grid on;
     title('Axial Loads at Max Q');
@@ -92,7 +94,7 @@ if timeToGraph
     subplot(1,3,2)
     plot(lengthLoadssfd, shearLoadssfd);
     hold on;
-    plot([lengthLoadssfd(locationMaxQ(1)), lengthLoadssfd(locationMaxQ(2))], [shearLoadssfd(locationMaxQ(1)), shearLoadssfd(locationMaxQ(2))], '*r')
+    plot([lengthLoadssfd(locQ)], [shearLoadssfd(locQ)], 'r')
     hold off;
     grid on;
     title('Shear Loads at Max Q');
@@ -102,7 +104,7 @@ if timeToGraph
     subplot(1,3,3)
     plot(lengthLoadssfd, momentLoadssfd);
     hold on;
-    plot([lengthLoadssfd(locationMaxQ(1)), lengthLoadssfd(locationMaxQ(2))], [momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2))], '*r')
+    plot([lengthLoadssfd(locQ)], [momentLoadssfd(locQ)], 'r')
     hold off;
     grid on;
     title('Moment Loads at Max Q');
@@ -114,7 +116,7 @@ if timeToGraph
     subplot(1,3,1)
     plot(lengthLoadsrfd, axialLoadsrfd);
     hold on;
-    plot([lengthLoadsrfd(locationRecovery(1)), lengthLoadsrfd(locationRecovery(2))], [axialLoadsrfd(locationMaxQ(1)), axialLoadsrfd(locationMaxQ(2))], '*r')
+    plot([lengthLoadsrfd(locR)], [axialLoadsrfd(locR)], 'r')
     hold off;
     grid on;
     title('Axial Loads during Recovery');
@@ -124,7 +126,7 @@ if timeToGraph
     subplot(1,3,2)
     plot(lengthLoadsrfd, shearLoadsrfd);
     hold on;
-    plot([lengthLoadsrfd(locationRecovery(1)), lengthLoadsrfd(locationRecovery(2))], [shearLoadsrfd(locationMaxQ(1)), shearLoadsrfd(locationMaxQ(2))], '*r')
+    plot([lengthLoadsrfd(locR)], [shearLoadsrfd(locR)], 'r')
     hold off;
     grid on;
     title('Shear Loads at Recovery');
@@ -134,7 +136,7 @@ if timeToGraph
     subplot(1,3,3)
     plot(lengthLoadsrfd, momentLoadsrfd);
     hold on;
-    plot([lengthLoadsrfd(locationRecovery(1)), lengthLoadsrfd(locationRecovery(2))], [momentLoadsrfd(locationMaxQ(1)), momentLoadsrfd(locationMaxQ(2))], '*r')
+    plot([lengthLoadsrfd(locR)], [momentLoadsrfd(locR)], 'r')
     hold off;
     grid on;
     title('Moment Loads at Recovery');
@@ -146,18 +148,18 @@ end
 %% For PDR Display Purposes
 
 timeToPdr = exist('graphStatus');
-timeToPdr = 1;
+% timeToPdr = 1;
 if timeToPdr
     for load_case = ["maxQ", "Recovery"]
         fprintf("Load Case: %s\n", load_case);
         for theta = [0, pi]
             fprintf("\tTheta: %.2f\n", theta);
             if (load_case == "maxQ")
-                M = largest_value([momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2))]);
-                Fg = largest_value([axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2))]);
+                M = [momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2))];
+                Fg = [axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2))];
             elseif (load_case == "Recovery")
-                M = largest_value([momentLoadsrfd(locationRecovery(1)), momentLoadsrfd(locationRecovery(2))]);
-                Fg = largest_value([axialLoadsrfd(locationRecovery(1)), axialLoadsrfd(locationRecovery(2))]);
+                M = [momentLoadsrfd(locationRecovery(1)), momentLoadsrfd(locationRecovery(2))];
+                Fg = [axialLoadsrfd(locationRecovery(1)), axialLoadsrfd(locationRecovery(2))];
             end
 
             R = radius;
@@ -170,3 +172,6 @@ if timeToPdr
         end
     end
 end
+
+fprintf('Compression: %.2f\n', maxCompression / 3)
+fprintf('Tension: %.2f\n', maxTension / 3)
