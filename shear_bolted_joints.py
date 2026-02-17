@@ -225,7 +225,7 @@ def Calculate_Shear_Bolted_Joints():
     mid_strut = copy.deepcopy(upper_strut)    
     lower_strut = copy.deepcopy(upper_strut)
 
-    tank_wall = JointMember(material = "Aluminum 7055-T74511",
+    tank_wall = JointMember(material = "Aluminum 6061-T6",
                             thickness = 0.125 * c.IN2M,
                             E_d_ratio = 1.5,
                             shear_joint_type = "Single"
