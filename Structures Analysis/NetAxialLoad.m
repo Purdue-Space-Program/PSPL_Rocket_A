@@ -148,14 +148,14 @@ end
 timeToPdr = exist('graphStatus');
 timeToPdr = 1;
 if timeToPdr
-
-    for state = ["maxQ", "Recovery"]
+    for load_case = ["maxQ", "Recovery"]
+        fprintf("Load Case: %s\n", load_case);
         for theta = [0, pi]
-            fprintf("theta: %.2f\n", theta);
-            if (state == "maxQ")
+            fprintf("\tTheta: %.2f\n", theta);
+            if (load_case == "maxQ")
                 M = largest_value([momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2))]);
                 Fg = largest_value([axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2))]);
-            elseif (state == "Recovery")
+            elseif (load_case == "Recovery")
                 M = largest_value([momentLoadsrfd(locationRecovery(1)), momentLoadsrfd(locationRecovery(2))]);
                 Fg = largest_value([axialLoadsrfd(locationRecovery(1)), axialLoadsrfd(locationRecovery(2))]);
             end
@@ -165,7 +165,7 @@ if timeToPdr
             F3 = (Fg - ((2 * M * cos(theta)) / R)) / 3;
             F1 = M * cos(theta) / (3 * R) + Fg / 3 - M * sin(theta) / (R * sqrt(3));
             F2 = M * cos(theta) / (3 * R) + Fg / 3 + M * sin(theta) / (R * sqrt(3));
-            fprintf("F1: %2.2f\nF2: %2.2f\nF3: %2.2f\n\n", F1, F2, F3)
+            fprintf("\t\tF1: %2.2f\n\t\tF2: %2.2f\n\t\tF3: %2.2f\n\n", F1, F2, F3)
 
         end
     end
