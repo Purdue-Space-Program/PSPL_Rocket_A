@@ -81,6 +81,10 @@ if __name__ == "__main__":
         tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.44302,70)
         tensile_force_from_film_o_ring = tensile_from_o_ring(4.193,70)
         tensile_force_from_manifold_o_ring = tensile_from_o_ring(.443,70)
+        force_o_rings = {tensile_force_from_outer_o_ring,tensile_force_from_chamber_o_ring,tensile_force_from_film_o_ring,tensile_force_from_manifold_o_ring}
+        tensile_force_from_o_rings = sum_forces(force_o_rings, 1)
+        print(f"tensile_force_from_chamber_plates: {tensile_force_from_chamber_plates:.2f}")
+        print(f"tensile_force_from_o_rings: {tensile_force_from_o_rings:.2f}")
 
     elif chamber_input_values == "CMS":
         
@@ -90,7 +94,7 @@ if __name__ == "__main__":
         tensile_force_from_film_o_ring = 0 
         tensile_force_from_manifold_o_ring = 0 
 
-    forces_plates = {tensile_force_from_chamber_plates,tensile_force_from_outer_o_ring,tensile_force_from_chamber_o_ring,tensile_force_from_film_o_ring,tensile_force_from_manifold_o_ring}
+    forces_plates = {tensile_force_from_chamber_plates,tensile_force_from_o_rings}
     net_force_plates = sum_forces(forces_plates, safety_factor)
     lower_bound_preload_plates = lower_preload(bolt_minor_diameter_plates,proof_stress,preload_percent,torque_variation)
     upper_bound_preload_plates = upper_preload(bolt_minor_diameter_plates,proof_stress,preload_percent)
@@ -107,6 +111,8 @@ if __name__ == "__main__":
 
     tensile_force_from_chamber_pintle = tensile_from_chamber(.98,500)
     tensile_force_from_pintle_o_ring = tensile_from_o_ring(1.505,70)
+    print(f"tensile_force_from_chamber_pintle: {tensile_force_from_chamber_pintle:.2f}")
+    print(f"tensile_force_from_pintle_o_ring: {tensile_force_from_pintle_o_ring:.2f}")
 
     flange_diameter = diameter(ED_ratio, bolt_major_diameter_plates, nut_diameter_plates, chamber_diameter, chamber_wall_thickness)
     print(f"flange_diameter: {flange_diameter:.2f}")
