@@ -21,7 +21,7 @@ vehicle_parameters = cell2struct( ...
     cellstr(vehicle_parameters_csv.parameter_name), ...
     1);
 
-mat_file_path = fullfile("Structures Analysis\vehicle_parameters.mat");
+mat_file_path = fullfile("Structures_Analysis\vehicle_parameters.mat");
 save(mat_file_path, "vehicle_parameters", "vehicle_parameters_csv");
 
 cd(starting_directory)

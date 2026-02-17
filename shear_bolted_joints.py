@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
 from vehicle_parameters import parameters
 import print_filter
+import "Structures_Analysis".structural_loads
 
 def CalculateCircleAreaWithDiameter(diameter):
     circle_area = np.pi*((diameter/2)**2)

@@ -17,4 +17,4 @@ make_struts
 %[structural_loads.oxygen_tank.max_compression, structural_loads.oxygen_tank.max_tension] = StrutucturesAnalysis(OxyTank);
 %[structural_loads.copv_tank.max_compression, structural_loads.copv_tank.max_tension] = StrutucturesAnalysis(COPVWall);
 
-%save("structural_loads.mat", "structural_loads");
+save("structural_loads.mat", "structural_loads");

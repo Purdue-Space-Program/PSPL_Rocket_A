@@ -101,7 +101,7 @@ def convert_mass_distribution_to_matlab_dict(mass_distribution_object):
         matlab_struct_dictionary[dataclass_field.name] = asdict(mass_component_object)
     return matlab_struct_dictionary
 
-structures_analysis_path = (repository_root_path.parent / "Structures Analysis").resolve()
+structures_analysis_path = (repository_root_path.parent / "Structures_Analysis").resolve()
 
 # sio.savemat(
 #     structures_analysis_path / "wet_mass_distribution.mat",
