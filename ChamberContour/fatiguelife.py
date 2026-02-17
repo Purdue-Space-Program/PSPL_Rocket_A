@@ -16,13 +16,25 @@ import pandas as pd
 def pressure_from_mach(P0, Mach_arr, gamma=1.22):
     return P0 * (1 + (gamma - 1)/2 * Mach_arr**2)**(-gamma/(gamma - 1))
 
-def mach_from_area_ratio(A_ratio, gamma=1.22, supersonic=True):
+def calculating_MachNumber(gamma, area_ratio_value, initial_guess, branch):
 
     def f(M):
-        return ((1/M)* ((2/(gamma+1)*(1 + (gamma-1)/2*M**2))**((gamma+1)/(2*(gamma-1)))) - A_ratio)
+        Mach_function_part1 = ((gamma + 1)/2)**(-(gamma + 1)/(2*(gamma-1)))
+        Mach_function_part2 = (1/M) * ((1 + (((gamma - 1)/2) * M**2)) ** ((gamma + 1)/(2*(gamma-1))))
+        Mach_function = (Mach_function_part1 * Mach_function_part2) - area_ratio_value
+        return Mach_function
 
+    guess = initial_guess
 
-    return brentq(f, 1.0001, 10.0)
+    
+    if branch == "subsonic":
+        guess = min(0.8, max(0.05, guess))
+
+    else:
+        guess = max(1.1, guess)
+    
+    M_solution = fsolve(f, guess)
+    return float(M_solution[0])
 
 
 def cycles_to_failure_coffin_manson(strain_eff_p, eps_f, c=-0.6): #for low cycle fatigue
@@ -107,16 +119,17 @@ for i, A in enumerate(A_arr):
         Mach_arr[i] = 1.0
 
     elif i < throat_index:
-        Mach_arr[i] = mach_from_area_ratio(max(Ar, 1.0), supersonic=False)
+        Mach_arr[i] = calculating_MachNumber(max(Ar, 1.0), supersonic=False)
 
     else:
-        Mach_arr[i] = mach_from_area_ratio(max(Ar, 1.0), supersonic=True)
+        Mach_arr[i] = calculating_MachNumber(max(Ar, 1.0), supersonic=True)
 
 
 Pc = 1.724  # chamber pressure (MPa)
 gamma = 1.22
 
 P_engine_arr = pressure_from_mach(Pc, Mach_arr, gamma)
+np.savetxt("chamber_pressure.csv", P_engine_arr, delimiter=',')
 
 T_wg_arr = pd.read_csv('ChamberContour/chamber_temp.csv').to_numpy().ravel() # wall gas side temp [K]
 wall = 0.00635  # wall thickness [m]

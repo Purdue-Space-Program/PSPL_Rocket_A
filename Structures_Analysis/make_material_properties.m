@@ -1,0 +1,36 @@
+% obtain_vehicle_parameters
+% parameters = load("vehicle_parameters.mat").vehicle_parameters;
+
+IN2M = 0.0254;  % [m/in] Conversion factor from in to m
+M2IN = 1 / IN2M;  % [in/m] Conversion factor from m to in
+
+M2FT = 3.28084;  % [ft/m] Conversion factor from m to ft
+FT2M = 1 / M2FT;  % [m/ft] Conversion factor from ft to m
+
+Aluminum_6061_T6_Material_Properties = Material_Properties_Class;
+Aluminum_6061_T6_Material_Properties.name = "Aluminum 6061-T6";
+Aluminum_6061_T6_Material_Properties.youngs_modulus = 10007601; % [psi]
+Aluminum_6061_T6_Material_Properties.yieldCompressionStrength = 35000; % [psi]
+Aluminum_6061_T6_Material_Properties.yieldTensionStrength = 35000; % [psi]
+Aluminum_6061_T6_Material_Properties.ultimateTensionStrength = 38000; % [psi]
+Aluminum_6061_T6_Material_Properties.density = 0.0975; % [lb/in^3]
+% Sourced from pg 857 of mmpds
+
+
+Aluminum_6063_T52_Material_Properties = Material_Properties_Class;
+Aluminum_6063_T52_Material_Properties.name = "Aluminum 6063-T52";
+Aluminum_6063_T52_Material_Properties.youngs_modulus = 10000000; % [psi]
+Aluminum_6063_T52_Material_Properties.yieldCompressionStrength = 21000; % [psi]
+Aluminum_6063_T52_Material_Properties.yieldTensionStrength = 21000; % [psi]
+Aluminum_6063_T52_Material_Properties.ultimateTensionStrength = 27000; % [psi]
+Aluminum_6063_T52_Material_Properties.density = 0.0975; % [lb/in^3]
+% lowkey from matweb
+
+Stainless_Steel_304_Material_Properties = Material_Properties_Class;
+Stainless_Steel_304_Material_Properties.name = "304 Stainless Steel";
+Stainless_Steel_304_Material_Properties.youngs_modulus = 28000000; % [psi]
+Stainless_Steel_304_Material_Properties.yieldCompressionStrength = 35000; % [psi]
+Stainless_Steel_304_Material_Properties.yieldTensionStrength = 35000; % [psi]
+Stainless_Steel_304_Material_Properties.ultimateTensionStrength = 80000; % [psi]
+Stainless_Steel_304_Material_Properties.density = 0.289; % [lb/in^3]
+% lowkey from matweb

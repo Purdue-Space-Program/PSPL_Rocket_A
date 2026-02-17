@@ -30,13 +30,15 @@ class VehicleParameters:
 
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 
-    oxidizer_name: str = "liquid oxygen"
+    oxidizer_name: str = "oxygen"
+    pressurant_name: str = "nitrogen"
     tube_outer_diameter: float = 6.0 * c.IN2M         # Outer diameter of tube used in some sections of the rocket
     tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of tube used in some sections of the rocket
     
     # Engine Parameters
     chamber_pressure: float = 250 * c.PSI2PA                                    # The target combustion pressure in the engine [Pascals]
     jet_thrust: float = 668.0 * c.LBF2N                                         # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
+    max_jet_thrust: float = jet_thrust / 0.9                                    # The maximum expected engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
     ISP: float = 175.0                                                          # The estimated ISP of the engine [seconds]
     OF_ratio: float = 1.0                                                       # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
     total_mass_flow_rate: float = 3.82 * c.LBM2KG                               # The targeted mass flow rate through the engine [kilograms/second]
@@ -44,6 +46,7 @@ class VehicleParameters:
     core_fuel_mass_flow_rate: float = total_mass_flow_rate/(OF_ratio + 1)       # The targeted mass flow rate for fuel through the engine [kilograms/second]
     film_fuel_mass_flow_rate: float = 0.3 * core_fuel_mass_flow_rate            # The targeted film mass flow rate for fuel [kilograms/second]
     burn_time: float = 2.09                                                     # The estimated burn time of the engine [seconds]
+    max_burn_time: float = burn_time / 0.8                                      # The maximum expected burn time of the engine [seconds]
     contraction_ratio: float = 7.0                                              # The target ratio of chamber area to throat area [dimensionless]
     exit_pressure: float = 15.0 * c.PSI2PA                                      # The target exit pressure of the exhaust gas [Pascals]
     # combustion_temperature: float = 2170                                      # The estimated combustion temperature [Kelvin]
@@ -54,6 +57,8 @@ class VehicleParameters:
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
     tank_pressure: float = 425 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
+    oxidizer_tank_pressure: float = tank_pressure     # The estimated required oxidizer tank pressure to sustain the combustion pressure in the engine [Pascals]
+    fuel_tank_pressure: float = tank_pressure     # The estimated required fuel tank pressure to sustain the combustion pressure in the engine [Pascals]
     tank_outer_diameter: float = tube_outer_diameter  # Outer diameter of both tanks of the rocket
     tank_inner_diameter: float = tube_inner_diameter  # Inner diameter of both tanks of the rocket
     tank_wall_thickness: float = (tube_outer_diameter - tube_inner_diameter)/2  # Inner diameter of both tanks of the rocket
@@ -94,11 +99,8 @@ class VehicleParameters:
     sweep_length: float = root_chord - tip_chord
     wingspan: float = 7.4 * c.IN2M
     number_of_fins: float = 3 # [-]
-    fin_top: float = None
+    fin_top: float = None # the location of the top of the fin
 
-    # fin_top = vehicle.lower_fuel_bulkhead.bottom_distance_from_aft
-    # noseconeToFin = total_length - fin_top
-        
     # 1-DoF Results:
     one_DoF_off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     one_DoF_off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravities]
@@ -422,14 +424,14 @@ if __name__ == "__main__":
     print(f"TWR: {parameters.jet_thrust/(vehicle_wet_mass * 9.81)}")
     
     
-    print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg")
+    print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg, {(vehicle_wet_mass * c.KG2LBM)/130:.2f} abhis")
     print(f"Vehicle Dry Mass: {vehicle_dry_mass * c.KG2LBM:.2f} lbm, {vehicle_dry_mass:.2f} kg")
     
     panels_mass = lower_panels_mass + mid_panels_mass
     # print(f"panels mass: {panels_mass * c.KG2LBM:.2f} lbm")
 
     
-    print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft")
+    print(f"\nRocket Length: {rocket_length * c.M2IN:.2f} in, {rocket_length * c.M2FT:.2f} ft, {(rocket_length * c.M2FT)/5.5833:.2f} abhis tall")
     print(f"Rocket Length: {rocket_length:.2f} m\n")
     
     print(f"Wet CoM location distance from bottom: {parameters.wet_COM_location_from_bottom * c.M2IN:.2f} in, {parameters.wet_COM_location_from_bottom:.3f} m")
@@ -449,7 +451,7 @@ if __name__ == "__main__":
     plt.title("Rocket Wet Mass Distribution")
 
 
-    print_components = True
+    print_components = False
     
     if print_components == True:
         for component in wet_mass_distribution:

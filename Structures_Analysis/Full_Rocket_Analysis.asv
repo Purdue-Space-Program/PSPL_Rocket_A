@@ -1,0 +1,18 @@
+clear;
+clc;
+
+structural_loads = struct();
+
+%% Struts
+make_struts
+
+[structural_loads.upper_strut.max_compression, structural_loads.upper_strut.max_tension] = StrutucturesAnalysis(upper_strut);
+[structural_loads.mid_strut.max_compression, structural_loads.mid_strut.max_tension] = StrutucturesAnalysis(mid_strut);
+[structural_loads.lower_strut.max_compression, lower_strut_max_tension] = StrutucturesAnalysis(lower_strut);
+
+%% Tanks
+make_tanks
+
+[fuel_tank_max_compression, fuel_tank_max_tension] = StrutucturesAnalysis(FuelTank);
+[oxygen_tank_max_compression, oxygen_tank_max_tension] = StrutucturesAnalysis(OxyTank);
+[copv_tank_max_compression, copv_tank_max_tension] = StrutucturesAnalysis(COPVTank);

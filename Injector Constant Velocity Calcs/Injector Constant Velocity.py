@@ -86,4 +86,14 @@ plt.title("Area vs n_steps (in²)")
 plt.grid(True)
 plt.show()
 
+
+plt.figure()
+plt.plot(steps, mdot)
+plt.xlabel("n_steps")
+plt.ylabel("Mass Flow Rate (kg/s)")
+plt.title("Mass Flow Rate vs n_steps")
+plt.grid(True)
+plt.show()
+
 print("Velocity in manifold (ft/s): ", velocity * c.M2FT)
+print("Velocity in manifold (m/s): ", velocity)

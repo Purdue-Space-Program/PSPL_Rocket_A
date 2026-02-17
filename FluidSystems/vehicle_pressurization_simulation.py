@@ -14,14 +14,13 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-
 from vehicle_parameters import parameters
 
 # Simulation settings
 T_AMBIENT = 293 # [K] ambient temperature
-LOITER_TIME = 0 * 1 # [s] time between prepressurization and the start of flow
+LOITER_TIME = 5 * 1 # [s] time between prepressurization and the start of flow
 LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-DT = 0.00050 # [s] simulation step size
+DT = 0.050 # [s] simulation step size
 Q_FACTOR = 1 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
 PLOT_OUTPUT = True # True to make pretty plots of the results :)
@@ -76,7 +75,7 @@ if vehicle_name == "Copperhead":
 
 if vehicle_name == "Rocket_A":
     ADIABATIC = False # True to ignore heat transfer in the tanks
-    PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
+    PREPRESS = "adiabatic" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
     PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
     
     PRESS_GAS = "nitrogen"
@@ -92,7 +91,7 @@ if vehicle_name == "Rocket_A":
     CP_TANK = 500 # [J/kgK] tank material specific heat
     D_PRESS_LINE = (3/8) * c.IN2M # [m] fuel tank pressurization line outer diameter
     T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
-    P_TANK = parameters.tank_pressure
+    P_TANK = parameters.oxidizer_tank_pressure
     
     # Oxidizer
     OXIDIZER = "oxygen"
