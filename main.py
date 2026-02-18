@@ -77,19 +77,19 @@ if launched_by != "matlab":
 structural_loads = vehicle_parameters_functions.load_matlab_struct_as_dataclass(structural_loads_path)
 # print(f"structural_loads.upper_strut.max_compreession: {structural_loads.upper_strut.max_compression} N")
 
-# parameters.unfreeze()
-# parameters.upper_strut_max_load = max(structural_loads.upper_strut.max_compression, structural_loads.upper_strut.max_tension)
-# parameters.mid_strut_max_load = max(structural_loads.mid_strut.max_compression, structural_loads.mid_strut.max_tension)
-# parameters.lower_strut_max_load = max(structural_loads.lower_strut.max_compression, structural_loads.lower_strut.max_tension)
+parameters.unfreeze()
+parameters.upper_strut_max_load = max(structural_loads.upper_strut.max_compression, structural_loads.upper_strut.max_tension)
+parameters.mid_strut_max_load = max(structural_loads.mid_strut.max_compression, structural_loads.mid_strut.max_tension)
+parameters.lower_strut_max_load = max(structural_loads.lower_strut.max_compression, structural_loads.lower_strut.max_tension)
 
-# parameters.fuel_tank_max_load = max(structural_loads.fuel_tank.max_compression, structural_loads.fuel_tank.max_tension)
-# parameters.oxygen_tank_max_load = max(structural_loads.oxygen_tank.max_compression, structural_loads.oxygen_tank.max_tension)
-# parameters.copv_tube_max_load = max(structural_loads.copv_tube.max_compression, structural_loads.copv_tube.max_tension)
-# parameters.freeze()
+parameters.fuel_tank_max_load = max(structural_loads.fuel_tank.max_compression, structural_loads.fuel_tank.max_tension)
+parameters.oxygen_tank_max_load = max(structural_loads.oxygen_tank.max_compression, structural_loads.oxygen_tank.max_tension)
+parameters.copv_tube_max_load = max(structural_loads.copv_tube.max_compression, structural_loads.copv_tube.max_tension)
+parameters.freeze()
 
 
 if __name__ == "__main__":
     with print_filter.context_manager(print_everything=False, print_margins=True, print_titles=True):
-        # shear_bolted_joints.Calculate_Shear_Bolted_Joints()
+        shear_bolted_joints.Calculate_Shear_Bolted_Joints()
         pass
 

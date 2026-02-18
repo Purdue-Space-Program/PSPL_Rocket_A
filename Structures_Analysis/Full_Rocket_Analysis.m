@@ -3,22 +3,20 @@ clear;
 
 structural_loads = struct();
 
+make_components
+
 %% Struts
-make_struts
 
 [structural_loads.upper_strut.max_compression, structural_loads.upper_strut.max_tension] = StrutucturesAnalysis(upper_strut);
 [structural_loads.mid_strut.max_compression, structural_loads.mid_strut.max_tension] = StrutucturesAnalysis(mid_strut);
 [structural_loads.lower_strut.max_compression, structural_loads.lower_strut.max_tension] = StrutucturesAnalysis(lower_strut);
 
 %% Tanks
-make_tanks
-
 [structural_loads.fuel_tank.max_compression, structural_loads.fuel_tank.max_tension] = StrutucturesAnalysis(FuelTank);
 [structural_loads.oxygen_tank.max_compression, structural_loads.oxygen_tank.max_tension] = StrutucturesAnalysis(OxyTank);
-[structural_loads.copv_tube.max_compression, structural_loads.copv_tube.max_tension] = StrutucturesAnalysis(COPVWall);
+[structural_loads.copv_tube.max_compression, structural_loads.copv_tube.max_tension] = StrutucturesAnalysis(COPVTube);
 
 LBF2N = 4.44822;
-% disp(structural_loads.upper_strut.max_tension)
 
 % convert lbf values to newtons
 component_names = fieldnames(structural_loads);
@@ -31,7 +29,5 @@ for i = 1:length(component_names)
         structural_loads.(component_name).(load_name) = structural_loads.(component_name).(load_name) * LBF2N;
     end
 end
-
-% disp(structural_loads.upper_strut.max_compression)
 
 save("structural_loads.mat", "structural_loads");

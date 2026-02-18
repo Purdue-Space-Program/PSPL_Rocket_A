@@ -28,9 +28,9 @@ Aluminum_6063_T52_Material_Properties.density = 0.0975; % [lb/in^3]
 
 Stainless_Steel_304_Material_Properties = Material_Properties_Class;
 Stainless_Steel_304_Material_Properties.name = "304 Stainless Steel";
-Stainless_Steel_304_Material_Properties.youngs_modulus = 28000000; % [psi]
-Stainless_Steel_304_Material_Properties.yieldCompressionStrength = 35000; % [psi]
-Stainless_Steel_304_Material_Properties.yieldTensionStrength = 35000; % [psi]
-Stainless_Steel_304_Material_Properties.ultimateTensionStrength = 80000; % [psi]
-Stainless_Steel_304_Material_Properties.density = 0.289; % [lb/in^3]
+Stainless_Steel_304_Material_Properties.youngs_modulus = 28000000; % [psi] % from MMPDS 2025
+Stainless_Steel_304_Material_Properties.yieldCompressionStrength = 23000; % [psi] % s-basis from MMPDS 2025
+Stainless_Steel_304_Material_Properties.yieldTensionStrength = 26000; % [psi] % s-basis from MMPDS 2025
+Stainless_Steel_304_Material_Properties.ultimateTensionStrength = 73000; % [psi] % s-basis from MMPDS 2025
+Stainless_Steel_304_Material_Properties.density = 0.286; % [lb/in^3]
 % lowkey from matweb

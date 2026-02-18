@@ -50,3 +50,41 @@ lower_strut.radiusGyration = 2.28239244; % [in]
 lower_strut.radius = 1.962; % [in]
 lower_strut.wallThickness = 0.2; % [in]
 lower_strut.width = 1.65; % [in]
+
+
+IN2M = 0.0254;  % [m/in] Conversion factor from in to m
+M2IN = 1 / IN2M;  % [in/m] Conversion factor from m to in
+
+M2FT = 3.28084;  % [ft/m] Conversion factor from m to ft
+FT2M = 1 / M2FT;  % [m/ft] Conversion factor from ft to m
+
+
+FuelTank = TankClass;
+FuelTank.name = 'Fuel Tank';
+FuelTank.shape = "Circle";
+FuelTank.OD = 6; % [in]
+FuelTank.ID = 5.75; % [in]
+FuelTank.length = 8; % from CAD (in)
+FuelTank.distance = 43.6535; % Location of strut from aft, top of strut (in)
+FuelTank.radius = 3; % Distance from center axis (in) 
+FuelTank.material = Aluminum_6061_T6_Material_Properties;
+
+
+OxyTank = TankClass;
+OxyTank.name = 'Oxidizer Tank';
+OxyTank.shape = "Circle";
+OxyTank.OD = 6; % [in]
+OxyTank.ID = 5.75; % [in]
+OxyTank.length = 8; % from CAD (in)
+OxyTank.distance = 22.6535; % Location of strut from aft, top of strut (in)
+OxyTank.radius = 3; % Distance from center axis (in) 
+OxyTank.material = Aluminum_6061_T6_Material_Properties;
+
+COPVTube.name = 'COPV Tube';
+COPVTube.shape = "Circle";
+COPVTube.OD = 6; % [in]
+COPVTube.ID = 5.75; % [in]
+COPVTube.length = 5; % from CAD (in)
+COPVTube.distance = 40; % Location of strut from aft, top of strut (in)
+COPVTube.radius = 3; % Distance from center axis (in) 
+COPVTube.material = Aluminum_6061_T6_Material_Properties;

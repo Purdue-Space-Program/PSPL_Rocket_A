@@ -1,5 +1,5 @@
-# Accessed: 2026-02-17_14-57-02 (format: YYYY-MM-DD_HH-MM-SS)
-# Accessed by: main.py
+# Accessed: 2026-02-17_23-11-16 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed by: shear_bolted_joints.py
 parameter_name,value
 yield_FoS,1.5
 ultimate_FoS,2.0

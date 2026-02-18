@@ -48,7 +48,7 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
             raise ValueError(f"Invalid Shear Joint Type: {joint_member_1_shear_joint_type}")
 
     # material properties
-    F_su_316_Stainless_Steel = 50_000 * c.PSI2PA # [psi] S-basis from MMPDS-2019
+    F_su_316_Stainless_Steel = 50_000 * c.PSI2PA # [psi] S-basis from MMPDS-2025
     F_su_Alloy_Steel = 153_000*0.5 * c.PSI2PA # [psi] out of my ass
     
     # from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
@@ -233,12 +233,22 @@ def Calculate_Shear_Bolted_Joints():
     
     recovery_bay = copy.deepcopy(tank_wall) 
     recovery_bay.material = "Aluminum 6061-T6"
+    
 
     
     print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
     bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
     bulkhead_blowoff_load = (parameters.tank_pressure * bulkhead_area) * parameters.proof_factor
     print(f"\tBulkhead blowoff load: {bulkhead_blowoff_load:.2f} N, {bulkhead_blowoff_load * c.N2LBF :.2f} LBF")
+
+    parameters.unfreeze()
+    if bulkhead_blowoff_load > parameters.copv_tube_max_load:
+        bulkhead_max_load = bulkhead_blowoff_load
+        print("bulkhead_max_load: bulkhead_blowoff_load")
+    else:
+        bulkhead_max_load = parameters.oxygen_tank_max_load
+        print("bulkhead_max_load: parameters.oxygen_tank_max_load")
+    parameters.freeze()
 
     tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
                                                    bolt_thread_size = "5/16\"", 

@@ -39,7 +39,9 @@ class VehicleParameters:
     engine_efficiency: float = 0.81                                                          # The assumed engine efficiency [dimensionless]
     chamber_pressure: float = 250 * c.PSI2PA                                         # The target combustion pressure in the engine [Pascals]
     jet_thrust: float = 668.0 * c.LBF2N                                              # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
-    maximum_expected_jet_thrust: float = jet_thrust / engine_efficiency                            # The maximum expected engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
+    
+    # Assume that chamber pressure will be decreased in order to keep thrust at or below the nominal, otherwise it would be = jet_thrust / engine_efficiency
+    maximum_expected_jet_thrust: float = jet_thrust                                  # The maximum expected engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
     ISP: float = 175.0                                                               # The estimated ISP of the engine [seconds]
     OF_ratio: float = 1.0                                                            # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
     total_core_mass_flow_rate: float = 3.82 * c.LBM2KG                               # The targeted mass flow rate through the engine [kilograms/second]
@@ -113,6 +115,7 @@ class VehicleParameters:
     one_DoF_max_velocity: float = one_DoF_max_mach * 343  # The maximum speed of the rocket during flight [meters/second]
     one_DoF_total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
 
+    # one_DoF_horizontal_velocity = ????
     one_DoF_estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DoF altitude [meters]
 
     # 6-DoF results:
