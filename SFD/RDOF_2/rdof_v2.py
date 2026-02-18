@@ -467,6 +467,10 @@ if __name__ == "__main__":
 
     end_time = time.time()
     print(f"3D Graph Computation time: {end_time - start_time:.2f} seconds")
+    print("-----------------------------------")
+    print(f"Max axial load at recovery: {np.max(np.abs(drogue_axial))*c.N2LBF:.2f} lbf")
+    print(f"Max shear force at recovery: {np.max(np.abs(drogue_shear))*c.N2LBF:.2f} lbf")
+    print(f"Max bending moment at recovery: {np.max(np.abs(drogue_bending))*NEWTON_METER_TO_FOOT_POUND:.2f} ft-lbf")
 
     # Save to matlab
     # Converting to matlab file
