@@ -12,6 +12,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
 from vehicle_parameters import parameters
+from vehicle_pressurization_simulation import *
 
 
 def Cv_Choked(press_gas, m_dot, P1, T1):
@@ -93,7 +94,7 @@ m_dot_fu_press = rho_fu_press * Q_dot_fu_press # [kg/s] required mass flow rate 
 T2_copv = PropsSI('T', 'P', P2_copv, 'S', s2_copv, PRESS_GAS) # [K] ending COPV temperature
 
 
-m_dot_ox_press = 0.25 # override to use value from press sim
+m_dot_ox_press = maximum_regulator_mass_flow_rate # override to use value from press sim
 cv_required_ox = Cv_Choked(PRESS_GAS, m_dot_ox_press, P2_copv, T2_copv)
 cv_required_fu = Cv_Choked(PRESS_GAS, m_dot_fu_press, P2_copv, T2_copv)
 
@@ -101,5 +102,6 @@ cv_required_fu = Cv_Choked(PRESS_GAS, m_dot_fu_press, P2_copv, T2_copv)
 print(f"m_dot_ox_press: {m_dot_ox_press:.2f}")
 print(f"m_dot_fu_press: {m_dot_fu_press:.2f}")
 
-print(f"The maximum required Cv for pressurizing the oxidizer tank is: {cv_required_ox:.5f}")
-print(f"The maximum required Cv for pressurizing the fuel tank is:     {cv_required_fu:.5f}")
+print(f"The maximum required Cv for pressurizing the oxidizer tank is:             {cv_required_ox:.5f}")
+print(f"The maximum required Cv for pressurizing the fuel tank is:                 {cv_required_fu:.5f}")
+print(f"The maximum required Cv for pressurizing the tanks with one regulator is:  {cv_required_ox + cv_required_fu:.5f}")

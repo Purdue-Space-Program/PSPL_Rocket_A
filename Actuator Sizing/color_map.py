@@ -51,15 +51,11 @@ def calc_actuation_time_color_plot(piston_diameter, piston_stroke_length):
         else:
             valve_angle = np.degrees((np.pi / 2) - np.arctan((((arm_length / dist_travelled) - (1/np.sqrt(2))) * np.sqrt(2))))
         time += time_step
-
-    if time > 0.1: # returns -1 if the actuation time is slower than 100 ms
-        return -1
-
     return time 
 
 def display_color_plot():
-    bore_sizes = np.linspace(1, 3, 200) * IN2M
-    strokes = np.linspace(2, 5, 200) * IN2M
+    bore_sizes = np.linspace(1, 3, 100) * IN2M
+    strokes = np.linspace(2, 20, 100) * IN2M
     X, Y = np.meshgrid(bore_sizes, strokes)
     Z = np.zeros_like(X)
     print("This may take a while... please wait.")
@@ -69,11 +65,22 @@ def display_color_plot():
                 bore_sizes[j],
                 strokes[i]
             )
-    Z[Z == -1] = np.nan # If actuation time is -1, convert to NaN for gray region
+        Z[Z == -1] = np.nan  # no actuation -> gray
 
-    cmap = plt.cm.Reds.copy()
-    cmap.set_bad('lightgray') # makes points with no actuation gray
-    mesh = plt.pcolormesh(X * M2IN, Y * M2IN, Z * 1000, cmap=cmap)
+    cmap = plt.cm.coolwarm.copy()
+    cmap.set_bad('lightgray')   # NaNs -> gray
+    cmap.set_over('black')      # values above vmax -> black
+
+    mesh = plt.pcolormesh(
+        X * M2IN,
+        Y * M2IN,
+        Z * 1000,
+        cmap=cmap,
+        vmin=0,
+        vmax=100  # 100 ms threshold
+    )
+
+    mesh.set_clim(0, 100)  # enforce color limits
     cbar = plt.colorbar(mesh)
     cbar.set_label("Actuation Time (ms)")
     plt.xlabel("Piston Diameter [In]")

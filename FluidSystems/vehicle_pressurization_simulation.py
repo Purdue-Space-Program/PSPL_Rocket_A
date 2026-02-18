@@ -31,47 +31,47 @@ PLOT_OUTPUT = True # True to make pretty plots of the results :)
 # COPV
 vehicle_name = "Rocket_A"
 
-if vehicle_name == "Copperhead":
-    ADIABATIC = False # True to ignore heat transfer in the tanks
-    PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
-    PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
+# if vehicle_name == "Copperhead":
+#     ADIABATIC = False # True to ignore heat transfer in the tanks
+#     PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
+#     PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
     
-    GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
-    # COPV
-    PRESS_GAS = 'helium'
-    P_COPV = 4500 * c.PSI2PA # [Pa] starting COPV pressure
-    T_COPV = 300 # [K] starting COPV temperature (assumed)
-    V_COPV = 12 * c.L2M3 # [m^3] COPV volume
-    # Tanks
-    D_TANK = 8.84 * c.IN2M # [m] tank outer diameter
-    T_TANK = 0.17 * c.IN2M # [m] tank wall thickness
-    RHO_TANK = 2700 # [kg/m^3] tank material density (aluminum)
-    M_BULKHEAD = 1.5 * c.LBM2KG # [kg] bulkhead mass (single bulkhead)
-    CP_TANK = 500 # [J/kgK] tank material specific heat
-    D_PRESS_LINE = 3/8 * c.IN2M # [m] fuel tank pressurization line outer diameter
-    T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
-    P_TANK = 287 * c.PSI2PA
-    # Oxidizer
-    OXIDIZER = 'oxygen'
-    P_FILL = 40 * c.PSI2PA # [Pa] fill pressure for LOx (assumed)
-    M_DOT_OX = 5.503 * c.LBM2KG # [kg/s] LOx mass flow rate
-    P_OX = P_TANK # [Pa] oxidizer tank nominal pressure
-    V_OX = 2246 * c.IN32M3 # [m^3] oxidizer tank total volume
-    ULLAGE_OX = 1 / 100 # [] oxidizer tank volume ullage fraction
-    RESIDUAL_OX = 1 / 100 # [] oxidizer tank volume residual fraction
-    # note: drain time is based on oxidizer residuals since that's what we'll be sensing
-    # Fuel
-    FUEL = 'ethanol'
-    M_DOT_FU = (3.336 + 0.500) * c.LBM2KG # [kg/s] fuel mass flow rate
-    P_FU = P_TANK # [Pa] fuel tank nominal pressure
-    V_FU = 2062 * c.IN32M3 # [m^3] fuel tank total volume
-    ULLAGE_FU =  1 / 100 # [] fuel tank volume ullage fraction
+#     GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
+#     # COPV
+#     PRESS_GAS = 'helium'
+#     P_COPV = 4500 * c.PSI2PA # [Pa] starting COPV pressure
+#     T_COPV = 300 # [K] starting COPV temperature (assumed)
+#     V_COPV = 12 * c.L2M3 # [m^3] COPV volume
+#     # Tanks
+#     D_TANK = 8.84 * c.IN2M # [m] tank outer diameter
+#     T_TANK = 0.17 * c.IN2M # [m] tank wall thickness
+#     RHO_TANK = 2700 # [kg/m^3] tank material density (aluminum)
+#     M_BULKHEAD = 1.5 * c.LBM2KG # [kg] bulkhead mass (single bulkhead)
+#     CP_TANK = 500 # [J/kgK] tank material specific heat
+#     D_PRESS_LINE = 3/8 * c.IN2M # [m] fuel tank pressurization line outer diameter
+#     T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
+#     P_TANK = 287 * c.PSI2PA
+#     # Oxidizer
+#     OXIDIZER = 'oxygen'
+#     P_FILL = 40 * c.PSI2PA # [Pa] fill pressure for LOx (assumed)
+#     M_DOT_OX = 5.503 * c.LBM2KG # [kg/s] LOx mass flow rate
+#     P_OX = P_TANK # [Pa] oxidizer tank nominal pressure
+#     V_OX = 2246 * c.IN32M3 # [m^3] oxidizer tank total volume
+#     ULLAGE_OX = 1 / 100 # [] oxidizer tank volume ullage fraction
+#     RESIDUAL_OX = 1 / 100 # [] oxidizer tank volume residual fraction
+#     # note: drain time is based on oxidizer residuals since that's what we'll be sensing
+#     # Fuel
+#     FUEL = 'ethanol'
+#     M_DOT_FU = (3.336 + 0.500) * c.LBM2KG # [kg/s] fuel mass flow rate
+#     P_FU = P_TANK # [Pa] fuel tank nominal pressure
+#     V_FU = 2062 * c.IN32M3 # [m^3] fuel tank total volume
+#     ULLAGE_FU =  1 / 100 # [] fuel tank volume ullage fraction
     
-    V_ullage_ox = 98.9 * c.IN32M3 # [m^3] oxidizer tank ullage volume
-    V_ullage_fu = 10 * c.IN32M3 # [m^3] fuel tank ullage volume
+#     V_ullage_ox = 98.9 * c.IN32M3 # [m^3] oxidizer tank ullage volume
+#     V_ullage_fu = 10 * c.IN32M3 # [m^3] fuel tank ullage volume
     
-    # V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
-    # V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
+#     # V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
+#     # V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
 
 if vehicle_name == "Rocket_A":
     ADIABATIC = False # True to ignore heat transfer in the tanks
@@ -89,7 +89,7 @@ if vehicle_name == "Rocket_A":
     T_TANK = p.tank_wall_thickness # [m] tank wall thickness
     RHO_TANK = c.DENSITY_AL # [kg/m^3] tank material density (aluminum)
     M_BULKHEAD = 1.5 * c.LBM2KG # [kg] bulkhead mass (single bulkhead)
-    CP_TANK = 500 # [J/kgK] tank material specific heat
+    CP_TANK = 900 # [J/kgK] tank material specific heat
     D_PRESS_LINE = (3/8) * c.IN2M # [m] fuel tank pressurization line outer diameter
     T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
     P_TANK = p.oxidizer_tank_pressure
@@ -403,12 +403,15 @@ Q_dot_press_line[step] = Q_dot_press_line[step - 1]
 scfm_ox = equivalent_SCFM(mdot_ullage_ox, T_copv, PRESS_GAS)
 scfm_fu = equivalent_SCFM(mdot_ullage_fu, T_copv, PRESS_GAS)
 
+maximum_regulator_mass_flow_rate = max((mdot_ullage_fu + mdot_ullage_ox))
+
 if TEXT_OUTPUT == True:
     print('RESULTS ------------------------------------------------------------------------------------------------------')
-    print(f'The final tank temperatures are {T_ullage_ox[-1]:.3f} [K] in ox and {T_ullage_fu[-1]:.3f} [K] in fuel.')
-    print(f'The final COPV properties are {P_copv[-1] * c.PA2PSI:.3f} [psi] and {T_copv[-1]:.3f} [K].')
-    print(f'The final masses of gas in the tanks are {m_ullage_ox[-1]:.3f} [kg] in ox and {m_ullage_fu[-1]:.3f} [kg] in fuel.')
-    print(f'The average mass flow rate out of COPV during the burn is {(m_copv[0] - m_copv[-1])/drain_time:.3f} [kg/s].')
+    print(f'\tThe final tank temperatures are {T_ullage_ox[-1]:.3f} [K] in ox and {T_ullage_fu[-1]:.3f} [K] in fuel.')
+    print(f'\tThe final COPV properties are {P_copv[-1] * c.PA2PSI:.3f} [psi] and {T_copv[-1]:.3f} [K].')
+    print(f'\tThe final masses of gas in the tanks are {m_ullage_ox[-1]:.3f} [kg] in ox and {m_ullage_fu[-1]:.3f} [kg] in fuel.')
+    print(f'\tThe average mass flow rate out of COPV during the burn is {(m_copv[0] - m_copv[-1])/drain_time:.3f} [kg/s].')
+    print(f"\tMaximum mass flow rate out of COPV during the burn is {maximum_regulator_mass_flow_rate:.2f} [kg/s].")
 
     # Checks
     # Check ideal gas law
