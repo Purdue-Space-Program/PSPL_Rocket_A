@@ -1,5 +1,5 @@
-# Accessed: 2026-02-17_23-11-16 (format: YYYY-MM-DD_HH-MM-SS)
-# Accessed by: shear_bolted_joints.py
+# Accessed: 2026-02-25_16-28-03 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed by: vehicle_main.py
 parameter_name,value
 yield_FoS,1.5
 ultimate_FoS,2.0
@@ -12,7 +12,6 @@ tube_inner_diameter,0.14604999999999999
 engine_efficiency,0.81
 chamber_pressure,1723690.0
 jet_thrust,2971.4112869146697
-maximum_expected_jet_thrust,3668.40899619095
 ISP,175.0
 OF_ratio,1.0
 total_core_mass_flow_rate,1.73272144
@@ -20,13 +19,15 @@ oxidizer_mass_flow_rate,0.86636072
 core_fuel_mass_flow_rate,0.86636072
 film_percentage,0.3
 film_fuel_mass_flow_rate,0.25990821599999997
+total_fuel_mass_flow_rate,1.126268936
 burn_time,2.09
-maximum_expected_burn_time,2.6125
 contraction_ratio,7.0
 exit_pressure,103421.40000000001
 chamber_outer_diameter,0.15239999999999998
 chamber_inner_diameter,0.12446
 chamber_throat_diameter,0.0470408
+maximum_expected_burn_time,3.3962499999999998
+maximum_expected_jet_thrust,3668.40899619095
 tank_pressure,2930273.0
 oxidizer_tank_pressure,2930273.0
 fuel_tank_pressure,2930273.0
@@ -65,16 +66,21 @@ fin_top,0.6906006
 one_DoF_off_the_rail_TWR,7.43
 one_DoF_off_the_rail_acceleration,6.43
 one_DoF_off_the_rail_velocity,27.64
-one_DoF_max_acceleration,6.96
-one_DoF_max_mach,0.395
-one_DoF_max_velocity,135.485
+one_DoF_max_Q_acceleration,6.96
+one_DoF_max_Q_mach,0.395
+one_DoF_max_Q_velocity,135.485
 one_DoF_total_impulse,6340
 one_DoF_estimated_apogee,819.9119737628168
-six_DoF_off_the_rail_acceleration,5.939245667686035
-six_DoF_off_the_rail_velocity,28.7
-six_DoF_max_mach,0.368
-six_DoF_max_velocity,126.224
-six_DoF_estimated_apogee,747.6
+six_DoF_off_the_rail_TWR,
+six_DoF_off_the_rail_acceleration,
+six_DoF_off_the_rail_velocity,
+six_DoF_max_Q_acceleration,-19.06966299768639
+six_DoF_max_Q_mach,0.9242133715450181
+six_DoF_max_Q_velocity,317.0051864399412
+six_DoF_max_Q_horizontal_velocity,37.173861593803984
+six_DoF_apogee_horizontal_velocity,26.337414712033926
+six_DoF_total_impulse,
+six_DoF_estimated_apogee,3967.320715370405
 wet_mass,38.35597188527485
 dry_mass,34.734584075674846
 total_length,3.2925766000000003
@@ -82,9 +88,9 @@ dry_COM_location_from_bottom,1.2154505217816824
 dry_COM_location_from_top,2.077126078218318
 wet_COM_location_from_bottom,1.200863040631139
 wet_COM_location_from_top,2.0917135593688614
-upper_strut_max_load,
-mid_strut_max_load,
-lower_strut_max_load,
-fuel_tank_max_load,
-oxygen_tank_max_load,
-copv_tube_max_load,
+upper_strut_max_load,2925.739520370166
+mid_strut_max_load,2494.291283556449
+lower_strut_max_load,1791.4718803003682
+fuel_tank_max_load,1998.2374093774513
+oxygen_tank_max_load,1112.173680073174
+copv_tube_max_load,1818.6375934575178

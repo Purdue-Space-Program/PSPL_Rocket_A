@@ -75,7 +75,7 @@ end
 
 pAllow = (Fcr * area) / safetyFactorBuckling; % Allowable axial load [lb]
 
-%% Load Limit Properties
+%% Limit Load Properties
 
 [maxDownwardsForce, maxUpwardsForce] = NetAxialLoad(distance, radius); % Max compressive and tensile cases, divided by the three struts
 maxDownwardsForce = maxDownwardsForce / 3;

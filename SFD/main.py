@@ -73,7 +73,7 @@ air_density = 1.225 # [kg / m^3]
 AOA = 0 # [radians]
 
 # VERY SCUFFED VELOCITY 
-max_q_velocity = vehicle.parameters.six_DoF_max_velocity # [m / s] Velocity at max q
+max_q_velocity = vehicle.parameters.six_DoF_max_Q_velocity # [m / s] Velocity at max q
 wind_gust = pw.percentile_75_wind_gust_speed # [m / s] Assume constant wind gust
 max_q_AOA = sfd.calcAOA(wind_gust, max_q_velocity) # [radians] Angle of attack at max q
 velocity = max_q_velocity * np.sin(max_q_AOA) * xhat # [m / s] Adjusted velocity for AOA

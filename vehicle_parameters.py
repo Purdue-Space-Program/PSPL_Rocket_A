@@ -36,27 +36,29 @@ class VehicleParameters:
     tube_inner_diameter: float = 5.75 * c.IN2M        # Inner diameter of tube used in some sections of the rocket
     
     # Engine Parameters
-    engine_efficiency: float = 0.81                                                          # The assumed engine efficiency [dimensionless]
-    chamber_pressure: float = 250 * c.PSI2PA                                         # The target combustion pressure in the engine [Pascals]
-    jet_thrust: float = 668.0 * c.LBF2N                                              # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
+    engine_efficiency: float = 0.81             # The assumed engine efficiency [dimensionless]
+    chamber_pressure: float = 250 * c.PSI2PA    # The target combustion pressure in the engine [Pascals]
+    jet_thrust: float = 668.0 * c.LBF2N         # The targeted engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
     
+    ISP: float = 175.0                                                                        # The estimated ISP of the engine [seconds]
+    OF_ratio: float = 1.0                                                                     # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
+    total_core_mass_flow_rate: float = 3.82 * c.LBM2KG                                        # The targeted mass flow rate through the engine [kilograms/second]
+    oxidizer_mass_flow_rate: float = total_core_mass_flow_rate/(1 + (1/OF_ratio))             # The targeted mass flow rate for oxidizer through the engine [kilograms/second]
+    core_fuel_mass_flow_rate: float = total_core_mass_flow_rate/(OF_ratio + 1)                # The targeted mass flow rate for fuel through the engine [kilograms/second]
+    film_percentage: float = 0.3                                                              # The targeted film percentage [dimensionless]
+    film_fuel_mass_flow_rate: float = film_percentage * core_fuel_mass_flow_rate              # The targeted film mass flow rate for fuel [kilograms/second]
+    total_fuel_mass_flow_rate: float = core_fuel_mass_flow_rate + film_fuel_mass_flow_rate    # The targeted total fuel mass flow rate [kilograms/second]
+    burn_time: float = 2.09                                                                   # The estimated burn time of the engine [seconds]
+    contraction_ratio: float = 7.0                                                            # The target ratio of chamber area to throat area [dimensionless]
+    exit_pressure: float = 15.0 * c.PSI2PA                                                    # The target exit pressure of the exhaust gas [Pascals]
+    # combustion_temperature: float = 2170                                                    # The estimated combustion temperature [Kelvin]
+    chamber_outer_diameter: float = 6.0 * c.IN2M                                              # The design combustion chamber diameter [meters]
+    chamber_inner_diameter: float = 4.9 * c.IN2M                                              # The design combustion chamber diameter [meters]
+    chamber_throat_diameter: float = 1.852 * c.IN2M                                           # The design throat diameter [meters]
+    
+    maximum_expected_burn_time: float = (burn_time / 0.8) * (1 + film_percentage)             # The maximum expected burn time of the engine [seconds]
+    maximum_expected_jet_thrust: float = (jet_thrust/engine_efficiency) #jet_thrust           # The maximum expected engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
     # Assume that chamber pressure will be decreased in order to keep thrust at or below the nominal, otherwise it would be = jet_thrust / engine_efficiency
-    maximum_expected_jet_thrust: float = jet_thrust                                  # The maximum expected engine thrust (not accounting for exhaust gas expansion thrust) [Newtons]
-    ISP: float = 175.0                                                               # The estimated ISP of the engine [seconds]
-    OF_ratio: float = 1.0                                                            # The target ratio of oxygen to fuel combustion in the engine [dimensionless] 
-    total_core_mass_flow_rate: float = 3.82 * c.LBM2KG                               # The targeted mass flow rate through the engine [kilograms/second]
-    oxidizer_mass_flow_rate: float = total_core_mass_flow_rate/(1 + (1/OF_ratio))    # The targeted mass flow rate for oxidizer through the engine [kilograms/second]
-    core_fuel_mass_flow_rate: float = total_core_mass_flow_rate/(OF_ratio + 1)       # The targeted mass flow rate for fuel through the engine [kilograms/second]
-    film_percentage: float = 0.3                                                     # The targeted film percentage [dimensionless]
-    film_fuel_mass_flow_rate: float = film_percentage * core_fuel_mass_flow_rate                 # The targeted film mass flow rate for fuel [kilograms/second]
-    burn_time: float = 2.09                                                          # The estimated burn time of the engine [seconds]
-    maximum_expected_burn_time: float = burn_time / 0.8                              # The maximum expected burn time of the engine [seconds]
-    contraction_ratio: float = 7.0                                                   # The target ratio of chamber area to throat area [dimensionless]
-    exit_pressure: float = 15.0 * c.PSI2PA                                           # The target exit pressure of the exhaust gas [Pascals]
-    # combustion_temperature: float = 2170                                           # The estimated combustion temperature [Kelvin]
-    chamber_outer_diameter: float = 6.0 * c.IN2M                                     # The design combustion chamber diameter [meters]
-    chamber_inner_diameter: float = 4.9 * c.IN2M                                     # The design combustion chamber diameter [meters]
-    chamber_throat_diameter: float = 1.852 * c.IN2M                                  # The design throat diameter [meters]
     
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
@@ -106,29 +108,31 @@ class VehicleParameters:
     fin_top: float = None # the location of the top of the fin
 
     # 1-DoF Results:
-    one_DoF_off_the_rail_TWR: float = 7.43                # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    one_DoF_off_the_rail_acceleration: float = 6.43       # The target acceleration of the rocket off the launch rail [standard gravities]
-    one_DoF_off_the_rail_velocity: float = 27.64          # The target velocity of the rocket off the launch rail [meters/second]
+    one_DoF_off_the_rail_TWR: float = 7.43                         # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
+    one_DoF_off_the_rail_acceleration: float = 6.43                # The target acceleration of the rocket off the launch rail [standard gravities]
+    one_DoF_off_the_rail_velocity: float = 27.64                   # The target velocity of the rocket off the launch rail [meters/second]
 
-    one_DoF_max_acceleration: float = 6.96 # (upwards!)   # The maximum acceleration of the rocket during flight [standard gravities]
-    one_DoF_max_mach: float = 0.395                       # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    one_DoF_max_velocity: float = one_DoF_max_mach * 343  # The maximum speed of the rocket during flight [meters/second]
-    one_DoF_total_impulse: float = 6340                   # The total impulse of the rocket over the duration of flight [newton seconds]
+    one_DoF_max_Q_acceleration: float = 6.96 # (upwards!)            # The maximum acceleration of the rocket during flight [standard gravities]
+    one_DoF_max_Q_mach: float = 0.395                                # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    one_DoF_max_Q_velocity: float = one_DoF_max_Q_mach * c.SPEED_OF_SOUND  # The maximum speed of the rocket during flight [meters/second]
+    one_DoF_total_impulse: float = 6340                            # The total impulse of the rocket over the duration of flight [newton seconds]
 
-    # one_DoF_horizontal_velocity = ????
-    one_DoF_estimated_apogee: float = 2690 * c.FT2M       # The estimated 1-DoF altitude [meters]
+    one_DoF_estimated_apogee: float = 2690 * c.FT2M                # The estimated 1-DoF altitude [meters]
 
     # 6-DoF results:
-    # six_DoF_off_the_rail_TWR: float = ?                          # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    six_DoF_off_the_rail_acceleration: float = 58.264 / c.GRAVITY  # The target acceleration of the rocket off the launch rail [standard gravities]
-    six_DoF_off_the_rail_velocity: float = 28.70                   # The target velocity of the rocket off the launch rail [meters/second]
+    six_DoF_off_the_rail_TWR: float = None                          # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
+    six_DoF_off_the_rail_acceleration: float = None  # The target acceleration of the rocket off the launch rail [standard gravities]
+    six_DoF_off_the_rail_velocity: float = None                   # The target velocity of the rocket off the launch rail [meters/second]
 
-    # six_DoF_max_acceleration: float = ? # (upwards!)             # The maximum acceleration of the rocket during flight [standard gravities]
-    six_DoF_max_mach: float = 0.368                                # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
-    six_DoF_max_velocity: float = six_DoF_max_mach * 343           # The maximum speed of the rocket during flight [meters/second]
-    # six_DoF_total_impulse: float = ?                             # The total impulse of the rocket over the duration of flight [newton seconds]
+    six_DoF_max_Q_acceleration: float = None                         # The maximum acceleration of the rocket during flight [standard gravities]
+    six_DoF_max_Q_mach: float = None                                          # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
+    six_DoF_max_Q_velocity: float = None           # The maximum speed of the rocket during flight [meters/second]
+    six_DoF_max_Q_horizontal_velocity: float = None              # The estimated horizontal velocity at max Q
     
-    six_DoF_estimated_apogee: float = 747.60                       # The estimated 6-DoF altitude [meters]
+    six_DoF_apogee_horizontal_velocity: float = None              # The estimated horizontal velocity at apogee
+    
+    six_DoF_total_impulse: float = None                             # The total impulse of the rocket over the duration of flight [newton seconds]
+    six_DoF_estimated_apogee: float = None                       # The estimated 6-DoF altitude [meters]
     
     # later-calculated values that need to be here so it can still be added for a frozen data class
     wet_mass: float = None
@@ -494,4 +498,4 @@ if __name__ == "__main__":
             # print(f"\tmass: {component.mass:.2f} kg")
             # print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))):.2f} m")
             
-    # plt.show()
+    plt.show()

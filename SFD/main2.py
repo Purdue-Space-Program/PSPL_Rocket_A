@@ -75,7 +75,7 @@ inertia = sfd.calcRotationalInertia(linear_density_array, length_along_rocket_li
 
 # Import values
 apogee = vehicle.parameters.six_DoF_estimated_apogee
-max_q_velocity = vehicle.parameters.six_DoF_max_velocity
+max_q_velocity = vehicle.parameters.six_DoF_max_Q_velocity
 wind_gust = pw.percentile_75_wind_gust_speed
 max_AOA = np.arctan(wind_gust / max_q_velocity)  # Maximum angle of attack based on wind gust and max velocity
 

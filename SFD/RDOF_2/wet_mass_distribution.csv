@@ -1,5 +1,5 @@
-# Accessed: 2026-02-24_16-29-57 (format: YYYY-MM-DD_HH-MM-SS)
-# Accessed by: vehicle_main.py
+# Accessed: 2026-02-24_13-32-45 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed by: SFD/RDOF_2/rdof_v2.py
 parameter_name,value
 engine,"MassComponent(name='engine', mass=5.28888272, length=0.2585466, bottom_distance_from_aft=0.0, top_distance_from_aft=0.2585466)"
 injector,"MassComponent(name='injector', mass=4.073256160000001, length=0.025654, bottom_distance_from_aft=0.2585466, top_distance_from_aft=0.2842006)"

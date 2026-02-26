@@ -148,3 +148,4 @@ FAR_RAIL_HEIGHT = 18.29  # [m] height of the rail
 
 # Misc
 GRAVITY = 9.81  # [m/s^2] acceleration due to gravity
+SPEED_OF_SOUND = 343 # [m/s] speed of sound (double check cause this is from memory)

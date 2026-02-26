@@ -11,6 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
 from vehicle_parameters import parameters
 import vehicle_parameters_functions
+import vehicle_main
 import print_filter
 
 
@@ -62,9 +63,6 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     F_bry_Aluminum_7055_T74511_E_d_one_point_five = 96_000 * c.PSI2PA # [psi] 
     F_bry_Aluminum_7055_T74511_E_d_two =            114_000 * c.PSI2PA # [psi] 
     
-    
-    
-
     
     # F_bru_Aluminum_6063_T5_E_d_one_point_five = ???_000 * c.PSI2PA # [psi]
     F_bru_Aluminum_6063_T5_E_d_two = 46_000 * c.PSI2PA # [psi] 
@@ -240,20 +238,19 @@ def Calculate_Shear_Bolted_Joints():
     bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
     bulkhead_blowoff_load = (parameters.tank_pressure * bulkhead_area) * parameters.proof_factor
     print(f"\tBulkhead blowoff load: {bulkhead_blowoff_load:.2f} N, {bulkhead_blowoff_load * c.N2LBF :.2f} LBF")
+    print(f"\tOxygen tank max load: {parameters.oxygen_tank_max_load:.2f} N, {parameters.oxygen_tank_max_load * c.N2LBF :.2f} LBF")
 
-    parameters.unfreeze()
-    if bulkhead_blowoff_load > parameters.copv_tube_max_load:
+    if bulkhead_blowoff_load > parameters.oxygen_tank_max_load:
         bulkhead_max_load = bulkhead_blowoff_load
-        print("bulkhead_max_load: bulkhead_blowoff_load")
+        print("\tbulkhead_max_load: bulkhead_blowoff_load")
     else:
         bulkhead_max_load = parameters.oxygen_tank_max_load
-        print("bulkhead_max_load: parameters.oxygen_tank_max_load")
-    parameters.freeze()
+        print("\tbulkhead_max_load: parameters.oxygen_tank_max_load")
 
     tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
                                                    bolt_thread_size = "5/16\"", 
                                                    number_of_bolts = 18,
-                                                   shear_limit_load = bulkhead_blowoff_load,
+                                                   shear_limit_load = bulkhead_max_load,
                                                    joint_member_1 = tank_wall
                                                   )
     tank_wall_to_bulkhead_joint.Calculate_Shear_Bolted_Joint()
@@ -311,11 +308,18 @@ def Calculate_Shear_Bolted_Joints():
 
 
 def main():
-    with print_filter.context_manager(print_everything=False):
-        Calculate_Shear_Bolted_Joints()
+    Calculate_Shear_Bolted_Joints()
 
 
 if __name__ == "__main__":
-    import main
-    main()
+    rerun_everything = True
+    
+    if rerun_everything:
+        vehicle_main.vehicle_analysis()
+    else:
+        pass
+        # parameters = csv_to_dataclass(parameters_csv_filepath)    
+    
+    with print_filter.context_manager(print_everything=True):
+        main()
     

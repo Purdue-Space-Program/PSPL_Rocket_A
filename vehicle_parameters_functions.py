@@ -12,9 +12,11 @@ import vehicle_parameters
 
 
 def load_matlab_struct_as_dataclass(file_path_string):
-    matlab_struct_name = Path(file_path_string.parts[-1]).stem
-    weird_matlab_struct = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=True)
+    weird_matlab_struct = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=True, simplify_cells=False)
+    
+    matlab_struct_name = list(weird_matlab_struct)[-1]
     normal_matlab_data_struct = weird_matlab_struct[matlab_struct_name]
+
     
     # for field_name in normal_matlab_data_struct._fieldnames:
     #     print(f"field_name: {field_name}")    
@@ -105,43 +107,15 @@ def ExportObjectToCSV(object, export_file_path):
         
         csv_writer_handle.writerow(["parameter_name", "value"])
         
-        if isinstance(object, vehicle_parameters.MassDistribution):
-            mass_distribution_object = object
-            
-            # csv_writer_handle.writerow([
-            #     "name",
-            #     "mass",
-            #     "bottom_distance_from_aft",
-            #     "length",
-            #     "top_distance_from_aft",
-            # ])
+        if isinstance(object, vehicle_parameters.VehicleParameters) or isinstance(object, vehicle_parameters.MassDistribution):
 
-            # for component in mass_distribution_object:
-            #     csv_writer_handle.writerow([
-            #         component.name,
-            #         component.mass,
-            #         component.bottom_distance_from_aft,
-            #         component.length,
-            #         component.top_distance_from_aft,
-            #     ])
-            
-            for field_object in fields(mass_distribution_object):
+            for field_object in fields(object):
                 if field_object.name.startswith("_"):
                     continue
-                csv_writer_handle.writerow([field_object.name, getattr(mass_distribution_object, field_object.name)])
+                csv_writer_handle.writerow([field_object.name, getattr(object, field_object.name)])
 
-            print(f"Mass Distribution CSV Exported to {export_file_path}")
+            print(f"CSV Exported to {export_file_path}")
 
-        elif isinstance(object, vehicle_parameters.VehicleParameters):
-            vehicle_parameters_object = object
-            
-            for field_object in fields(vehicle_parameters_object):
-                if field_object.name.startswith("_"):
-                    continue
-                csv_writer_handle.writerow([field_object.name, getattr(vehicle_parameters_object, field_object.name)])
-            
-            print(f"Vehicle Parameters CSV Exported to {export_file_path}")
-    
         else:
             raise ValueError("da fuq")
 

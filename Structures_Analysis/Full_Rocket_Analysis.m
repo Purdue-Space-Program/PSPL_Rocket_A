@@ -2,7 +2,6 @@ clear;
 % clc;
 
 structural_loads = struct();
-
 make_components
 
 %% Struts

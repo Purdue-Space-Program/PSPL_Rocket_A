@@ -14,10 +14,10 @@ IN2M = 0.0254
 LBF2N = 4.44822
 MPH2MPS = 0.44704
 
-# a way to avoid print statements for entire file when its not the main file    
-if __name__ != "__main__":
-    def print(*args, **kwargs):
-        pass    
+# # a way to avoid print statements for entire file when its not the main file    
+# if __name__ != "__main__":
+#     def print(*args, **kwargs):
+#         pass    
 
 # Need q = 1/2 rho v^2 (done)
 # Need AOA = tan^-1(wind_gust / velocity) (done)
@@ -44,7 +44,7 @@ if __name__ != "__main__":
 
 # Need rho, velocity, wind gust, diameter, fin dimensions, mach, linear density, total mass, total length, 
 
-# Make linear_dnsity_array and length_along_rocket_linspace inputs
+# Make linear_density_array and length_along_rocket_linspace inputs
 def mass_model(rocket_dict):
     '''
     rocket_dict: Dictionary of rocket components
@@ -412,14 +412,14 @@ def calcAxialRecovery(drag_force, linear_density_array, length_along_rocket_lins
 
     return axial_array
 
-def inflation_time(canopy_factor, diamater, velocity):
+def inflation_time(canopy_factor, diameter, velocity):
     '''
     canopy_factor: Canopy factor (2.5 for low porosity canopies, will be used)
     diameter: Diameter of parachute [m]
     velocity: Velocity of rocket at deployment [m / s]
     inflation_time: Time for parachute to fully inflate [s]
     '''
-    inflation_time = (canopy_factor * diamater) / (velocity**0.85)
+    inflation_time = (canopy_factor * diameter) / (velocity**0.85)
     return inflation_time
 
 def calcInternalForce(f_drag, orientation, recovery_bay_start, linear_density_array, length_along_rocket_linspace, cg, total_mass):
