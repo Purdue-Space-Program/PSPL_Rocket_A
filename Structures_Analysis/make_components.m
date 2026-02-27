@@ -69,7 +69,6 @@ FuelTank.distance = 43.6535; % Location of strut from aft, top of strut (in)
 FuelTank.radius = 3; % Distance from center axis (in) 
 FuelTank.material = Aluminum_6061_T6_Material_Properties;
 
-
 OxyTank = TankClass;
 OxyTank.name = 'Oxidizer Tank';
 OxyTank.shape = "Circle";
@@ -88,3 +87,12 @@ COPVTube.length = 5; % from CAD (in)
 COPVTube.distance = 40; % Location of strut from aft, top of strut (in)
 COPVTube.radius = 3; % Distance from center axis (in) 
 COPVTube.material = Aluminum_6061_T6_Material_Properties;
+
+% Recovery_Tube.name = 'Recovery Tube';
+% Recovery_Tube.shape = "Circle";
+% Recovery_Tube.OD = 6; % [in]
+% Recovery_Tube.ID = 5.75; % [in]
+% Recovery_Tube.length = 5; % from CAD (in)
+% Recovery_Tube.distance = 40; % Location of strut from aft, top of strut (in)
+% Recovery_Tube.radius = 3; % Distance from center axis (in) 
+% Recovery_Tube.material = Aluminum_6061_T6_Material_Properties;
