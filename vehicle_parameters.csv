@@ -1,4 +1,4 @@
-# Accessed: 2026-02-25_16-28-03 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-02-27_00-58-03 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: vehicle_main.py
 parameter_name,value
 yield_FoS,1.5
@@ -64,9 +64,9 @@ wingspan,0.18796
 number_of_fins,3
 fin_top,0.6906006
 one_DoF_off_the_rail_TWR,7.43
-one_DoF_off_the_rail_acceleration,6.43
+one_DoF_off_the_rail_acceleration,63.0783
 one_DoF_off_the_rail_velocity,27.64
-one_DoF_max_Q_acceleration,6.96
+one_DoF_max_Q_acceleration,68.2776
 one_DoF_max_Q_mach,0.395
 one_DoF_max_Q_velocity,135.485
 one_DoF_total_impulse,6340
@@ -74,13 +74,13 @@ one_DoF_estimated_apogee,819.9119737628168
 six_DoF_off_the_rail_TWR,
 six_DoF_off_the_rail_acceleration,
 six_DoF_off_the_rail_velocity,
-six_DoF_max_Q_acceleration,-19.06966299768639
-six_DoF_max_Q_mach,0.9242133715450181
-six_DoF_max_Q_velocity,317.0051864399412
-six_DoF_max_Q_horizontal_velocity,37.173861593803984
-six_DoF_apogee_horizontal_velocity,26.337414712033926
+six_DoF_max_Q_acceleration,87.22248074600725
+six_DoF_max_Q_mach,0.8986190985272537
+six_DoF_max_Q_velocity,308.22635079484803
+six_DoF_max_Q_horizontal_velocity,57.41228968837157
+six_DoF_apogee_horizontal_velocity,43.09039416235989
 six_DoF_total_impulse,
-six_DoF_estimated_apogee,3967.320715370405
+six_DoF_estimated_apogee,3944.136657765399
 wet_mass,38.35597188527485
 dry_mass,34.734584075674846
 total_length,3.2925766000000003
@@ -88,9 +88,9 @@ dry_COM_location_from_bottom,1.2154505217816824
 dry_COM_location_from_top,2.077126078218318
 wet_COM_location_from_bottom,1.200863040631139
 wet_COM_location_from_top,2.0917135593688614
-upper_strut_max_load,2925.739520370166
-mid_strut_max_load,2494.291283556449
-lower_strut_max_load,1791.4718803003682
-fuel_tank_max_load,1998.2374093774513
-oxygen_tank_max_load,1112.173680073174
-copv_tube_max_load,1818.6375934575178
+upper_strut_max_load,3088.6908150932663
+mid_strut_max_load,2485.218352872386
+lower_strut_max_load,1734.5291675517442
+fuel_tank_max_load,2002.4813176856685
+oxygen_tank_max_load,952.3770651489394
+copv_tube_max_load,1826.3420598200419

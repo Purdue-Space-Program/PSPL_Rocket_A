@@ -109,10 +109,10 @@ class VehicleParameters:
 
     # 1-DoF Results:
     one_DoF_off_the_rail_TWR: float = 7.43                         # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
-    one_DoF_off_the_rail_acceleration: float = 6.43                # The target acceleration of the rocket off the launch rail [standard gravities]
+    one_DoF_off_the_rail_acceleration: float = 6.43 * c.GRAVITY    # The target acceleration of the rocket off the launch rail [standard gravities]
     one_DoF_off_the_rail_velocity: float = 27.64                   # The target velocity of the rocket off the launch rail [meters/second]
 
-    one_DoF_max_Q_acceleration: float = 6.96 # (upwards!)            # The maximum acceleration of the rocket during flight [standard gravities]
+    one_DoF_max_Q_acceleration: float = 6.96 * c.GRAVITY # (upwards!)            # The maximum acceleration of the rocket during flight [standard gravities]
     one_DoF_max_Q_mach: float = 0.395                                # The maximum speed of the rocket during flight [Mach (speed of sound of air)]
     one_DoF_max_Q_velocity: float = one_DoF_max_Q_mach * c.SPEED_OF_SOUND  # The maximum speed of the rocket during flight [meters/second]
     one_DoF_total_impulse: float = 6340                            # The total impulse of the rocket over the duration of flight [newton seconds]

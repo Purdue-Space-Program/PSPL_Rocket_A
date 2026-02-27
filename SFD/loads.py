@@ -17,10 +17,9 @@ import sfd
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
-def main():
+def max_q_or_off_the_rail(plot_on = False):
     # Select location to analyze
     location = "max_q" # Change to "max_q" or "off_the_rail"
-    plot_on = False # Set to True to plot results, False to not plot
     # ------------------------------------------------------------------------------
 
     # Inputs
@@ -39,11 +38,11 @@ def main():
         total_mass = parameters.dry_mass # [kg] Mass at max q
         if parameters.six_DoF_max_Q_velocity is None:
             velocity = parameters.one_DoF_max_Q_velocity # [m / s] Velocity at max q
-            acceleration = parameters.one_DoF_max_Q_acceleration * c.GRAVITY # [m / s^2] Acceleration at max q
+            acceleration = parameters.one_DoF_max_Q_acceleration # [m / s^2] Acceleration at max q
             mach = parameters.one_DoF_max_Q_mach # [dimensionless] Mach number at max q
         else:
             velocity = parameters.six_DoF_max_Q_velocity # [m / s] Velocity at max q
-            acceleration = parameters.six_DoF_max_Q_acceleration * c.GRAVITY # [m / s^2] Acceleration at max q
+            acceleration = parameters.six_DoF_max_Q_acceleration # [m / s^2] Acceleration at max q
             mach = parameters.six_DoF_max_Q_mach # [dimensionless] Mach number at max q
     
     elif location == "off_the_rail":
@@ -176,6 +175,9 @@ def main():
             plt.show()
             
 
+def main():
+    max_q_or_off_the_rail(plot_on = False)
+
 if __name__ == "__main__":
     try:
         from SFD import parseWind
@@ -194,4 +196,4 @@ if __name__ == "__main__":
         pass
         # parameters = csv_to_dataclass(parameters_csv_filepath)    
         
-    main()
+    max_q_or_off_the_rail(plot_on = True)

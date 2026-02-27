@@ -27,36 +27,60 @@ def vehicle_analysis():
     END = '\033[0m'
     GREEN = '\033[92m'
 
+    six_DoF_vehicle_parameters_csv_file_path = (
+        six_DoF_file_path
+        / "Inputs"
+        / "Saved Rockets"
+        / "FUCK_MATLAB"
+        / "vehicle_parameters.csv"
+    ).resolve()
+
+    six_DoF_script_file_path = six_DoF_file_path / "non_GUI_run.m"
+
+    # write to CSV for 6DOF to read since 6DOF is in matlabese
+    vehicle_parameters_functions.ExportObjectToCSV(parameters, six_DoF_vehicle_parameters_csv_file_path)
+
+    # weird thing where matlab was using venv version of python from Rocket_A    
+    # fuck = subprocess.run(["33matlab", "-batch", "pyenv"])
+        
+    six_DoF_completed_process = None
     try:
-        six_DoF_vehicle_parameters_csv_file_path = (
-            six_DoF_file_path
-            / "Inputs"
-            / "Saved Rockets"
-            / "FUCK_MATLAB"
-            / "vehicle_parameters.csv"
-        ).resolve()
+        matlab_executable_path = r"C:\Program Files\MATLAB\R2025b\bin\matlab.exe"
+        # print(f"\n\n{matlab_executable_path}", always_print_this=True)
 
-        six_DoF_script_file_path = six_DoF_file_path / "non_GUI_run.m"
+        startup_information = subprocess.STARTUPINFO()
+        startup_information.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startup_information.wShowWindow = subprocess.SW_HIDE
 
-        # write to CSV for 6DOF to read since 6DOF is in matlabese
-        vehicle_parameters_functions.ExportObjectToCSV(parameters, six_DoF_vehicle_parameters_csv_file_path)
-
-        # weird thing where matlab was using venv version of python from Rocket_A    
-        # fuck = subprocess.run(["matlab", "-batch", "pyenv"])
+        creation_flags = subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS
 
         six_DoF_completed_process = subprocess.run(
-                        ["matlab", "-batch", f"run('{six_DoF_script_file_path}')"], 
-                        check=False, # when False allows you to see matlab output during error
-                        # env=environment_dictionary,
-                        capture_output=True,
-                    )
+            [matlab_executable_path, "-batch", f"run('{six_DoF_script_file_path}')"],
+            check=True,
+            capture_output=True,
+            text=True,
+            startupinfo=startup_information,
+            creationflags=creation_flags,
+        )
 
-        print(six_DoF_completed_process.stdout)
-        print(six_DoF_completed_process.stderr)
+        six_DoF_output = vehicle_parameters_functions.load_matlab_struct_as_dataclass(
+            six_DoF_file_path / "output.mat"
+        )
+
+    except subprocess.CalledProcessError as matlab_error:
+        print(matlab_error.stdout, always_print_this=True)
+        print(matlab_error.stderr, always_print_this=True)
         six_DoF_completed_process.check_returncode()
-        
-    except:
-        print(f"{RED} =============6DOF run failed, using last saved outputs, take results with grain of salt============= {END}")
+        raise
+        print(f"{RED} =============6DOF run failed, using last saved outputs, take results with grain of salt============= {END}", always_print_this = True)
+
+    except Exception as other_error:
+        if six_DoF_completed_process is not None:
+            print(six_DoF_completed_process.stdout, always_print_this=True)
+            print(six_DoF_completed_process.stderr, always_print_this=True)
+            six_DoF_completed_process.check_returncode()
+        raise
+        print(f"{RED} =============6DOF run failed, using last saved outputs, take results with grain of salt============= {END}", always_print_this = True)
 
 
     six_DoF_output = vehicle_parameters_functions.load_matlab_struct_as_dataclass(six_DoF_file_path / "output.mat")

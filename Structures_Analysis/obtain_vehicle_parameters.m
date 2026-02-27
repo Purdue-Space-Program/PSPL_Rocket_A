@@ -5,7 +5,7 @@ python_executable_path = "python";
 python_script_path = "main.py";
 
 launched_by = getenv("LAUNCHED_BY");
-fprintf("launched_by: %s\n", launched_by);
+% fprintf("launched_by: %s\n", launched_by);
 
 if ~(strcmp(launched_by, "python"))
     setenv("LAUNCHED_BY", "matlab");

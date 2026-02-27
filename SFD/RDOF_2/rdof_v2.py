@@ -276,23 +276,38 @@ def plot(subplot, x_vectors, y_vectors, title, x_label, y_label, legends=['']):
     if legends != ['']:
         subplot.legend()
 
-def simulate_recovery():       
+def simulate_recovery(show_plots = False):       
     
-    show_plots = True
+    # Plot styling
+    plt.rcParams['lines.linewidth'] = 0.5
+    plt.rcParams['font.family'] = 'sans-serif'
+    plt.rcParams['font.sans-serif'] = ['Libre Franklin', 'Arial']
+    plt.rcParams['axes3d.mouserotationstyle'] = 'azel'
+    plt.rcParams["axes.grid"] = True
+    plt.rcParams['legend.fontsize'] = 'small'
+
+    PRIMARY_LINE_COLOR = "#DDB945"
+    SECONDARY_LINE_COLOR = "#8E6F3E"
+
     
-    SIMULATION_DURATION = 1000 # [seconds]
-    time_step_size = 0.05 # [seconds]
+    loads.main()
+    
+    os.chdir(os.path.dirname(__file__))
+    # print(f"os.getcwd: {os.getcwd()}")
+        
+    SIMULATION_DURATION = 800 # [seconds]
+    time_step_size = 0.025 # [seconds]
     time_array = np.arange(0, SIMULATION_DURATION, time_step_size)
 
 
-    # if parameters.six_DoF_off_the_rail_velocity is None:
-    #     apogee_altitude = parameters.one_DoF_estimated_apogee # [m] Apogee of rocket
-    #     velocity_x_initial = 12 # [m/s]
-    # else:
-    #     apogee_altitude = parameters.six_DoF_estimated_apogee # [m] Apogee of rocket
-    #     velocity_x_initial = parameters.six_DoF_apogee_horizontal_velocity + 100000 # [m/s]    
-    apogee_altitude = parameters.six_DoF_estimated_apogee # [m] Apogee of rocket
-    velocity_x_initial = parameters.six_DoF_apogee_horizontal_velocity # [m/s]    
+    if parameters.six_DoF_off_the_rail_velocity is None:
+        apogee_altitude = parameters.one_DoF_estimated_apogee # [m] Apogee of rocket
+        velocity_x_initial = 12 # [m/s]
+    else:
+        apogee_altitude = parameters.six_DoF_estimated_apogee # [m] Apogee of rocket
+        velocity_x_initial = parameters.six_DoF_apogee_horizontal_velocity + 100000 # [m/s]    
+    # apogee_altitude = parameters.six_DoF_estimated_apogee # [m] Apogee of rocket
+    # velocity_x_initial = parameters.six_DoF_apogee_horizontal_velocity # [m/s]    
 
     dry_linear_density_array, length_along_rocket_linspace = get_mass_model(rocket_dict_dry, vehicle_parameters.parachute_mass)
     total_dry_mass = np.sum(dry_linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0])) # [kg]
@@ -487,7 +502,7 @@ def simulate_recovery():
     drogue_worst_bending_index = np.argmax(np.abs(np.array(bending_moments_over_time)), axis=0)[0]
     drogue_worst_axial_index = np.argmax(np.abs(np.array(axial_forces_over_time)), axis=0)[0]
     print("Drogue Worst Bending Time (s):", drogue_worst_bending_index * time_step_size)
-    print("Drogue Worst Axial Time (s):", drogue_worst_axial_index * time_step_size)
+    print(f"Drogue Worst Axial Time (s): {drogue_worst_axial_index * time_step_size:.5f}")
     
     
     # Get axial and bending at worst drogue bending time
@@ -550,7 +565,7 @@ def simulate_recovery():
     end_time = time.time()
     print(f"3D Graph Computation time: {end_time - start_time:.2f} seconds")
     print("-----------------------------------")
-    print(f"Max axial load at recovery: {np.max(np.abs(drogue_worst_bending_axial))*c.N2LBF:.2f} lbf")
+    print(f"Max axial load at recovery: {np.max(np.abs(drogue_worst_bending_axial))*c.N2LBF:.6f} lbf")
     print(f"Max shear force at recovery: {np.max(np.abs(drogue_worst_bending_shear))*c.N2LBF:.2f} lbf")
     print(f"Max bending moment at recovery: {np.max(np.abs(drogue_worst_bending_bending))*c.NM2LBI:.2f} ft-lbf")
 
@@ -695,22 +710,6 @@ def simulate_recovery():
 
 
 def main():
-    # Plot styling
-    plt.rcParams['lines.linewidth'] = 0.5
-    plt.rcParams['font.family'] = 'sans-serif'
-    plt.rcParams['font.sans-serif'] = ['Libre Franklin', 'Arial']
-    plt.rcParams['axes3d.mouserotationstyle'] = 'azel'
-    plt.rcParams["axes.grid"] = True
-    plt.rcParams['legend.fontsize'] = 'small'
-
-    PRIMARY_LINE_COLOR = "#DDB945"
-    SECONDARY_LINE_COLOR = "#8E6F3E"
-
-    
-    loads.main()
-    
-    os.chdir(os.path.dirname(__file__))
-    # print(f"os.getcwd: {os.getcwd()}")
     simulate_recovery()
 
 if __name__ == "__main__":
@@ -723,4 +722,4 @@ if __name__ == "__main__":
         pass
         # parameters = csv_to_dataclass(parameters_csv_filepath)    
         
-    main()
+    simulate_recovery(show_plots = True)
