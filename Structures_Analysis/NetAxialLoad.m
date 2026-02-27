@@ -174,5 +174,5 @@ if timeToPdr
     end
 end
 
-fprintf('Compression: %.2f\n', maxCompression / 3)
-fprintf('Tension: %.2f\n', maxTension / 3)
+% fprintf('Compression: %.2f\n', maxCompression / 3)
+% fprintf('Tension: %.2f\n', maxTension / 3)
