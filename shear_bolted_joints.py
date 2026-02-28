@@ -146,7 +146,7 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     
     initial_fitting_factor = 1 # since we dont know if the joint is shear or bearing critical yet (idk if this is the right way to do it tbh)
     
-    # bolt_shear_yield_MoS ????????????????????????? i have not found a shear yield strength value for any material so i guess it doesnt exist...
+    # bolt_shear_yield_MoS ????????????????????????? i have not found a shear yield strength value for any material so i guess it doesn't exist...
     bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, initial_fitting_factor)
     clamped_material_bearing_ultimate_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, initial_fitting_factor)
     
@@ -229,9 +229,7 @@ def Calculate_Shear_Bolted_Joints():
                             shear_joint_type = "Single"
                            )
     
-    recovery_bay = copy.deepcopy(tank_wall) 
-    recovery_bay.material = "Aluminum 6061-T6"
-    
+    recovery_bay = copy.deepcopy(tank_wall)    
 
     
     print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
