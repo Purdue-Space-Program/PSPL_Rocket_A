@@ -37,6 +37,7 @@ def main():
     dropTemperature_K = -50
     recoveryBayRadius_in = (v.parameters.tube_inner_diameter*m_to_in)/2
     recoveryBayLength_in = v.parameters.recovery_bay_length*m_to_in + (v.parameters.nosecone_length*m_to_in)/3
+    print(f"recoveryBayLength_in: {recoveryBayLength_in:.2f}")
     recoveryBayPressure_psi = calculatePressure(cartridgeMass_g, roomTemperature_K, dropTemperature_K, recoveryBayRadius_in, recoveryBayLength_in)
     
     #print(recoveryBayLength_in)
