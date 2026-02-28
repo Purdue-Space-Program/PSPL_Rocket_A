@@ -45,7 +45,7 @@ def vehicle_analysis():
         
     six_DoF_completed_process = None
     try:
-        matlab_executable_path = r"C:\Program Files\MATLAB\R2025b\bin\matlab.exe"
+        matlab_executable_path = r"matlab" #r"C:\Program Files\MATLAB\R2025b\bin\matlab.exe"
         # print(f"\n\n{matlab_executable_path}", always_print_this=True)
 
         startup_information = subprocess.STARTUPINFO()

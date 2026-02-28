@@ -142,7 +142,7 @@ def Calculate_Force_Gravity(total_mass):
 def Calculate_Force_Parachute_Drag(time, altitude, phi, omega, velocity_x, velocity_y, CGtoTip, MAIN_DEPLOYMENT_ALTITUDE, drogue_drag_area, drogue_opening_time, main_drag_area, main_opening_time, main_altitude_time):
     velocity = [velocity_x, velocity_y] # Velocity vector
     gust_factor = (1 - time) if time <= 1 else 0
-    windSpeedMax = 12 # m/s, disabled this for now
+    windSpeedMax = loads.parseWind.percentile_90_wind_gust_speed # 12 # m/s, disabled this for now
     velocity[0] -= windSpeedMax * gust_factor # Adding wind gusts in x direction
     rocketVelMag = CGtoTip * omega # m/s, velocity of the rocket tip, arc length equation / time (radius * angle / time)
     chuteVel = np.array(velocity + rocketVelMag * np.array([-sin(phi), cos(phi)]))  # m/s, velocity of the rocket tip
@@ -571,7 +571,11 @@ def simulate_recovery(show_plots = False):
 
     # Save to matlab
     # Converting to matlab file
-    matlab_dict = {"axial_array": drogue_worst_axial_axial, "shear_array": drogue_worst_axial_shear, "bending_array": drogue_worst_axial_bending, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
+    use_worst_axial = True
+    if use_worst_axial:
+        matlab_dict = {"axial_array": drogue_worst_axial_axial, "shear_array": drogue_worst_axial_shear, "bending_array": drogue_worst_axial_bending, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
+    else:
+        matlab_dict = {"axial_array": drogue_worst_bending_axial, "shear_array": drogue_worst_bending_shear, "bending_array": drogue_worst_bending_bending, "length_along_rocket_linspace": length_along_rocket_linspace} # Dictionary to save as .mat file
     
     repository_root_path, _ = vehicle_parameters_functions.Get_Repository_Root_Path()
     savemat(repository_root_path / "SFD" / "rfd_outputs_recovery.mat", matlab_dict) # Save as .mat file for MATLAB)
