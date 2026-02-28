@@ -75,6 +75,8 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     
     # source: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1838153742/magic+numbers
     match bolt_thread_size:
+        case "#8":
+            bolt_minor_diameter = 0.1299 * c.IN2M
         case "#10":
             bolt_minor_diameter = 0.1517 * c.IN2M
             bolt_hole_clearance_diameter_tight = 0.1960 * c.IN2M
@@ -222,6 +224,7 @@ def Calculate_Shear_Bolted_Joints():
     )
     mid_strut = copy.deepcopy(upper_strut)    
     lower_strut = copy.deepcopy(upper_strut)
+    lower_strut.shear_joint_type = "Single"
 
     tank_wall = JointMember(material = "Aluminum 6061-T6",
                             thickness = 0.125 * c.IN2M,

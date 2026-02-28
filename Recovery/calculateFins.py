@@ -43,7 +43,7 @@ def main():
     print(f"dry_stability_cal: {dry_stability_cal:.2f} cal")
 
     shear_modulus = 26e9 # [pa]
-    fin_thickness = (1/4) * c.IN2M
+    fin_thickness = (3/16) * c.IN2M
     coefficient = 1.337 # what the fuck
     atmospheric_pressure = 1 * c.ATM2PA
 
@@ -54,7 +54,7 @@ def main():
     taper_ratio = calculateTaperRatio(tip_chord, root_chord)
     aspect_ratio = calculateAspectRatio(tip_chord, root_chord, wingspan, sweep_distance)
 
-    critical_mach = CalculateFinFlutterCriticalMachNumber(shear_modulus, aspect_ratio, fin_thickness, root_chord, coefficient, atmospheric_pressure, taper_ratio)
+    critical_mach = CalculateFinFlutterCriticalMachNumber(shear_modulus/parameters.ultimate_FoS, aspect_ratio, fin_thickness, root_chord, coefficient, atmospheric_pressure, taper_ratio)
     print(f"critical_mach: {critical_mach} Mach")
 
 

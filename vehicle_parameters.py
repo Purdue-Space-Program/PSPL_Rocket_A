@@ -214,11 +214,11 @@ engine_mass = 11.66 * c.LBM2KG # [lbm] measured CAD value
 injector_mass = 8.98 * c.LBM2KG # [lbm] measured CAD value
 
 number_of_fins = 3
-mass_per_fin = 1.614 * c.LBM2KG # [lbm]
+mass_per_fin = 4.635 * c.LBM2KG # [lbm]
 total_fin_mass = number_of_fins * mass_per_fin # [kg]
 
 number_of_fin_can_struts = 3
-mass_per_fin_can_strut = 0.7257 * c.LBM2KG # [lbm]
+mass_per_fin_can_strut = 2.309 * c.LBM2KG # [lbm]
 total_lower_strut_mass = number_of_fin_can_struts * mass_per_fin_can_strut # [kg]
 
 lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.lower_length)
@@ -266,13 +266,31 @@ nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inne
 
 # structures = 15 * c.LBM2KG # structures ! funny
 
-@dataclass(frozen=True)
+@dataclass
 class MassComponent:
     name: str                # name of the component [string]
     mass: float               # [kilograms]
     length: float              # [meters]
     bottom_distance_from_aft: float = None   # distance from the bottom of the rocket to the bottom of the mass component [meters]
     top_distance_from_aft: float = None
+
+    # internal freeze flag
+    _frozen: bool = field(default=False, init=False, repr=False)
+
+    def __post_init__(self):
+        object.__setattr__(self, "_frozen", False)
+
+    def freeze(self):
+        object.__setattr__(self, "_frozen", True)
+        
+    def unfreeze(self):
+        object.__setattr__(self, "_frozen", False)
+
+    def __setattr__(self, name, value):
+        if getattr(self, "_frozen", False) and name != "_frozen":
+            raise AttributeError("The vehicle parameters are frozen, you cannot change values, ask David how to change these values")
+        super().__setattr__(name, value)
+
 
 
 @dataclass(frozen=True)
@@ -441,9 +459,9 @@ parameters.freeze()
 if __name__ == "__main__":
     
     print(f"Thrust: {parameters.jet_thrust * c.N2LBF:.2f} LBF")
-    print(f"Vehicle Wet Weight: {vehicle_wet_mass * 9.81 * c.N2LBF:.2f} LBF")
+    print(f"Vehicle Wet Weight: {vehicle_wet_mass * c.GRAVITY * c.N2LBF:.2f} LBF")
     
-    print(f"TWR: {parameters.jet_thrust/(vehicle_wet_mass * 9.81)}")
+    print(f"TWR: {parameters.jet_thrust/(vehicle_wet_mass * c.GRAVITY)}")
     
     
     print(f"Vehicle Wet Mass: {vehicle_wet_mass * c.KG2LBM:.2f} lbm, {vehicle_wet_mass:.2f} kg, {(vehicle_wet_mass * c.KG2LBM)/130:.2f} abhis")
@@ -470,20 +488,61 @@ if __name__ == "__main__":
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(1))
     
     plt.ylabel("Wet Mass Density [lbs/feet^3]")
+    
+    # plt.grid()
     plt.title("Rocket Wet Mass Distribution")
 
 
     print_components = False
+    print_known_sections = False
+    
+    if print_known_sections == True:
+        wet_mass_distribution.engine.unfreeze()
+        wet_mass_distribution.engine
+        wet_mass_distribution.engine.mass += wet_mass_distribution.injector.mass
+        wet_mass_distribution.engine.length += wet_mass_distribution.injector.length
+        wet_mass_distribution.engine.freeze()
+        
+        wet_mass_distribution.fuel_tank.unfreeze()
+        wet_mass_distribution.fuel_tank.mass += wet_mass_distribution.lower_fuel_bulkhead.mass + wet_mass_distribution.upper_fuel_bulkhead.mass
+        wet_mass_distribution.fuel_tank.length += wet_mass_distribution.lower_fuel_bulkhead.length + wet_mass_distribution.upper_fuel_bulkhead.length
+        wet_mass_distribution.fuel_tank.freeze()
+        
+        wet_mass_distribution.oxidizer_tank.unfreeze()
+        wet_mass_distribution.oxidizer_tank.mass += wet_mass_distribution.lower_oxidizer_bulkhead.mass + wet_mass_distribution.upper_oxidizer_bulkhead.mass
+        wet_mass_distribution.oxidizer_tank.length += wet_mass_distribution.lower_oxidizer_bulkhead.length + wet_mass_distribution.upper_oxidizer_bulkhead.length
+        wet_mass_distribution.oxidizer_tank.freeze()
+    
+    
     
     if print_components == True:
         for component in wet_mass_distribution:
-            print(f"{component.name}:")
             
-            # imperial
-            print(f"\tlength: {component.length * c.M2IN:.2f} in")
-            print(f"\tmass: {component.mass * c.KG2LBM:.2f} lbm")
-            print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))) * c.M2IN:.2f} in")
             
+            if (print_known_sections == False) or (not ((component.name == "injector") or ((component.name == "lower_fuel_bulkhead") or (component.name == "upper_fuel_bulkhead")) or ((component.name == "lower_oxidizer_bulkhead") or (component.name == "upper_oxidizer_bulkhead")))):
+                print(f"{component.name}:")
+     
+                # imperial
+                print(f"\tlength: {component.length * c.M2IN:.2f} in")
+                print(f"\tmass: {component.mass * c.KG2LBM:.2f} lbm")
+                print(f"\tdistance from top: {(rocket_length - (component.bottom_distance_from_aft + (component.length/2))) * c.M2IN:.2f} in")
+
+# wet_mass_distribution = MassDistribution(
+#     engine =                  MassComponent(name = "engine",                      mass = engine_mass,                      length = parameters.engine_length),
+#     injector =                MassComponent(name = "injector",                    mass = injector_mass,                    length = parameters.injector_length),
+#     lower =                   MassComponent(name = "lower",                       mass = lower_mass,                       length = parameters.lower_length),
+#     lower_fuel_bulkhead =     MassComponent(name = "lower_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
+#     fuel_tank =               MassComponent(name = "wet_fuel_tank",               mass = fuel_tank_wet_mass,               length = parameters.fuel_tank_length),
+#     upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
+#     mid =                     MassComponent(name = "mid",                         mass = mid_mass,                         length = parameters.mid_length),
+#     lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
+#     oxidizer_tank =       MassComponent(name = "wet_oxidizer_tank",           mass = oxidizer_tank_wet_mass,           length = parameters.oxidizer_tank_length),
+#     upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
+#     upper =                   MassComponent(name = "upper",                       mass = upper_mass,                       length = parameters.upper_length),
+#     recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,                length = parameters.recovery_bay_length),
+#     nosecone =                MassComponent(name = "nosecone",                    mass = nosecone_mass,                    length = parameters.nosecone_length),
+# )            
+
             # # metric
             
             # component.StartAfter()
