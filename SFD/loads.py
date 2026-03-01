@@ -29,7 +29,7 @@ def max_q_or_off_the_rail(plot_on = False):
 
     air_density = 1.225 # [kg / m^3]
     max_q_wind_gust = parseWind.percentile_75_wind_gust_speed # [m / s]
-    off_the_rail_rail_whip = 5 # [m / s] about 11 mph NEED
+    off_the_rail_rail_whip = 5 # [m / s] about 11 mph
 
     if location == "max_q":
         wind_gust = max_q_wind_gust # [m/s] Wind gust at max q
@@ -108,7 +108,7 @@ def max_q_or_off_the_rail(plot_on = False):
         savemat(repository_root_path / "SFD" / "sfd_outputs_off_the_rail.mat", matlab_dict) # Save as .mat file for MATLAB
     # ------------------------------------------------------------------------------
     
-    print_inputs = False
+    print_inputs = True
     if print_inputs == True:
         print("Inputs:")
         if location == "max_q":
