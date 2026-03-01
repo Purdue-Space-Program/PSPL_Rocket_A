@@ -6,6 +6,8 @@ function [maxCompression, maxTension] = NetAxialLoad(location, radius, graphStat
 % returns the maximum force that could appear at that location according to
 % the latest running of the SFD and RFD. 
 
+% graphStatus = 1;
+
 N2LBF = 0.224809; % https://en.wikipedia.org/wiki/Newton_(unit)
 IN2M = 0.0254;  % [m/in] Conversion factor from in to m
 M2IN = 1 / IN2M;  % [in/m] Conversion factor from m to in
@@ -75,6 +77,8 @@ recovery_compressive_limit_load = max([netCompressionRecovery(locR)]);
 
 maxCompression = max([netCompressionMaxQ(locQ), netCompressionRecovery(locR)]);
 maxTension = min([netTensionMaxQ(locQ), netTensionRecovery(locR)]);
+[~, locMaxMaxQ] = max(netCompressionMaxQ(locQ));
+[~, locMaxRecovery] = max(netCompressionRecovery(locR));
 
 %% GRAPHS
 
@@ -156,18 +160,18 @@ if timeToPdr
         for theta = [0, pi]
             fprintf("\tTheta: %.2f\n", theta);
             if (load_case == "maxQ")
-                M = [momentLoadssfd(locationMaxQ(1)), momentLoadssfd(locationMaxQ(2))];
-                Fg = [axialLoadssfd(locationMaxQ(1)), axialLoadssfd(locationMaxQ(2))];
+                M = momentLoadssfd(locQ(locMaxMaxQ));
+                Fg = axialLoadssfd(locQ(locMaxMaxQ));
             elseif (load_case == "Recovery")
-                M = [momentLoadsrfd(locationRecovery(1)), momentLoadsrfd(locationRecovery(2))];
-                Fg = [axialLoadsrfd(locationRecovery(1)), axialLoadsrfd(locationRecovery(2))];
+                M = momentLoadsrfd(locR(locMaxRecovery));
+                Fg = axialLoadssfd(locR(locMaxRecovery));
             end
 
             R = radius;
 
-            F3 = (Fg - ((2 * M * cos(theta)) / R)) / 3;
             F1 = M * cos(theta) / (3 * R) + Fg / 3 - M * sin(theta) / (R * sqrt(3));
             F2 = M * cos(theta) / (3 * R) + Fg / 3 + M * sin(theta) / (R * sqrt(3));
+            F3 = (Fg - ((2 * M * cos(theta)) / R)) / 3;
             fprintf("\t\tF1: %2.2f\n\t\tF2: %2.2f\n\t\tF3: %2.2f\n\n", F1, F2, F3)
 
         end
