@@ -17,7 +17,7 @@ import sfd
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
-def max_q_or_off_the_rail(plot_on = False):
+def max_q_or_off_the_rail(plot_on = False, print_inputs = False):
     # Select location to analyze
     location = "max_q" # Change to "max_q" or "off_the_rail"
     # ------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ def max_q_or_off_the_rail(plot_on = False):
     root_chord = parameters.root_chord # [m]
     tip_chord = parameters.tip_chord # [m]
     sweep_length = parameters.sweep_length # [m]
-    fin_height = 7.25 * c.IN2M # [m] wtf is this, why is it not root_chord
+    fin_height = 7.25 * c.IN2M # [m] what is this, why is it not just root_chord
     numFins = 3 # [m]
     fin_top = parameters.fin_top # [m]
     noseconeToFin = total_length - fin_top # [m]
@@ -108,7 +108,6 @@ def max_q_or_off_the_rail(plot_on = False):
         savemat(repository_root_path / "SFD" / "sfd_outputs_off_the_rail.mat", matlab_dict) # Save as .mat file for MATLAB
     # ------------------------------------------------------------------------------
     
-    print_inputs = True
     if print_inputs == True:
         print("Inputs:")
         if location == "max_q":
@@ -169,14 +168,14 @@ def max_q_or_off_the_rail(plot_on = False):
             plt.title(title)
             plt.xlabel("Length from aft [ft]")
             plt.ylabel(ylabel)
-            plt.grid()
             plot_num += 1
+            plt.grid()
 
-            plt.show()
+        plt.show()
             
 
 def main():
-    max_q_or_off_the_rail(plot_on = False)
+    max_q_or_off_the_rail(plot_on = False, print_inputs = False)
 
 if __name__ == "__main__":
     try:
@@ -196,4 +195,4 @@ if __name__ == "__main__":
         pass
         # parameters = csv_to_dataclass(parameters_csv_filepath)    
         
-    max_q_or_off_the_rail(plot_on = True)
+    max_q_or_off_the_rail(plot_on = True, print_inputs = True)

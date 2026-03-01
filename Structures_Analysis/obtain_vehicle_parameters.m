@@ -2,7 +2,7 @@ starting_directory = pwd;
 cd('C:..')
 
 python_executable_path = "python";
-python_script_path = "main.py";
+python_script_path = "avehicle_main.py";
 
 launched_by = getenv("LAUNCHED_BY");
 % fprintf("launched_by: %s\n", launched_by);

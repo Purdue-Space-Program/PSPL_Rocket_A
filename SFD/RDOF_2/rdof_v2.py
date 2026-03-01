@@ -471,7 +471,7 @@ def simulate_recovery(show_plots = False):
     length_3d, time_3d = np.meshgrid(np.array(length_vec) * c.M2FT, np.array(time_array_shear_bending), indexing='ij')
 
     if show_plots == True:
-        bending3d.plot_surface(time_3d, length_3d, np.array(bending_moments_over_time).T*c.NM2LBI, cmap='viridis', rstride=downsample_factor, cstride=downsample_factor, alpha=0.9, edgecolor='none')
+        bending3d.plot_surface(time_3d, length_3d, np.array(bending_moments_over_time).T*c.NM2IN_LB, cmap='viridis', rstride=downsample_factor, cstride=downsample_factor, alpha=0.9, edgecolor='none')
         bending3d.set_xlabel("Time (s)")
         bending3d.set_ylabel("Length from Aft (ft)")
         bending3d.set_zlabel("Bending Moment (ft-lbs)")
@@ -567,7 +567,7 @@ def simulate_recovery(show_plots = False):
     print("-----------------------------------")
     print(f"Max axial load at recovery: {np.max(np.abs(drogue_worst_bending_axial))*c.N2LBF:.6f} lbf")
     print(f"Max shear force at recovery: {np.max(np.abs(drogue_worst_bending_shear))*c.N2LBF:.2f} lbf")
-    print(f"Max bending moment at recovery: {np.max(np.abs(drogue_worst_bending_bending))*c.NM2LBI:.2f} ft-lbf")
+    print(f"Max bending moment at recovery: {np.max(np.abs(drogue_worst_bending_bending))*c.NM2IN_LB:.2f} ft-lbf")
 
     # Save to matlab
     # Converting to matlab file
@@ -602,11 +602,11 @@ def simulate_recovery(show_plots = False):
         # plot(drogue_bending_plot, length_vec * c.M2FT, np.array(drogue_worst_bending_bending)*c.NM2LBI, 'Drogue - Bending Moment', 'Length from Aft (ft)', 'Bending Moment (ft-lbs)')
         # plot(drogue_axial_plot, length_vec * c.M2FT, np.array(drogue_worst_bending_axial)*c.N2LBF, 'Drogue - Axial Load', 'Length from Aft (ft)', 'Axial Load (lbf)')
         plot(drogue_shear_plot, length_vec * c.M2FT, np.array(drogue_worst_axial_shear)*c.N2LBF, 'Drogue - Shear Force', 'Length from Aft (ft)', 'Shear Force (lbf)')
-        plot(drogue_bending_plot, length_vec * c.M2FT, np.array(drogue_worst_axial_bending)*c.NM2LBI, 'Drogue - Bending Moment', 'Length from Aft (ft)', 'Bending Moment (ft-lbs)')
+        plot(drogue_bending_plot, length_vec * c.M2FT, np.array(drogue_worst_axial_bending)*c.NM2FT_LB, 'Drogue - Bending Moment', 'Length from Aft (ft)', 'Bending Moment (ft-lbs)')
         plot(drogue_axial_plot, length_vec * c.M2FT, np.array(drogue_worst_axial_axial)*c.N2LBF, 'Drogue - Axial Load', 'Length from Aft (ft)', 'Axial Load (lbf)')
         
         plot(main_shear_plot, length_vec * c.M2FT, np.array(main_shear)*c.N2LBF, 'Main - Shear Force', 'Length from Aft (ft)', 'Shear Force (lbf)')
-        plot(main_bending_plot, length_vec * c.M2FT, np.array(main_bending)*c.NM2LBI, 'Main - Bending Moment', 'Length from Aft (ft)', 'Bending Moment (ft-lbs)')
+        plot(main_bending_plot, length_vec * c.M2FT, np.array(main_bending)*c.NM2FT_LB, 'Main - Bending Moment', 'Length from Aft (ft)', 'Bending Moment (ft-lbs)')
         plot(main_axial_plot, length_vec * c.M2FT, np.array(main_axial)*c.N2LBF, 'Main - Axial Load', 'Length from Aft (ft)', 'Axial Load (lbf)')
         
         plt.tight_layout()
@@ -637,7 +637,7 @@ def simulate_recovery(show_plots = False):
         # Subplot 5: Rocket frame forces vs time
         plot(axs[0,2], time_array, [force_total_rocket_frame[:, 0]*c.N2LBF, force_total_rocket_frame[:, 1]*c.N2LBF], 'Rocket Frame Forces vs Time', 'Time (s)', 'Force (lbf)', legends=['Axial', 'Shear'])
         # Subplot 6: Internal bending moments
-        plot(axs[1,2], length_vec * c.M2FT, test_bending * c.NM2LBI, 'Bending Moment', 'Length from Aft (ft)', 'Bending Moment (ft-lbs)')
+        plot(axs[1,2], length_vec * c.M2FT, test_bending * c.NM2IN_LB, 'Bending Moment', 'Length from Aft (ft)', 'Bending Moment (ft-lbs)')
         # Subplot 7: Altitude vs time
         plot(axs[0,3], time_array, altitude_array, 'Altitude vs Time', 'Time (s)', 'Altitude (ft)')
 
@@ -714,7 +714,7 @@ def simulate_recovery(show_plots = False):
 
 
 def main():
-    simulate_recovery()
+    simulate_recovery(show_plots=False)
 
 if __name__ == "__main__":
     rerun_everything = False

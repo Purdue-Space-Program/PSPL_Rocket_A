@@ -28,7 +28,7 @@ if piston == "test":
     shaft_seal_area = 0.21 * IN2M * shaft_seal_length
     pressure = 100 * PSI2PA
 else:
-    braking_torque = 240 * LBI2NM
+    braking_torque = 240 * IN_LB2NM
     safety_factor = 3
     piston_stroke_length = 4 * IN2M
     rod_mass = 3.2 * LBM2KG # Estimated from CAD
@@ -83,8 +83,8 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force, piston_strok
     arm_length = piston_stroke_length / np.sqrt(2)
     torque = arm_length * piston_force / np.sqrt(2)
     if outputs == 1:
-        print(f"The piston will produce ~{torque * NM2LBI:.2f} torque at {pressure} psi.")
-        print(f"The required torque with a safety factor of 3 is {required_torque * NM2LBI:.2f}")
+        print(f"The piston will produce ~{torque * NM2IN_LB:.2f} torque at {pressure} psi.")
+        print(f"The required torque with a safety factor of 3 is {required_torque * NM2IN_LB:.2f}")
         print(f"Length of valve arm would be {arm_length * M2IN:.2f}")
     return required_torque, arm_length, torque
 

@@ -27,6 +27,8 @@ def vehicle_analysis():
     END = '\033[0m'
     GREEN = '\033[92m'
 
+    vehicle_parameters_functions.ExportObjectToMat(wet_mass_distribution, structures_analysis_file_path / "wet_mass_distribution.mat")
+    
     six_DoF_vehicle_parameters_csv_file_path = (
         six_DoF_file_path
         / "Inputs"
@@ -108,11 +110,10 @@ def vehicle_analysis():
     vehicle_parameters_functions.ExportObjectToCSV(parameters, PSPL_ROCKET_A_file_path)
     vehicle_parameters_functions.ExportObjectToCSV(wet_mass_distribution, "wet_mass_distribution")
 
-    vehicle_parameters_functions.ExportObjectToMat(wet_mass_distribution, structures_analysis_file_path / "wet_mass_distribution.mat")
 
 def main():
     vehicle_analysis()
 
 if __name__ == "__main__":
-    with print_filter.context_manager(print_everything=False, print_margins=True, print_titles=True):
+    with print_filter.context_manager(print_everything=True, print_margins=True, print_titles=True):
         main()

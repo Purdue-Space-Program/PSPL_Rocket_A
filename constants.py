@@ -65,12 +65,15 @@ LBF2N = 1 / N2LBF  # [N/lbf] Conversion factor from lbf to N
 
 ## Torque
 
-NM2LBI = 8.8507457676 # Conversion factor from N to in-lbf
-LBI2NM = 1 / NM2LBI # Conversion factor from in-lbf to N
+NM2IN_LB = 8.8507457676 # Conversion factor from Newton-meter to in-lbf
+IN_LB2NM = 1 / NM2IN_LB # Conversion factor from in-lbf to Newton-meter
+
+NM2FT_LB = N2LBF*M2FT # Conversion factor from Newton-meter to ft-lbf
+FT_LB2NM = 1 / NM2FT_LB # Conversion factor from ft-lbf to Newton-meter
 
 # Speed
 
-RPM2RADS = (2 * np.pi) / 60
+NM2FT_LBRPM2RADS = (2 * np.pi) / 60
 
 ### Material Properties
 

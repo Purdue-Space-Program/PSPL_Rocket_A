@@ -165,7 +165,7 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
     clamped_material_bearing_yield_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, parameters.yield_FoS, fitting_factor)
     clamped_material_bearing_ultimate_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, parameters.ultimate_FoS, fitting_factor)
-    
+    # print(f"\tdesign_shear_load_per_bolt ULTIMATE: {limit_shear_load_per_bolt*(parameters.ultimate_FoS*fitting_factor) * c.N2LBF}")
     
     YELLOW = '\033[93m'
     RED = '\033[91m'

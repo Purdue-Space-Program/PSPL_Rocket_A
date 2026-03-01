@@ -1,4 +1,4 @@
-# Accessed: 2026-02-28_06-11-41 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-02-28_17-10-25 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: vehicle_main.py
 parameter_name,value
 yield_FoS,1.5
@@ -74,13 +74,13 @@ one_DoF_estimated_apogee,819.9119737628168
 six_DoF_off_the_rail_TWR,
 six_DoF_off_the_rail_acceleration,
 six_DoF_off_the_rail_velocity,
-six_DoF_max_Q_acceleration,74.40333853072937
-six_DoF_max_Q_mach,0.7204601584533304
-six_DoF_max_Q_velocity,247.11783434949234
-six_DoF_max_Q_horizontal_velocity,7.822028211142719
-six_DoF_apogee_horizontal_velocity,5.872191294261097
+six_DoF_max_Q_acceleration,72.3548812967384
+six_DoF_max_Q_mach,0.7249849914805719
+six_DoF_max_Q_velocity,248.66985207783617
+six_DoF_max_Q_horizontal_velocity,40.17706192046381
+six_DoF_apogee_horizontal_velocity,33.5019172361024
 six_DoF_total_impulse,
-six_DoF_estimated_apogee,3181.94629274613
+six_DoF_estimated_apogee,3123.8647512802713
 wet_mass,44.621392822074846
 dry_mass,41.000005012474844
 total_length,3.2925766000000003
@@ -88,9 +88,9 @@ dry_COM_location_from_bottom,1.1123976552744939
 dry_COM_location_from_top,2.1801789447255064
 wet_COM_location_from_bottom,1.1081877061597434
 wet_COM_location_from_top,2.184388893840257
-upper_strut_max_load,2549.464083396355
-mid_strut_max_load,2097.2984496678855
-lower_strut_max_load,1542.8947540500453
-fuel_tank_max_load,1684.5524010190277
-oxygen_tank_max_load,963.5348684493479
-copv_tube_max_load,1546.7762336648714
+upper_strut_max_load,2558.818793007743
+mid_strut_max_load,2097.5109466520107
+lower_strut_max_load,1320.3809912158401
+fuel_tank_max_load,1682.1537563247023
+oxygen_tank_max_load,945.1392963483235
+copv_tube_max_load,1543.4589758067195

@@ -256,7 +256,7 @@ copv_mass = 2.9 # [kg]
 upper_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(parameters.tube_outer_diameter, parameters.tube_inner_diameter, parameters.upper_length)
 upper_mass = regulator_mass + copv_mass + upper_airframe_tube_mass
 
-recovery_bay_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.recovery_bay_length)
+recovery_bay_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(parameters.tube_outer_diameter, parameters.tube_inner_diameter, parameters.recovery_bay_length)
 parachute_mass = 2.25 * c.LBM2KG  # [kg] https://shop.fruitychutes.com/collections/parachutes/products/iris-ultra-144-compact-chute-114lbs-20fps-64lbs-15fps
 recovery_bay_mass = recovery_bay_airframe_tube_mass + parachute_mass
 
