@@ -9,8 +9,8 @@ import vehicle_parameters as v
 
 ##### OPERATING CONDITIONS #####
 g = GRAVITY
-n2_temperature = 0 # [K] Temperature of N2 at diffuser exit???
-n2_mdot = 0 # [kg/s]
+n2_temperature = 100 # [K] Temperature of N2 at diffuser exit (assume same as tank temperature)
+n2_mdot = 0.6 # [kg/s] Assumed for now, quite high 
 ullage_pressure = v.parameters.tank_pressure # [Pa] Diffuser exit pressure of N2 / Ullage Pressure
 temperature_wall = 0
 dTemp = abs(temperature_wall-n2_temperature)

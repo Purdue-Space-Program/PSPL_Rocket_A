@@ -7,7 +7,7 @@ from constants import *
 
 ###############################
 # CHOOSE MODE "test" or "real"
-piston = "real" # test or real
+piston = "test" # test or real
 # OUTPUTS "on" (1) or "off" (0)
 outputs = 1
 ###############################
@@ -57,6 +57,7 @@ def calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_s
         print(f"fc_shaft: {fc_shaft * N2LBF:.2f} LBF")
         print(f"fh_piston: {fh_piston * N2LBF:.2f} LBF")
         print(f"fh_shaft: {fh_shaft * N2LBF:.2f} LBF")
+        print(f"F_piston: {piston_force * N2LBF} LBF")
         print(f"F_net: {f_net * N2LBF:.2f} LBF")
     return f_net
 

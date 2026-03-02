@@ -1,0 +1,43 @@
+from CoolProp.CoolProp import PropsSI
+import numpy as np
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+from heat_transfer_functions import *
+
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import constants as c
+from vehicle_parameters import parameters as p
+
+# VEHICLE PARAMETERS #
+oxidizer = 'oxygen'
+press_fill = 40 * c.PSI2PA # [Pa]
+mdot_ox = p.oxidizer_mass_flow_rate # [kg/s]
+press_ox = p.oxidizer_tank_pressure # [Pa]
+temp_fill_ox = PropsSI('T', 'P', press_fill, 'Q', 0, oxidizer) # [K] oxidizer temperature
+print(temp_fill_ox)
+rho_ox = PropsSI('D', 'T', temp_fill_ox, 'P', press_ox, oxidizer)
+
+fuel = 'ethanol'
+mdot_fu = p.film_fuel_mass_flow_rate + p.core_fuel_mass_flow_rate # [kg/s]
+press_fu = p.fuel_tank_pressure # [Pa]
+rho_fu = PropsSI('D', 'T', c.T_AMBIENT, 'P', press_fu, fuel)
+
+
+###### FINDING CONSERVATIVE MASS FLOW RATE OF NITROGEN #####
+vdot_ox = mdot_ox / rho_ox
+vdot_fu = mdot_fu / rho_fu
+vdot_total = vdot_fu + vdot_ox
+
+press_gas = 'nitrogen'
+vdot_press_gas = vdot_total
+# Assuming isothermal interactions between ullage and tank
+rho_press_gas_ox = PropsSI('D', 'T', temp_fill_ox, 'P', press_ox, press_gas)
+rho_press_gas_fu = PropsSI('D', 'T', c.T_AMBIENT, 'P', press_fu, press_gas)
+mdot_press_gas_ox = rho_press_gas_ox * vdot_ox
+mdot_press_gas_fu = rho_press_gas_fu * vdot_fu
+mdot_press_gas_total = mdot_press_gas_fu + mdot_press_gas_ox
+print(mdot_press_gas_fu)
+print(mdot_press_gas_ox)
+print(f"Expected conservative mass flow rate of nitrogen: {mdot_press_gas_total:.2f} [kg/s]")
