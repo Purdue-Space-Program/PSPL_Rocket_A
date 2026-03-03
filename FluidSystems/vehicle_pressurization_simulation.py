@@ -21,9 +21,12 @@ T_AMBIENT = 293 # [K] ambient temperature
 LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
 LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 DT = 1.50 # [s] simulation step size
 Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
 =======
+=======
+>>>>>>> Stashed changes
 DT = 0.05 # [s] simulation step size
 Q_FACTOR = 1 # [] factor to multiply heat transfer by (for conservatism)
 >>>>>>> Stashed changes
@@ -87,7 +90,12 @@ if vehicle_name == "Rocket_A":
     P_COPV = p.COPV_starting_pressure # [Pa] starting COPV pressure
     T_COPV = 300 # [K] starting COPV temperature (assumed)
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     local_acceleration = p.one_DoF_off_the_rail_acceleration # [m/s^2] local acceleration (may be > 9.81 in flight)
+=======
+    #GRAVITY = p.one_DoF_off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
+    GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
+>>>>>>> Stashed changes
 =======
     #GRAVITY = p.one_DoF_off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
     GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
@@ -123,7 +131,11 @@ if vehicle_name == "Rocket_A":
     # Fuel
     FUEL = "ethanol"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     M_DOT_FU = p.core_fuel_mass_flow_rate + p.film_fuel_mass_flow_rate # [kg/s] fuel mass flow rate
+=======
+    M_DOT_FU = p.film_fuel_mass_flow_rate + p.core_fuel_mass_flow_rate # [kg/s] fuel mass flow rate, with film mass flow 
+>>>>>>> Stashed changes
 =======
     M_DOT_FU = p.film_fuel_mass_flow_rate + p.core_fuel_mass_flow_rate # [kg/s] fuel mass flow rate, with film mass flow 
 >>>>>>> Stashed changes
@@ -515,12 +527,17 @@ if PLOT_OUTPUT == True:
     # manager = plt.get_current_fig_manager()
     # manager.window.state('zoomed')
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     
     fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
     
     plt.show()
 
 
+=======
+    fig.subplots_adjust(top=0.95, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
+    plt.show()
+>>>>>>> Stashed changes
 =======
     fig.subplots_adjust(top=0.95, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
     plt.show()
