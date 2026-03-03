@@ -5,17 +5,17 @@ import sys
 from CoolProp.CoolProp import PropsSI
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-import vehicle_parameters as v
-
+import vehicle_parameters
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 ##### OPERATING CONDITIONS #####
 g = GRAVITY
-n2_temperature = 100 # [K] Temperature of N2 at diffuser exit (assume same as tank temperature)
+n2_temperature = 0 # [K] Temperature of N2 at diffuser exit???
 n2_mdot = 0.6 # [kg/s] Assumed for now, quite high 
-ullage_pressure = v.parameters.tank_pressure # [Pa] Diffuser exit pressure of N2 / Ullage Pressure
+ullage_pressure = parameters.nominal_tank_pressure # [Pa] Diffuser exit pressure of N2 / Ullage Pressure
 temperature_wall = 0
 dTemp = abs(temperature_wall-n2_temperature)
-tank_height = v.parameters.fuel_tank_length # [m]
-tank_diameter = v.parameters.tank_inner_diameter # [m]
+tank_height = parameters.fuel_tank_length # [m]
+tank_diameter = parameters.tank_inner_diameter # [m]
 
 ##### INPUT PARAMETERS #####
 desired_velocity = 1 # [m/s]

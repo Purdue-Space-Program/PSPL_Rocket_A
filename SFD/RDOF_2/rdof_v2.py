@@ -13,7 +13,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import vehicle_parameters
 import vehicle_parameters_functions
-from vehicle_parameters import parameters, rocket_dict_dry, rocket_dict_wet
 import vehicle_main
 import constants as c
 
@@ -276,7 +275,7 @@ def plot(subplot, x_vectors, y_vectors, title, x_label, y_label, legends=['']):
     if legends != ['']:
         subplot.legend()
 
-def simulate_recovery(show_plots = False):       
+def simulate_recovery(parameters, show_plots = False):       
     
     # Plot styling
     plt.rcParams['lines.linewidth'] = 0.5
@@ -309,7 +308,7 @@ def simulate_recovery(show_plots = False):
     # apogee_altitude = parameters.six_DoF_estimated_apogee # [m] Apogee of rocket
     # velocity_x_initial = parameters.six_DoF_apogee_horizontal_velocity # [m/s]    
 
-    dry_linear_density_array, length_along_rocket_linspace = get_mass_model(rocket_dict_dry, vehicle_parameters.parachute_mass)
+    dry_linear_density_array, length_along_rocket_linspace = get_mass_model(vehicle_parameters.rocket_dict_dry, parameters.parachute_mass)
     total_dry_mass = np.sum(dry_linear_density_array * (length_along_rocket_linspace[1] - length_along_rocket_linspace[0])) # [kg]
 
     dy = length_along_rocket_linspace[1] - length_along_rocket_linspace[0] # m, length of each slice in mass model
@@ -711,12 +710,15 @@ def simulate_recovery(show_plots = False):
         print(f"Rocket velocity at ground: {velocity:.2f} ft/s")
     else:
         print("Rocket doesn't reach ground given timeframe/conditions.")
+    return(parameters)
 
 
-def main():
-    simulate_recovery(show_plots=False)
+def main(parameters):
+    parameters = simulate_recovery(parameters, show_plots=False)
+    return(parameters)
 
 if __name__ == "__main__":
+    parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
     rerun_everything = False
     
     # change this to somehow work to just up to this file
@@ -726,4 +728,4 @@ if __name__ == "__main__":
         pass
         # parameters = csv_to_dataclass(parameters_csv_filepath)    
         
-    simulate_recovery(show_plots = True)
+    simulate_recovery(parameters, show_plots = True)

@@ -5,7 +5,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters as vehicle
+import vehicle_parameters
 
 def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename):
     
@@ -164,11 +164,11 @@ filename = 'chamber_contour'
 theta_n = 20.88
 theta_e = 14.6
 
-
-chamber_inner_diameter = vehicle.parameters.chamber_inner_diameter # [meters]
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+chamber_inner_diameter = parameters.chamber_inner_diameter # [meters]
 chamber_area = np.pi * ((chamber_inner_diameter/2)**2) # [m^2]
 
-throat_diameter = vehicle.parameters.chamber_throat_diameter # [meters]
+throat_diameter = parameters.chamber_throat_diameter # [meters]
 throat_area = np.pi * ((throat_diameter/2)**2) # [m^2]
 
 contract_ratio = chamber_area/throat_area

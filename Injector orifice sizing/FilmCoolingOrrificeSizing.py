@@ -4,11 +4,12 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import vehicle_parameters as vp
+import vehicle_parameters
 import matplotlib.pyplot as plt
 import constants as c
 
-m_dotTotal = vp.parameters.total_core_mass_flow_rate #total propellant mass flow
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+m_dotTotal = parameters.total_core_mass_flow_rate #total propellant mass flow
 f_film = 0.20 #film cooling fraction
 m_dot_film = m_dotTotal * f_film #mass flow rate for film cooling
 
@@ -19,7 +20,7 @@ R = 8.314 / M #specific gas constant for film cooling gas (J/kg-K)
 T0 = 300 #stagnation temperature of film cooling gas (K)
 C_d = 0.75 #discharge coefficient of orifice
 
-P_main = vp.parameters.chamber_pressure #combustion chamber pressure (Pa)
+P_main = parameters.chamber_pressure #combustion chamber pressure (Pa)
 P_film = 2 #film manifold pressure (Pa)
 
 #check for choked flow

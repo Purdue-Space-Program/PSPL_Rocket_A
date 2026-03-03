@@ -1,4 +1,4 @@
-# Accessed: 2026-02-28_17-10-25 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-03-02_03-12-37 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: vehicle_main.py
 parameter_name,value
 engine,"MassComponent(name='engine', mass=5.28888272, length=0.2585466, bottom_distance_from_aft=0.0, top_distance_from_aft=0.2585466)"
@@ -12,5 +12,5 @@ lower_oxidizer_bulkhead,"MassComponent(name='lower_oxidizer_bulkhead', mass=0.89
 oxidizer_tank,"MassComponent(name='wet_oxidizer_tank', mass=2.4703528754866033, length=0.11582399999999998, bottom_distance_from_aft=1.1645646, top_distance_from_aft=1.2803886)"
 upper_oxidizer_bulkhead,"MassComponent(name='upper_oxidizer_bulkhead', mass=0.8940298320000001, length=0.030987999999999998, bottom_distance_from_aft=1.2803886, top_distance_from_aft=1.3113766)"
 upper,"MassComponent(name='upper', mass=7.4685780199688425, length=0.8382, bottom_distance_from_aft=1.3113766, top_distance_from_aft=2.1495766)"
-recovery_bay,"MassComponent(name='recovery_bay', mass=1.519313984449703, length=0.762, bottom_distance_from_aft=2.1495766, top_distance_from_aft=2.9115766)"
+recovery_bay,"MassComponent(name='recovery_bay', mass=4.363585704517131, length=0.762, bottom_distance_from_aft=2.1495766, top_distance_from_aft=2.9115766)"
 nosecone,"MassComponent(name='nosecone', mass=4.785285992224852, length=0.381, bottom_distance_from_aft=2.9115766, top_distance_from_aft=3.2925766000000003)"

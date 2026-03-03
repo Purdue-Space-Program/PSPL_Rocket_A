@@ -10,6 +10,8 @@ import scipy.io as sio
 import numpy as np
 import vehicle_parameters
 
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+from vehicle_parameters import VehicleParameters, MassComponent, MassDistribution
 
 def load_matlab_struct_as_dataclass(file_path_string):
     weird_matlab_struct = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=True, simplify_cells=False)
@@ -107,7 +109,7 @@ def ExportObjectToCSV(object, export_file_path):
         
         csv_writer_handle.writerow(["parameter_name", "value"])
         
-        if isinstance(object, vehicle_parameters.VehicleParameters) or isinstance(object, vehicle_parameters.MassDistribution):
+        if isinstance(object, VehicleParameters) or isinstance(object, MassDistribution):
 
             for field_object in fields(object):
                 if field_object.name.startswith("_"):
@@ -161,7 +163,7 @@ def Generate_CSV_Bytes_From_Class_Object(object):
     string_buffer = io.StringIO()
     csv_writer_handle = csv.writer(string_buffer)
 
-    if isinstance(object, vehicle_parameters.MassDistribution):
+    if isinstance(object, parameters.MassDistribution):
         csv_writer_handle.writerow([
             "name",
             "mass",

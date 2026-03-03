@@ -9,7 +9,7 @@ import subprocess
 
 
 
-def calculate_structural_loads():
+def calculate_structural_loads(parameters, wet_mass_distribution):
     import sys
     import os
 
@@ -17,7 +17,6 @@ def calculate_structural_loads():
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-    from vehicle_parameters import parameters
     import vehicle_parameters_functions
     import vehicle_main
     import constants as c
@@ -30,6 +29,8 @@ def calculate_structural_loads():
     structures_analysis_file_path = (repository_root_path / "Structures_Analysis").resolve()
     structural_loads_file_path = (repository_root_path / "Structures_Analysis" / "structural_loads.mat").resolve()
     structural_loads_script_file_path = (structures_analysis_file_path / "Full_Rocket_Analysis.m")
+
+    vehicle_parameters_functions.ExportObjectToMat(wet_mass_distribution, structures_analysis_file_path / "wet_mass_distribution.mat")
 
     
     launched_by = os.getenv("LAUNCHED_BY")
@@ -61,9 +62,12 @@ def calculate_structural_loads():
     parameters.oxygen_tank_max_load = max(structural_loads.oxygen_tank.max_compression, structural_loads.oxygen_tank.max_tension)
     parameters.copv_tube_max_load = max(structural_loads.copv_tube.max_compression, structural_loads.copv_tube.max_tension)
     parameters.freeze()
+    return(parameters, wet_mass_distribution)
 
-def main():
-    calculate_structural_loads()
+def main(parameters, wet_mass_distribution):
+    parameters, wet_mass_distribution = calculate_structural_loads(parameters, wet_mass_distribution)
+    return(parameters, wet_mass_distribution)
 
 if __name__ == "__main__":
-    main()
+    from vehicle_parameters import parameters, wet_mass_distribution
+    main(parameters, wet_mass_distribution)

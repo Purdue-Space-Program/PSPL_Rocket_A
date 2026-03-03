@@ -6,11 +6,10 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters as vehicle
+import vehicle_parameters
 import Chambercontour as chamber
-
-
-xchamb, ychamb = chamber.nozzle_contour(vehicle.parameters.chamber_throat_diameter, chamber.expansion_ratio, chamber.Lstar, vehicle.parameters.contraction_ratio, chamber.con_angle, vehicle.parameters.chamber_inner_diameter, chamber.filename)
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+xchamb, ychamb = chamber.nozzle_contour(parameters.chamber_throat_diameter, chamber.expansion_ratio, chamber.Lstar, parameters.contraction_ratio, chamber.con_angle, parameters.chamber_inner_diameter, chamber.filename)
 
 #hoopstress calc
 
@@ -46,7 +45,7 @@ for r in innerr:
     hoopstress = ((r**2 * pressure)/(outerr**2 - r**2))*(1+(outerr**2/r**2))
     realhoopstressar.append(hoopstress)
     limit_load = hoopstress
-    design_load = limit_load*sf*pf   #vehicle.parameters.yield_FOS
+    design_load = limit_load*sf*pf   #parameters.yield_FOS
     MoS = (mechs/design_load) - 1
     MoSar.append(MoS)
 

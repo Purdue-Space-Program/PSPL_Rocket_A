@@ -14,11 +14,11 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters as vehicle
-
+import vehicle_parameters
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 def main():
-    max_height = vehicle.parameters.one_DoF_estimated_apogee # [m]
-    rocket_mass = vehicle.parameters.dry_mass # [kg]
+    max_height = parameters.one_DoF_estimated_apogee # [m]
+    rocket_mass = parameters.dry_mass # [kg]
     air_density = 1.229 # [kg/m^3] https://www.grc.nasa.gov/www/k-12/VirtualAero/BottleRocket/airplane/rktvrecv.html
 
     parachute_name = "Fruity Chutes"
