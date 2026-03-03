@@ -18,7 +18,7 @@ from vehicle_parameters import parameters as p
 
 # Simulation settings
 T_AMBIENT = 293 # [K] ambient temperature
-LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
+LOITER_TIME = 10 # [s] time between prepressurization and the start of flow
 LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
 DT = 1.50 # [s] simulation step size
 Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
@@ -125,7 +125,7 @@ if vehicle_name == "Rocket_A":
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
-    ULLAGE_FU =  3 / 100 # [] fuel tank volume ullage fraction
+    ULLAGE_FU =  10 / 100 # [] fuel tank volume ullage fraction
     
     V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
     V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
@@ -150,7 +150,7 @@ D_tank_inner = D_TANK - (2 * T_TANK)
 A_bulkhead = np.pi * (D_tank_inner**2) / 4 # [m^2] bulkhead area (flat circle)
 l_tank_ox = V_OX / A_bulkhead # [m] oxidizer tank length
 m_tank_ox = 2 * M_BULKHEAD + np.pi / 4 * (D_TANK**2 - D_tank_inner**2) * l_tank_ox * RHO_TANK # [kg] oxidizer tank mass
-l_tank_fu = V_FU / A_bulkhead # [m] fuel tank length
+l_tank_fu = p.fuel_tank_length # [m] fuel tank length
 m_tank_fu = 2 * M_BULKHEAD + np.pi / 4 * (D_TANK**2 - D_tank_inner**2) * l_tank_fu * RHO_TANK # [kg] fuel tank mass
 D_inner_press_line = D_PRESS_LINE - 2 * T_PRESS_LINE # [m] fuel tank press line inner diameter
 A_inner_press_line = np.pi * (D_inner_press_line**2) / 4 # [m^2] fuel tank press line inner area
@@ -228,10 +228,10 @@ e_ullage_ox[0] = e0_ox
 T_ullage_ox = np.empty(total_steps + 1) # [K] oxidizer ullage temperature array
 T_ullage_ox[0] = T0_ox
 m_ullage_ox = np.empty(total_steps + 1) # [kg] oxidizer ullage mass array
-m_ullage_ox[0] = V_ullage_tank_ox * PropsSI('D', 'P', P_OX, 'T', T0_ox, PRESS_GAS)
 mdot_ullage_ox = np.empty(total_steps + 1) # [kg/s] oxidizer ullage mass flow rate array
 rho_ullage_ox = np.empty(total_steps + 1) # [kg/m^3] oxidizer ullage density array
-rho_ullage_ox[0] = m_ullage_ox[0] / V_ullage_tank_ox
+rho_ullage_ox[0] = PropsSI('D', 'P', P_OX, 'T', T0_ox, PRESS_GAS)
+m_ullage_ox[0] = V_ullage_tank_ox * rho_ullage_ox[0]
 partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox = np.empty(total_steps + 1) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy array
 partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[0] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[0], 'U', e_ullage_ox[0], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
 

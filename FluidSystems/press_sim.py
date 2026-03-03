@@ -12,23 +12,20 @@ from vehicle_parameters import parameters as p
 
 # Simulation settings
 T_AMBIENT = 293 # [K] ambient temperature
-LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
-LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-DT = 0.05 # [s] simulation step size
-Q_FACTOR = 1 # [] factor to multiply heat transfer by (for conservatism)
+LOITER_TIME = 10 # [s] time between prepressurization and the start of flow
+LAG_TIME = 2 # [s] time the simulation should continue to run for after the run valves are closed
+DT = 1.50 # [s] simulation step size
+Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
 PLOT_OUTPUT = True # True to make pretty plots of the results :)
 
-# inputs
+# Inputs
 ADIABATIC = False # True to ignore heat transfer in the tanks
 PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
-PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
-
 PRESS_GAS = "nitrogen"
 P_COPV = p.COPV_starting_pressure # [Pa] starting COPV pressure
 T_COPV = 300 # [K] starting COPV temperature (assumed)
-#GRAVITY = p.one_DoF_off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
-GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
+GRAVITY = 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
 V_COPV = p.COPV_volume # [m^3] COPV volume
 
 # Tanks
@@ -68,7 +65,7 @@ V_FU = p.fuel_tank_usable_volume # [m^3] fuel tank total volume ################
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
-ULLAGE_FU =  3 / 100 # [] fuel tank volume ullage fraction
+ULLAGE_FU =  10 / 100 # [] fuel tank volume ullage fraction
 
 V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
 V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
@@ -91,7 +88,7 @@ D_tank_inner = D_TANK - (2 * T_TANK)
 A_bulkhead = np.pi * (D_tank_inner**2) / 4 # [m^2] bulkhead area (flat circle)
 l_tank_ox = V_OX / A_bulkhead # [m] oxidizer tank length
 m_tank_ox = 2 * M_BULKHEAD + np.pi / 4 * (D_TANK**2 - D_tank_inner**2) * l_tank_ox * RHO_TANK # [kg] oxidizer tank mass
-l_tank_fu = V_FU / A_bulkhead # [m] fuel tank length
+l_tank_fu = p.fuel_tank_length # [m] fuel tank length
 m_tank_fu = 2 * M_BULKHEAD + np.pi / 4 * (D_TANK**2 - D_tank_inner**2) * l_tank_fu * RHO_TANK # [kg] fuel tank mass
 D_inner_press_line = D_PRESS_LINE - 2 * T_PRESS_LINE # [m] fuel tank press line inner diameter
 A_inner_press_line = np.pi * (D_inner_press_line**2) / 4 # [m^2] fuel tank press line inner area
@@ -169,10 +166,10 @@ e_ullage_ox[0] = e0_ox
 T_ullage_ox = np.empty(total_steps + 1) # [K] oxidizer ullage temperature array
 T_ullage_ox[0] = T0_ox
 m_ullage_ox = np.empty(total_steps + 1) # [kg] oxidizer ullage mass array
-m_ullage_ox[0] = V_ullage_tank_ox * PropsSI('D', 'P', P_OX, 'T', T0_ox, PRESS_GAS)
 mdot_ullage_ox = np.empty(total_steps + 1) # [kg/s] oxidizer ullage mass flow rate array
 rho_ullage_ox = np.empty(total_steps + 1) # [kg/m^3] oxidizer ullage density array
-rho_ullage_ox[0] = m_ullage_ox[0] / V_ullage_tank_ox
+rho_ullage_ox[0] = PropsSI('D', 'P', P_OX, 'T', T0_ox, PRESS_GAS)
+m_ullage_ox[0] = V_ullage_tank_ox * rho_ullage_ox[0]
 partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox = np.empty(total_steps + 1) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy array
 partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[0] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[0], 'U', e_ullage_ox[0], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
 
@@ -207,11 +204,11 @@ for i in tqdm(range(total_steps)):
     else:
         # Oxidizer coefficients
         L_char_ox = V_ullage_tank_ox / A_bulkhead # [m] Characteristic length for tank wall
-        h_ox_gas_wall[step] = wall_convect(GRAVITY, P_OX, T_tank_wall_ox[step], T_ullage_ox[step], L_char_ox, PRESS_GAS) # [W/m^2K] heat transfer coefficient between oxidizer ullage and tank wall
-        h_ox_liquid_wall[step] = wall_convect(GRAVITY, P_OX, T_tank_wall_ox[step], T_fill_ox, L_char_ox, OXIDIZER) # [W/m^2K] heat transfer coefficient between oxidizer and tank wall
-        h_ox_gas_plate[step] = plate_convect(GRAVITY, P_OX, T_tank_wall_ox[step], T_ullage_ox[step], D_tank_inner/4, PRESS_GAS, 'enhanced') # [W/m^2K] heat transfer coefficient between oxidizer ullage and tank bulkhead
-        h_ox_liquid_plate[step] = plate_convect(GRAVITY, P_OX, T_tank_wall_ox[step], T_fill_ox, D_tank_inner/4, OXIDIZER, 'enhanced') # [W/m^2K] heat transfer coefficient between oxidizer and tank bulkhead
-        h_ox_interface[step] = interface_convect(GRAVITY, P_OX, T_ullage_ox[step], T_fill_ox, D_tank_inner/4, PRESS_GAS, OXIDIZER) # [W/m^2K] heat transfer coefficient between oxidizer ullage and oxidizer
+        h_ox_gas_wall[step] = wall_convect(local_acceleration, P_OX, T_tank_wall_ox[step], T_ullage_ox[step], L_char_ox, PRESS_GAS) # [W/m^2K] heat transfer coefficient between oxidizer ullage and tank wall
+        h_ox_liquid_wall[step] = wall_convect(local_acceleration, P_OX, T_tank_wall_ox[step], T_fill_ox, L_char_ox, OXIDIZER) # [W/m^2K] heat transfer coefficient between oxidizer and tank wall
+        h_ox_gas_plate[step] = plate_convect(local_acceleration, P_OX, T_tank_wall_ox[step], T_ullage_ox[step], D_tank_inner/4, PRESS_GAS, 'enhanced') # [W/m^2K] heat transfer coefficient between oxidizer ullage and tank bulkhead
+        h_ox_liquid_plate[step] = plate_convect(local_acceleration, P_OX, T_tank_wall_ox[step], T_fill_ox, D_tank_inner/4, OXIDIZER, 'enhanced') # [W/m^2K] heat transfer coefficient between oxidizer and tank bulkhead
+        h_ox_interface[step] = interface_convect(local_acceleration, P_OX, T_ullage_ox[step], T_fill_ox, D_tank_inner/4, PRESS_GAS, OXIDIZER) # [W/m^2K] heat transfer coefficient between oxidizer ullage and oxidizer
         # Oxidizer heat transfers
         # Areas
         A_ox_gas_wall = np.pi*D_tank_inner*L_char_ox # [m^2] oxidizer tank wall area exposed to ullage gas  
@@ -228,15 +225,15 @@ for i in tqdm(range(total_steps)):
 
         # Fuel coefficients
         L_char_fu = V_ullage_tank_fu / A_bulkhead # [m] Characteristic length for tank wall
-        h_fu_gas_wall[step] = wall_convect(GRAVITY, P_FU, T_tank_wall_fu[step], T_ullage_fu[step], L_char_fu, PRESS_GAS)  # [W/m^2K] heat transfer coefficient between fuel ullage and tank wall
-        h_fu_liquid_wall[step] = wall_convect(GRAVITY, P_FU, T_tank_wall_fu[step], T_fill_fu, L_char_fu, FUEL) # [W/m^2K] heat transfer coefficient between fuel and tank wall
+        h_fu_gas_wall[step] = wall_convect(local_acceleration, P_FU, T_tank_wall_fu[step], T_ullage_fu[step], L_char_fu, PRESS_GAS)  # [W/m^2K] heat transfer coefficient between fuel ullage and tank wall
+        h_fu_liquid_wall[step] = wall_convect(local_acceleration, P_FU, T_tank_wall_fu[step], T_fill_fu, L_char_fu, FUEL) # [W/m^2K] heat transfer coefficient between fuel and tank wall
         if T_ullage_fu[step] > T_tank_wall_fu[step]:
             enhancement = 'enhanced'
         else:
             enhancement = 'reduced'
-        h_fu_gas_plate[step] = plate_convect(GRAVITY, P_FU, T_tank_wall_fu[step], T_ullage_fu[step], D_tank_inner/4, PRESS_GAS, enhancement) # [W/m^2K] heat transfer coefficient between fuel ullage and tank bulkhead
-        h_fu_liquid_plate[step] = plate_convect(GRAVITY, P_FU, T_tank_wall_fu[step], T_fill_fu, D_tank_inner/4, FUEL, enhancement) # [W/m^2K] heat transfer coefficient between fuel and tank bulkhead
-        h_fu_interface[step] = interface_convect(GRAVITY, P_FU, T_ullage_fu[step], T_fill_fu, D_tank_inner/4, PRESS_GAS, FUEL) # [W/m^2K] heat transfer coefficient between fuel ullage and oxidizer
+        h_fu_gas_plate[step] = plate_convect(local_acceleration, P_FU, T_tank_wall_fu[step], T_ullage_fu[step], D_tank_inner/4, PRESS_GAS, enhancement) # [W/m^2K] heat transfer coefficient between fuel ullage and tank bulkhead
+        h_fu_liquid_plate[step] = plate_convect(local_acceleration, P_FU, T_tank_wall_fu[step], T_fill_fu, D_tank_inner/4, FUEL, enhancement) # [W/m^2K] heat transfer coefficient between fuel and tank bulkhead
+        h_fu_interface[step] = interface_convect(local_acceleration, P_FU, T_ullage_fu[step], T_fill_fu, D_tank_inner/4, PRESS_GAS, FUEL) # [W/m^2K] heat transfer coefficient between fuel ullage and oxidizer
         # Fuel heat transfers
         # Areas
         A_fu_gas_wall = np.pi*D_tank_inner*L_char_fu # [m^2] fuel tank wall area exposed to ullage gas
@@ -290,11 +287,6 @@ for i in tqdm(range(total_steps)):
     partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_fuel = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_fu[step], 'U', e_ullage_fu[step], PRESS_GAS) # [1/Jm^3] partial derivative of fuel ullage density WRT internal energy
 
     # Fuel e_dot
-    if PRESS_LINE_CHILL == True:
-        if step > 0:
-            [h_press_line[step], Q_dot_press_line[step]] = line_heat_transfer(P_FU, h_in, T_fill_ox, D_inner_press_line, L_press_line, mdot_ullage_fu[step - 1], PRESS_GAS)
-            h_in += (Q_dot_press_line[step] / mdot_ullage_fu[step - 1])
-
     e_dot_fu = (
         (Q_dot_fu_ullage - P_FU*V_dot_fu - rho_ullage_fu[step]*V_dot_fu*e_ullage_fu[step] + rho_ullage_fu[step]*V_dot_fu*h_in)
         / (m_ullage_fu[step] + partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_fuel*V_ullage_tank_fu*e_ullage_fu[step] - partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_fuel*V_ullage_tank_fu*h_in)
@@ -445,5 +437,8 @@ if PLOT_OUTPUT == True:
 
     # manager = plt.get_current_fig_manager()
     # manager.window.state('zoomed')
-    fig.subplots_adjust(top=0.95, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
+
+    
+    fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
+    
     plt.show()
