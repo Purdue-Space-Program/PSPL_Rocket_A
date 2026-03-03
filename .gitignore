@@ -19,3 +19,5 @@ __pycache__
 tempCodeRunnerFile.py
 ~$PSP Pathfinder Line Velocity.xlsx
 .vscode/launch.json
+.vscode/settings.json
+.vscode/c_cpp_properties.json
