@@ -149,7 +149,7 @@ D_tank_inner = D_TANK - (2 * T_TANK)
 A_bulkhead = np.pi * (D_tank_inner**2) / 4 # [m^2] bulkhead area (flat circle)
 l_tank_ox = V_OX / A_bulkhead # [m] oxidizer tank length
 m_tank_ox = 2 * M_BULKHEAD + np.pi / 4 * (D_TANK**2 - D_tank_inner**2) * l_tank_ox * RHO_TANK # [kg] oxidizer tank mass
-l_tank_fu = p.fuel_tank_length # [m] fuel tank length
+l_tank_fu = parameters.fuel_tank_length # [m] fuel tank length
 m_tank_fu = 2 * M_BULKHEAD + np.pi / 4 * (D_TANK**2 - D_tank_inner**2) * l_tank_fu * RHO_TANK # [kg] fuel tank mass
 D_inner_press_line = D_PRESS_LINE - 2 * T_PRESS_LINE # [m] fuel tank press line inner diameter
 A_inner_press_line = np.pi * (D_inner_press_line**2) / 4 # [m^2] fuel tank press line inner area
@@ -161,11 +161,11 @@ L_press_line = l_tank_ox # [m] fuel tank press line length
 if PREPRESS == "adiabatic": # Calculate initial conditions assuming adiabatic prepress
     [P0_copv, T0_copv, T0_ox, T0_fu, iter_count] = adiabatic_press(P_COPV, T_COPV, V_COPV, P_OX, V_ullage_ox, P_FU, V_ullage_fu, PRESS_GAS)
 elif PREPRESS == "isothermal": # Calculate initial conditions assuming tank ullage temperatures equal tank temperatures (infinite loiter time)
-    [P0_copv, T0_copv, T0_ox, T0_fu, iter_count] = isothermal_press(P_COPV, T_COPV, V_COPV, P_OX, V_ullage_ox, T_fill_ox, P_FU, V_ullage_fu, T_fill_fu, PRESS_GAS)
-    #T0_ox = T_fill_ox + 0.001
-    #T0_fu = T_fill_fu + 0.001
-    #P0_copv = P_COPV
-    #T0_copv = T_COPV
+    #[P0_copv, T0_copv, T0_ox, T0_fu, iter_count] = isothermal_press(P_COPV, T_COPV, V_COPV, P_OX, V_ullage_ox, T_fill_ox, P_FU, V_ullage_fu, T_fill_fu, PRESS_GAS)
+    T0_ox = T_fill_ox + 0.001
+    T0_fu = T_fill_fu + 0.001
+    P0_copv = P_COPV
+    T0_copv = T_COPV
 else:
     raise Exception("Invalid prepressurization model defined. Please choose from 'adiabatic' or 'isothermal'.")
 

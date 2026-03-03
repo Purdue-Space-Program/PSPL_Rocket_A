@@ -12,9 +12,9 @@ from vehicle_parameters import parameters as p
 
 # Simulation settings
 T_AMBIENT = 293 # [K] ambient temperature
-LOITER_TIME = 10 # [s] time between prepressurization and the start of flow
-LAG_TIME = 2 # [s] time the simulation should continue to run for after the run valves are closed
-DT = 1.50 # [s] simulation step size
+LOITER_TIME = 1 # [s] time between prepressurization and the start of flow
+LAG_TIME = 1 # [s] time the simulation should continue to run for after the run valves are closed
+DT = 0.0005 # [s] simulation step size
 Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
 PLOT_OUTPUT = True # True to make pretty plots of the results :)
@@ -26,6 +26,7 @@ PRESS_GAS = "nitrogen"
 P_COPV = p.COPV_starting_pressure # [Pa] starting COPV pressure
 T_COPV = 300 # [K] starting COPV temperature (assumed)
 GRAVITY = 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
+local_acceleration = p.one_DoF_off_the_rail_acceleration 
 V_COPV = p.COPV_volume # [m^3] COPV volume
 
 # Tanks
@@ -51,7 +52,7 @@ V_OX = p.oxidizer_tank_usable_volume # [m^3] oxidizer tank total volume ########
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ULLAGE_OX = 10 / 100 # [] oxidizer tank volume ullage fraction
-RESIDUAL_OX = 10 / 100 # [] oxidizer tank volume residual fraction
+RESIDUAL_OX = 20 / 100 # [] oxidizer tank volume residual fraction
 # note: drain time is based on oxidizer residuals since that's what we'll be sensing
 
 # Fuel
@@ -96,17 +97,12 @@ L_press_line = l_tank_ox # [m] fuel tank press line length
 
 
 
-# Starting COPV pressure and temperature, as well as oxidizer and fuel tank temperature and number of iterations needed, after  pre-pressurization
-if PREPRESS == "adiabatic": # Calculate initial conditions assuming adiabatic prepress
-    [P0_copv, T0_copv, T0_ox, T0_fu, iter_count] = adiabatic_press(P_COPV, T_COPV, V_COPV, P_OX, V_ullage_ox, P_FU, V_ullage_fu, PRESS_GAS)
-elif PREPRESS == "isothermal": # Calculate initial conditions assuming tank ullage temperatures equal tank temperatures (infinite loiter time)
-    [P0_copv, T0_copv, T0_ox, T0_fu, iter_count] = isothermal_press(P_COPV, T_COPV, V_COPV, P_OX, V_ullage_ox, T_fill_ox, P_FU, V_ullage_fu, T_fill_fu, PRESS_GAS)
-    #T0_ox = T_fill_ox + 0.001
-    #T0_fu = T_fill_fu + 0.001
-    #P0_copv = P_COPV
-    #T0_copv = T_COPV
-else:
-    raise Exception("Invalid prepressurization model defined. Please choose from 'adiabatic' or 'isothermal'.")
+##### ISOTHERMAL PREPRESS (CONSERVATIVE) #####
+#[P0_copv, T0_copv, T0_ox, T0_fu, iter_count] = isothermal_press(P_COPV, T_COPV, V_COPV, P_OX, V_ullage_ox, T_fill_ox, P_FU, V_ullage_fu, T_fill_fu, PRESS_GAS)
+T0_ox = T_fill_ox + 0.001
+T0_fu = T_fill_fu + 0.001
+P0_copv = P_COPV # Reg is in open position throughout pre press while QD is connected
+T0_copv = T_COPV
 
 s_copv = PropsSI('S', 'P', P0_copv, 'T', T0_copv, PRESS_GAS) # [J/kgK] COPV specific entropy (constant)
 e0_ox = PropsSI('U', 'P', P_OX, 'T', T0_ox, PRESS_GAS) # [J/kgK] oxidizer tank specific energy
@@ -114,8 +110,8 @@ e0_fu = PropsSI('U', 'P', P_FU, 'T', T0_fu, PRESS_GAS) # [J/kgK] fuel tank speci
 
 if TEXT_OUTPUT == True:
     print('INITIAL CONDITIONS -------------------------------------------------------------------------------------------')
-    print(f'The starting COPV conditions are {P0_copv/c.PSI2PA:.3f} [psi] and {T0_copv:.3f} [K].')
-    print(f'The starting tank temperatures are {T0_ox:.3f} [K] in ox and {T0_fu:.3f} [K] in fuel.')
+    print(f'COPV Pressure: {P0_copv/c.PSI2PA:.3f} [psi], COPV Temperature: {T0_copv:.3f} [K]')
+    print(f'Ox Tank Temperature: {T0_ox:.3f} [K], Fuel Tank Temperature: {T0_fu:.3f} [K]')
 
 # Simulation time
 V_residual_ox = V_OX * RESIDUAL_OX # [m^3] oxidizer tank residual volume
@@ -266,10 +262,7 @@ for i in tqdm(range(total_steps)):
     
     h_in = PropsSI('H', 'D', rho_copv[step], 'S', s_copv, PRESS_GAS) # [J/kg] adiabatic flow between COPV and tank so isenthalpic
     try:
-        # print(f"\nrho_ullage_ox[step]: {rho_ullage_ox[step]}")
-        # print(f"e_ullage_ox[step]: {e_ullage_ox[step]}")
         partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
-        # print(f"partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox: {partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step]}")
     except:
         plt.plot(time, partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox)
         plt.show
@@ -297,19 +290,23 @@ for i in tqdm(range(total_steps)):
     # Advance to next step
 
     # Update tank properties
+    V_ullage_tank_ox += V_dot_ox * DT
+    V_ullage_tank_fu += V_dot_fu * DT
+
     e_ullage_ox[step + 1] = e_ullage_ox[step] + e_dot_ox * DT
     m_ullage_ox[step + 1] = m_ullage_ox[step] + mdot_ullage_ox[step] * DT
-    T_ullage_ox[step + 1] = PropsSI('T', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step + 1], PRESS_GAS)
 
     e_ullage_fu[step + 1] = e_ullage_fu[step] + e_dot_fu * DT
     m_ullage_fu[step + 1] = m_ullage_fu[step] + mdot_ullage_fu[step] * DT
-    T_ullage_fu[step + 1] = PropsSI('T', 'D', rho_ullage_fu[step], 'U', e_ullage_fu[step + 1], PRESS_GAS)
+
+    rho_ullage_ox[step + 1] = m_ullage_ox[step + 1] / V_ullage_tank_ox
+    rho_ullage_fu[step + 1] = m_ullage_fu[step + 1] / V_ullage_tank_fu
+
+    T_ullage_ox[step + 1] = PropsSI('T', 'D', rho_ullage_ox[step + 1], 'U', e_ullage_ox[step + 1], PRESS_GAS)
+    T_ullage_fu[step + 1] = PropsSI('T', 'D', rho_ullage_fu[step + 1], 'U', e_ullage_fu[step + 1], PRESS_GAS)
 
     T_tank_wall_ox[step + 1] = T_tank_wall_ox[step] + (Q_dot_ox_tank * DT) / (m_tank_ox * CP_TANK)
     T_tank_wall_fu[step + 1] = T_tank_wall_fu[step] + (Q_dot_fu_tank * DT) / (m_tank_fu * CP_TANK)
-
-    V_ullage_tank_ox += V_dot_ox * DT
-    V_ullage_tank_fu += V_dot_fu * DT
 
     # Update COPV properties
     mdot_total = mdot_ullage_ox[step] + mdot_ullage_fu[step]
@@ -321,10 +318,6 @@ for i in tqdm(range(total_steps)):
     # Time inexorably advances
     step += 1
     time += DT
-    #print(f'Ox pressure is {PropsSI('P', 'D', rho_ox, 'U', e_ox[step], PRESS_GAS) * c.PA2PSI:.3f} psi')
-    #print(f'Fuel pressure is {PropsSI('P', 'D', rho_fu, 'U', e_fu[step], PRESS_GAS) * c.PA2PSI:.3f} psi')
-    #print(f'The COPV pressure is {P_copv[step] * c.PA2PSI:.2f} psi and the tank temperatures are {T_ox[step]:.2f} K in ox and {T_fu[step]:.2f} K in fu at time {time:.3f} s.')
-    #print(f'The COPV mass is {rho_copv[step]*V_COPV:.3f} and the tank masses are {rho_ox*V_tank_ox:.3f}  in ox and {rho_fu*V_tank_fu:.3f} in fu for a total of {rho_copv[step]*V_COPV + rho_ox*V_tank_ox + rho_fu*V_tank_fu:.3f}.')
 
 # Set terminal values for plotting
 mdot_ullage_ox[0] = mdot_ullage_ox[1]
@@ -348,11 +341,11 @@ maximum_regulator_mass_flow_rate = max((mdot_ullage_fu + mdot_ullage_ox))
 
 if TEXT_OUTPUT == True:
     print('RESULTS ------------------------------------------------------------------------------------------------------')
-    print(f'\tThe final tank temperatures are {T_ullage_ox[-1]:.3f} [K] in ox and {T_ullage_fu[-1]:.3f} [K] in fuel.')
-    print(f'\tThe final COPV properties are {P_copv[-1] * c.PA2PSI:.3f} [psi] and {T_copv[-1]:.3f} [K].')
-    print(f'\tThe final masses of gas in the tanks are {m_ullage_ox[-1]:.3f} [kg] in ox and {m_ullage_fu[-1]:.3f} [kg] in fuel.')
-    print(f'\tThe average mass flow rate out of COPV during the burn is {(m_copv[0] - m_copv[-1])/drain_time:.3f} [kg/s].')
-    print(f"\tMaximum mass flow rate out of COPV during the burn is {maximum_regulator_mass_flow_rate:.3f} [kg/s].")
+    print(f'COPV Pressure: {P_copv[-1] * c.PA2PSI:.3f} [psi], COPV Temperature: {T_copv[-1]:.3f} [K]')
+    print(f'Ox Tank Temperature: {T_ullage_ox[-1]:.3f} [K], Fuel Tank Temperature: {T_ullage_fu[-1]:.3f} [K]')
+    print(f'Final Ox Mass: {m_ullage_ox[-1]:.3f} [kg], Final Fuel Mass: {m_ullage_fu[-1]:.3f} [kg]')
+    print(f'Average press gas mass flow rate: {(m_copv[0] - m_copv[-1])/drain_time:.3f} [kg/s]')
+    print(f"Max press gas mass flow rate: {maximum_regulator_mass_flow_rate:.3f} [kg/s]")
 
     # Checks
     # Check ideal gas law
