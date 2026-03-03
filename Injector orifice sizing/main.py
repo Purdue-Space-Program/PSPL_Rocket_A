@@ -5,8 +5,9 @@ import os
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-import vehicle_parameters as vehicle
+import vehicle_parameters
 
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 standard_bits_inch = {
     # Fractional drill sizes (partial list)
     "1/64": 1/64, "1/32": 1/32, "3/64": 3/64, # may not have these
@@ -77,16 +78,16 @@ C_D_lox = 0.6 # Discharge coefficient of oxidizer orifice
 C_D_ipa = 0.6 # Discharge coefficient of ipa orifice
 N_bottom_max = 40 # Max amount of orifices in bottom row allowed, to be changed (we will have 2 rows where the bottom row will have holes with smaller diameter)
 N_bottom_min = 8 # Min amount of orifices in bottom row allowed, to be changed
-of_ratio = vehicle.parameters.OF_ratio # from Vehicle Parameters page
-D_c = vehicle.parameters.chamber_inner_diameter # Diameter of chamber (might be changed)
-m_dot = vehicle.parameters.total_core_mass_flow_rate # [Kg/s]
+of_ratio = parameters.OF_ratio # from Vehicle Parameters page
+D_c = parameters.chamber_inner_diameter # Diameter of chamber (might be changed)
+m_dot = parameters.total_core_mass_flow_rate # [Kg/s]
 temp_lox = 90 # [K]
-pressure_lox = vehicle.parameters.tank_pressure # [Pa]
+pressure_lox = parameters.nominal_tank_pressure # [Pa]
 temp_ipa = 290 # [K]
-pressure_ipa = vehicle.parameters.tank_pressure # [Pa]
+pressure_ipa = parameters.nominal_tank_pressure # [Pa]
 rho_lox = PropsSI('D', 'T', temp_lox, 'P', pressure_lox, 'Oxygen')
 rho_ipa = DENSITY_IPA # [kg/m^3] CoolProp doesn't have IPA, assuming constant
-pressure_chamber = vehicle.parameters.chamber_pressure # [Pa]
+pressure_chamber = parameters.chamber_pressure # [Pa]
 pressure_upstream_injector = pressure_chamber / 0.8 # [Pa]
 desired_pressure_drop = pressure_upstream_injector - pressure_chamber # [Pa]
 m_dot_ipa = m_dot / (1 + of_ratio) # [Kg/s]

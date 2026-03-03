@@ -5,7 +5,7 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-import vehicle_parameters as v
+import vehicle_parameters
 
 
 def tensile_from_chamber(diameter, pressure):
@@ -52,6 +52,8 @@ def MOS(calculated, actual):
 
 
 if __name__ == "__main__":
+    
+    parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()    
     proof_stress = 140000
     safety_factor = 1.4*1.15
     preload_percent = 0.75

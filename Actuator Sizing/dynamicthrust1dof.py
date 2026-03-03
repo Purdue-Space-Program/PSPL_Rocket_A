@@ -7,8 +7,8 @@ from scipy.interpolate import interp1d
 import main as m # ensure that outputs = 0 in main file to suppress plots and prints!!!
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters as v
-
+import vehicle_parameters
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 csv_path_atmosphere = os.path.join(os.path.dirname(__file__), "atmosphere.csv")
 ATMOSPHERE_DATA = pd.read_csv(csv_path_atmosphere)
 ATMOSPHERE_DATA = np.array(ATMOSPHERE_DATA)
@@ -450,17 +450,17 @@ def mdot_hardcoded_actuation(mDotTotal, actuation_time, jetThrust):
 def actuation_time_vs_rail_exit():
     dt = 0.1 # pretty large to reduce computation time 
     max_actuation_time = 2 # [second]
-    wetMass = v.vehicle_wet_mass
-    mDotTotal = v.parameters.total_core_mass_flow_rate
-    jetThrust = v.parameters.jet_thrust
-    tankOD = v.parameters.tank_outer_diameter
-    finNumber =  v.number_of_fins
+    wetMass = parameters.wet_mass
+    mDotTotal = parameters.total_core_mass_flow_rate
+    jetThrust = parameters.jet_thrust
+    tankOD = parameters.tank_outer_diameter
+    finNumber =  parameters.number_of_fins
     finHeight = 12 * c.IN2M
     exitArea = np.pi * 4**2 / 4 * c.IN22M2
-    exitPressure = v.parameters.exit_pressure
-    burnTime = v.parameters.burn_time
-    totalLength = v.rocket_length
-    propellant_mass = v.parameters.total_propellant_mass
+    exitPressure = parameters.exit_pressure
+    burnTime = parameters.burn_time
+    totalLength = parameters.total_length
+    propellant_mass = parameters.total_propellant_mass
     plots = 0
     estimated_apogee_history = []
     off_the_rail_velocity_history = []
@@ -510,17 +510,17 @@ def actuation_time_vs_rail_exit():
 #############################
 #######  PARAMETERS  ########
 #############################
-wetMass = v.vehicle_wet_mass
-mDotTotal = v.parameters.total_core_mass_flow_rate
-jetThrust = v.parameters.jet_thrust
-tankOD = v.parameters.tank_outer_diameter
-finNumber =  v.number_of_fins
+wetMass = parameters.wet_mass
+mDotTotal = parameters.total_core_mass_flow_rate
+jetThrust = parameters.jet_thrust
+tankOD = parameters.tank_outer_diameter
+finNumber =  parameters.number_of_fins
 finHeight = 12 * c.IN2M
 exitArea = np.pi * 4**2 / 4 * c.IN22M2
-exitPressure = v.parameters.exit_pressure
-burnTime = v.parameters.burn_time
-totalLength = v.rocket_length
-propellant_mass = v.parameters.total_propellant_mass
+exitPressure = parameters.exit_pressure
+burnTime = parameters.burn_time
+totalLength = parameters.total_length
+propellant_mass = parameters.total_propellant_mass
 plots = 1
 actuation_time = 0.25 # hardcoded actuation time 
 

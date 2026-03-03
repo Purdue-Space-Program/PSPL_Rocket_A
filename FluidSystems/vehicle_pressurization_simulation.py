@@ -14,19 +14,16 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-from vehicle_parameters import parameters as p
+import vehicle_parameters
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+
 
 # Simulation settings
 T_AMBIENT = 293 # [K] ambient temperature
 LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
 LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-<<<<<<< Updated upstream
-DT = 1.50 # [s] simulation step size
-Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
-=======
 DT = 0.05 # [s] simulation step size
-Q_FACTOR = 1 # [] factor to multiply heat transfer by (for conservatism)
->>>>>>> Stashed changes
+Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
 PLOT_OUTPUT = True # True to make pretty plots of the results :)
 
@@ -84,32 +81,28 @@ if vehicle_name == "Rocket_A":
     PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
     
     PRESS_GAS = "nitrogen"
-    P_COPV = p.COPV_starting_pressure # [Pa] starting COPV pressure
+    P_COPV = parameters.COPV_starting_pressure # [Pa] starting COPV pressure
     T_COPV = 300 # [K] starting COPV temperature (assumed)
-<<<<<<< Updated upstream
-    local_acceleration = p.one_DoF_off_the_rail_acceleration # [m/s^2] local acceleration (may be > 9.81 in flight)
-=======
-    #GRAVITY = p.one_DoF_off_the_rail_acceleration * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
     GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
->>>>>>> Stashed changes
-    V_COPV = p.COPV_volume # [m^3] COPV volume
+    local_acceleration = parameters.one_DoF_off_the_rail_acceleration # [m/s^2] local acceleration (may be > 9.81 in flight)
+    V_COPV = parameters.COPV_volume # [m^3] COPV volume
 
     # Tanks
-    D_TANK = p.tank_outer_diameter # [m] tank outer diameter
-    T_TANK = p.tank_wall_thickness # [m] tank wall thickness
+    D_TANK = parameters.tank_outer_diameter # [m] tank outer diameter
+    T_TANK = parameters.tank_wall_thickness # [m] tank wall thickness
     RHO_TANK = c.DENSITY_AL # [kg/m^3] tank material density (aluminum)
     M_BULKHEAD = 1.5 * c.LBM2KG # [kg] bulkhead mass (single bulkhead)
     CP_TANK = 500 # [J/kgK] tank material specific heat
     D_PRESS_LINE = (3/8) * c.IN2M # [m] fuel tank pressurization line outer diameter
     T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
-    P_TANK = p.oxidizer_tank_pressure
+    P_TANK = parameters.oxidizer_tank_pressure
     
     # Oxidizer
     OXIDIZER = "oxygen"
     P_FILL = 40 * c.PSI2PA # [Pa] fill pressure for LOx (assumed)
-    M_DOT_OX = p.oxidizer_mass_flow_rate # [kg/s] LOx mass flow rate
+    M_DOT_OX = parameters.oxidizer_mass_flow_rate # [kg/s] LOx mass flow rate
     P_OX = P_TANK # [Pa] oxidizer tank nominal pressure
-    V_OX = p.oxidizer_tank_usable_volume # [m^3] oxidizer tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
+    V_OX = parameters.oxidizer_tank_usable_volume # [m^3] oxidizer tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
@@ -122,13 +115,9 @@ if vehicle_name == "Rocket_A":
     
     # Fuel
     FUEL = "ethanol"
-<<<<<<< Updated upstream
-    M_DOT_FU = p.core_fuel_mass_flow_rate + p.film_fuel_mass_flow_rate # [kg/s] fuel mass flow rate
-=======
-    M_DOT_FU = p.film_fuel_mass_flow_rate + p.core_fuel_mass_flow_rate # [kg/s] fuel mass flow rate, with film mass flow 
->>>>>>> Stashed changes
+    M_DOT_FU = parameters.core_fuel_mass_flow_rate + parameters.film_fuel_mass_flow_rate # [kg/s] fuel mass flow rate
     P_FU = P_TANK # [Pa] fuel tank nominal pressure
-    V_FU = p.fuel_tank_usable_volume # [m^3] fuel tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
+    V_FU = parameters.fuel_tank_usable_volume # [m^3] fuel tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
     ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
@@ -442,14 +431,16 @@ if TEXT_OUTPUT == True:
     P_real_ox = PropsSI('P', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[-1], PRESS_GAS)
     P_real_fu = PropsSI('P', 'D', rho_ullage_fu[step], 'U', e_ullage_fu[-1], PRESS_GAS)
     print('EQUATION OF STATE --------------------------------------------------------------------------------------------')
-    print(f'The real final tank pressures are {P_real_ox * c.PA2PSI:.6f} psi in the oxidizer tank and {P_real_fu * c.PA2PSI:.6f} psi in the fuel tank.')
-    print(f'The compressibility factor is {Z_ox:.6f} in the oxidizer tank and {Z_fu:.6f} in the fuel tank.')
-    print(f'The compressibility factor should be {Z_real_ox:.6f} in the oxidizer tank and {Z_real_fu:.6f} in the fuel tank.')
+    print(f'\tThe real final tank pressures are {P_real_ox * c.PA2PSI:.6f} psi in the oxidizer tank and {P_real_fu * c.PA2PSI:.6f} psi in the fuel tank.')
+    print(f'\tThe compressibility factor is {Z_ox:.6f} in the oxidizer tank and {Z_fu:.6f} in the fuel tank.')
+    print(f'\tThe compressibility factor should be {Z_real_ox:.6f} in the oxidizer tank and {Z_real_fu:.6f} in the fuel tank.')
+
     # Check mass balance
     start_mass = PropsSI('D', 'P', P_COPV, 'T', T_COPV, PRESS_GAS) * V_COPV
     end_mass = rho_copv[-1] * V_COPV + m_ullage_ox[-1] + m_ullage_fu[-1]
     print('CONSERVATION OF MASS -----------------------------------------------------------------------------------------')
-    print(f'The starting mass of {PRESS_GAS} is {start_mass:.6f} kg and the ending mass is {end_mass:.6f} kg for a percent change of {(end_mass - start_mass)/start_mass * 100:.3f} %')
+    print(f'\tThe starting mass of {PRESS_GAS} is {start_mass:.6f} kg and the ending mass is {end_mass:.6f} kg for a percent change of {(end_mass - start_mass)/start_mass * 100:.3f} %')
+    
     # Check energy balance
     start_energy = start_mass * PropsSI('U', 'P', P_COPV, 'T', T_COPV, PRESS_GAS)
     prepress_energy = (
@@ -461,12 +452,19 @@ if TEXT_OUTPUT == True:
     work = P_OX * V_dot_ox_nom * drain_time + P_FU * V_dot_fu_nom * drain_time
     net_end_energy = end_energy + work
     print('CONSERVATION OF ENERGY ---------------------------------------------------------------------------------------')
-    print(f'The starting energy is {start_energy/1000:.3f} kJ and the ending energy is {end_energy/1000:.3f} kJ.')
-    print(f'The PdV work done is {work/1000:.3f} kJ, so the net energy is {net_end_energy/1000:.3f} kJ with a discrepancy of {(net_end_energy - start_energy)/start_energy * 100:.3f} %')
-    print(f'The intermediate energy after pre-pressurization is {prepress_energy/1000:.3f} kJ.')
+    print(f'\tThe starting energy is {start_energy/1000:.3f} kJ and the ending energy is {end_energy/1000:.3f} kJ.')
+    print(f'\tThe PdV work done is {work/1000:.3f} kJ, so the net energy is {net_end_energy/1000:.3f} kJ with a discrepancy of {(net_end_energy - start_energy)/start_energy * 100:.3f} %')
+    print(f'\tThe intermediate energy after pre-pressurization is {prepress_energy/1000:.3f} kJ.')
+
+    print('RESULTS ------------------------------------------------------------------------------------------------------')
+    print(f'\tThe final tank temperatures are {T_ullage_ox[-1]:.3f} [K] in ox and {T_ullage_fu[-1]:.3f} [K] in fuel.')
+    print(f'\tThe final COPV properties are {P_copv[-1] * c.PA2PSI:.3f} [psi] and {T_copv[-1]:.3f} [K].')
+    print(f'\tThe final masses of gas in the tanks are {m_ullage_ox[-1]:.3f} [kg] in ox and {m_ullage_fu[-1]:.3f} [kg] in fuel.')
+    print(f'\tThe average mass flow rate out of COPV during the burn is {(m_copv[0] - m_copv[-1])/drain_time:.3f} [kg/s].')
+    print(f"\tMaximum mass flow rate out of COPV during the burn is {maximum_regulator_mass_flow_rate:.2f} [kg/s].")
+
 
 if PLOT_OUTPUT == True:
-    
     plt.rcParams['axes.formatter.useoffset'] = False
     plt.rcParams['axes.formatter.use_mathtext'] = False
     plt.rcParams['axes.formatter.limits'] = (-9, 9)
@@ -514,14 +512,5 @@ if PLOT_OUTPUT == True:
 
     # manager = plt.get_current_fig_manager()
     # manager.window.state('zoomed')
-<<<<<<< Updated upstream
-    
-    fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
-    
-    plt.show()
-
-
-=======
     fig.subplots_adjust(top=0.95, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
     plt.show()
->>>>>>> Stashed changes

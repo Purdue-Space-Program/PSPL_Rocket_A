@@ -4,8 +4,9 @@ import os
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-import vehicle_parameters as vehicle
+import vehicle_parameters
 
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 def calc_K_sharp_edged_orifice(d, d0):
     beta = d0 / d
     jet_velocity_ratio = 1 + 0.622 * (1 - 0.215 * beta**2 - 0.785 * beta**5)
@@ -14,8 +15,8 @@ def calc_K_sharp_edged_orifice(d, d0):
 
 ##### Find total area of the orifices needed to sustain a maximum of 30% film #####
 max_film_percent = 15 # [%]
-m_dot_ipa = vehicle.parameters.core_fuel_mass_flow_rate # [kg/s]
-chamber_pressure = vehicle.parameters.chamber_pressure # [Pa]
+m_dot_ipa = parameters.core_fuel_mass_flow_rate # [kg/s]
+chamber_pressure = parameters.chamber_pressure # [Pa]
 manifold_pressure = chamber_pressure / 0.8 # [Pa] 20% Stiffness to prevent backflow
 dp = manifold_pressure - chamber_pressure # [Pa]
 cd = 0.6

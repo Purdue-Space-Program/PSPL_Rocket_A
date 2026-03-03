@@ -11,17 +11,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ChamberContour", "chamber_contour_meters.csv"))
 
 
-import vehicle_parameters as vp
+import vehicle_parameters
 import constants as c
 
 os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
 import CEA_Wrap as CEA
 
-
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 def main():
-
     #cylinder part of the chamber geometry parameters
-    D_star = vp.parameters.chamber_throat_diameter #throat diameter (m) 
+    D_star = parameters.chamber_throat_diameter #throat diameter (m) 
     A_star = pi * (D_star / 2)**2 #throat area (m^2)
 
     chamber_contour = np.loadtxt(chamber_contour_csv_path, delimiter=',')
@@ -47,7 +46,7 @@ def main():
     T_static_total = np.zeros_like(station_area_ratios) #static temperature at each axial position
     c_visc_total = np.zeros_like(station_area_ratios) #dynamic viscosity at each axial position
 
-    cea_results = RunCEA(vp.parameters.chamber_pressure, "ipa", "liquid oxygen", vp.parameters.OF_ratio)
+    cea_results = RunCEA(parameters.chamber_pressure, "ipa", "liquid oxygen", parameters.OF_ratio)
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
@@ -81,7 +80,7 @@ def main():
         
         Dt = 2 * station_inner_radii[station_index]  # local diameter
         T_static = t_loc / (1 + (((gamma_loc - 1)/2) * M_local**2)) #static temperature at the local axial point (K)
-        P_loc = (vp.parameters.chamber_pressure) / ((1 + (((gamma_loc - 1)/2) * M_local**2)) ** (gamma_loc/(gamma_loc-1))) #static pressure at the local axial point (Pascals)
+        P_loc = (parameters.chamber_pressure) / ((1 + (((gamma_loc - 1)/2) * M_local**2)) ** (gamma_loc/(gamma_loc-1))) #static pressure at the local axial point (Pascals)
 
         visc_loc = viscosity_calc(
             T = T_static, #static temperature at the local axial point (K)
@@ -92,7 +91,7 @@ def main():
 
         h_local = heat_transfer_coefficient(
             Dt = Dt,  # local diameter
-            Rt = ((1.5 * (vp.parameters.chamber_throat_diameter/2)) + (0.382 *(vp.parameters.chamber_throat_diameter/2) )) / 2,     #radius of throat curve (m)
+            Rt = ((1.5 * (parameters.chamber_throat_diameter/2)) + (0.382 *(parameters.chamber_throat_diameter/2) )) / 2,     #radius of throat curve (m)
             Pr = Pr_loc, #Prandtl number of the combustion gas (n/a)
             gamma = gamma_loc, #specific heat ratio of the combustion gas (n/a)
             c_star = cstar_loc, #characteristic exhaust velocity (m/s)
@@ -104,7 +103,7 @@ def main():
                 Pr = Pr_loc
             ),
             Cp = cp_loc, #specific heat at constant pressure of the combustion
-            P0 = vp.parameters.chamber_pressure, #chamber pressure (Pascals)
+            P0 = parameters.chamber_pressure, #chamber pressure (Pascals)
             mu = visc_loc, #dynamic viscosity of the combustion gas (Pascal - seconds)
             M = M_local, #Mach number at the local axial point (no units)
             local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
@@ -116,7 +115,7 @@ def main():
             axial_position = station_depths[station_index],
             T_infinity = recovery_temperature(T_static, gamma_loc, M_local, Pr_loc), #chamber temperature (K)
             k = 51.9, #thermal conductivity of the chamber wall material (W/(m*K)) #1018 Steel
-            t = vp.parameters.burn_time #s, burn time
+            t = parameters.burn_time #s, burn time
         )
 
         Heat_flux_total[station_index] = heat_flux_calc(
@@ -338,7 +337,7 @@ def heat_transfer_coefficient(Dt, Rt, Pr, gamma, c_star, T0, Twg, Cp, P0, mu, M,
     return bartz_equation
     
 
-def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k, t = vp.parameters.burn_time):
+def temperature_surface_calculation(heat_transfer_coefficient_value, axial_position, T_infinity, k, t = parameters.burn_time):
     Ti = 300 #K, initial temperature of the chamber wall
     alpha = thermal_diffusivity_calc(k) #thermal diffusivity of the chamber wall material (m^2/s)
 

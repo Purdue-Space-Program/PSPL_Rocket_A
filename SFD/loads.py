@@ -7,11 +7,13 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import constants as c
-from vehicle_parameters import parameters, rocket_dict_dry, rocket_dict_wet, wet_mass_distribution
+import vehicle_parameters
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 import vehicle_parameters_functions
 import vehicle_main
 import parseWind
 import sfd
+
 
 
 # ------------------------------------------------------------------------------
@@ -34,7 +36,7 @@ def max_q_or_off_the_rail(plot_on = False, print_inputs = False):
     if location == "max_q":
         wind_gust = max_q_wind_gust # [m/s] Wind gust at max q
         CoM = parameters.dry_COM_location_from_bottom # [m] Center of gravity from bottom of rocket
-        linear_density_array, length_along_rocket_linspace = sfd.mass_model(rocket_dict_dry)
+        linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle_parameters.rocket_dict_dry)
         total_mass = parameters.dry_mass # [kg] Mass at max q
         if parameters.six_DoF_max_Q_velocity is None:
             velocity = parameters.one_DoF_max_Q_velocity # [m / s] Velocity at max q
@@ -48,7 +50,55 @@ def max_q_or_off_the_rail(plot_on = False, print_inputs = False):
     elif location == "off_the_rail":
         wind_gust = off_the_rail_rail_whip # [m/s] Rail whip off the rail
         CoM = parameters.wet_COM_location_from_bottom # [m] Center of gravity from bottom of rocket
-        linear_density_array, length_along_rocket_linspace = sfd.mass_model(rocket_dict_wet)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        ############################################# Replace Rocket_Dict_Wet And Dry With Wet_Mass Distribution!!!!!! #######################################
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        ######################################################################################################################################################
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        linear_density_array, length_along_rocket_linspace = sfd.mass_model(vehicle_parameters.rocket_dict_wet)
         total_mass = parameters.wet_mass # [kg] Mass off the rail
         if parameters.six_DoF_off_the_rail_velocity is None:
             velocity = parameters.one_DoF_off_the_rail_velocity # [m / s] Velocity off the rail
@@ -196,3 +246,4 @@ if __name__ == "__main__":
         # parameters = csv_to_dataclass(parameters_csv_filepath)    
         
     max_q_or_off_the_rail(plot_on = True, print_inputs = True)
+    

@@ -1,4 +1,4 @@
-# Accessed: 2026-02-28_17-10-25 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-03-02_03-12-37 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: vehicle_main.py
 parameter_name,value
 yield_FoS,1.5
@@ -28,7 +28,8 @@ chamber_inner_diameter,0.12446
 chamber_throat_diameter,0.0470408
 maximum_expected_burn_time,3.3962499999999998
 maximum_expected_jet_thrust,3668.40899619095
-tank_pressure,2930273.0
+nominal_tank_pressure,2930273.0
+largest_possible_tank_pressure,4309225.0
 oxidizer_tank_pressure,2930273.0
 fuel_tank_pressure,2930273.0
 tank_outer_diameter,0.15239999999999998
@@ -74,23 +75,24 @@ one_DoF_estimated_apogee,819.9119737628168
 six_DoF_off_the_rail_TWR,
 six_DoF_off_the_rail_acceleration,
 six_DoF_off_the_rail_velocity,
-six_DoF_max_Q_acceleration,72.3548812967384
-six_DoF_max_Q_mach,0.7249849914805719
-six_DoF_max_Q_velocity,248.66985207783617
-six_DoF_max_Q_horizontal_velocity,40.17706192046381
-six_DoF_apogee_horizontal_velocity,33.5019172361024
+six_DoF_max_Q_acceleration,69.18023241510897
+six_DoF_max_Q_mach,0.6838396580745815
+six_DoF_max_Q_velocity,234.55700271958145
+six_DoF_max_Q_horizontal_velocity,27.648870276820887
+six_DoF_apogee_horizontal_velocity,24.731579716635913
 six_DoF_total_impulse,
-six_DoF_estimated_apogee,3123.8647512802713
-wet_mass,44.621392822074846
-dry_mass,41.000005012474844
+six_DoF_estimated_apogee,2832.4602936803985
+wet_mass,47.46566454214227
+dry_mass,43.844276732542276
 total_length,3.2925766000000003
-dry_COM_location_from_bottom,1.1123976552744939
-dry_COM_location_from_top,2.1801789447255064
-wet_COM_location_from_bottom,1.1081877061597434
-wet_COM_location_from_top,2.184388893840257
-upper_strut_max_load,2558.818793007743
-mid_strut_max_load,2097.5109466520107
-lower_strut_max_load,1320.3809912158401
-fuel_tank_max_load,1682.1537563247023
-oxygen_tank_max_load,945.1392963483235
-copv_tube_max_load,1543.4589758067195
+dry_COM_location_from_bottom,1.2039917815354115
+dry_COM_location_from_top,2.0885848184645885
+wet_COM_location_from_bottom,1.1930636876171796
+wet_COM_location_from_top,2.0995129123828207
+upper_strut_max_load,1486.1352912491293
+mid_strut_max_load,1273.49835203107
+lower_strut_max_load,957.1219538631241
+fuel_tank_max_load,1069.939678134213
+oxygen_tank_max_load,865.0611911194749
+copv_tube_max_load,998.5226496807065
+parachute_mass,1.30124205

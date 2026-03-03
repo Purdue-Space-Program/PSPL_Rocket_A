@@ -4,16 +4,18 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import vehicle_parameters as v
+import vehicle_parameters
 import matplotlib.pyplot as plt
 from constants import *
 
-m_dot_ipa = v.parameters.core_fuel_mass_flow_rate
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+
+m_dot_ipa = parameters.core_fuel_mass_flow_rate
 density = DENSITY_IPA
 cd = 0.6
 max_film_percent = 30
 max_m_dot = m_dot_ipa * max_film_percent / 100
-chamber_pressure = v.parameters.chamber_pressure 
+chamber_pressure = parameters.chamber_pressure 
 
 def display_color_plots():
     areas = np.linspace(0.005, 0.03, 2000) * IN22M2

@@ -11,8 +11,10 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-from vehicle_parameters import parameters
-from vehicle_pressurization_simulation import *
+import vehicle_parameters
+import vehicle_pressurization_simulation
+
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 
 
 def Cv_Choked(press_gas, m_dot, P1, T1):
@@ -66,7 +68,7 @@ M_DOT_FU = parameters.core_fuel_mass_flow_rate + parameters.film_fuel_mass_flow_
 FUEL_NAME = 'ethanol'
 
 # Volumetric flow rates
-T_ox = PropsSI('T', 'P', P_FILL, 'Q', 0, OXIDIZER_NAME) # [K] oxidizer temeprature
+T_ox = PropsSI('T', 'P', P_FILL, 'Q', 0, OXIDIZER_NAME) # [K] oxidizer temperature
 rho_ox = PropsSI('D', 'P', parameters.oxidizer_tank_pressure, 'T', T_ox, OXIDIZER_NAME) # [kg/m^3] oxidizer density
 Q_dot_ox = parameters.oxidizer_mass_flow_rate / rho_ox # [m^3/s] oxidizer volumetric flow rate
 
@@ -90,12 +92,12 @@ h2_fu_press = h2_copv # [J/kg] ending fuel tank inlet enthalpy (stagnation entha
 rho_fu_press = PropsSI('D', 'P', parameters.fuel_tank_pressure, 'H', h2_fu_press, PRESS_GAS) # [kg/m^3] assumed density of press gas in fuel tank
 m_dot_fu_press = rho_fu_press * Q_dot_fu_press # [kg/s] required mass flow rate of press gas into fuel tank
 
-# Required Cv calcuations
+# Required Cv calculations
 T2_copv = PropsSI('T', 'P', P2_copv, 'S', s2_copv, PRESS_GAS) # [K] ending COPV temperature
 
 
-#m_dot_ox_press = maximum_regulator_mass_flow_rate # override to use value from press sim
 m_dot_ox_press = 0.6
+m_dot_ox_press = vehicle_pressurization_simulation.maximum_regulator_mass_flow_rate # override to use value from press sim
 cv_required_ox = Cv_Choked(PRESS_GAS, m_dot_ox_press, P2_copv, T2_copv)
 cv_required_fu = Cv_Choked(PRESS_GAS, m_dot_fu_press, P2_copv, T2_copv)
 
