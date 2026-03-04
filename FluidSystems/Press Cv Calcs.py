@@ -96,8 +96,8 @@ m_dot_fu_press = rho_fu_press * Q_dot_fu_press # [kg/s] required mass flow rate 
 T2_copv = PropsSI('T', 'P', P2_copv, 'S', s2_copv, PRESS_GAS) # [K] ending COPV temperature
 
 
-m_dot_ox_press = 0.6
-m_dot_ox_press = vehicle_pressurization_simulation.maximum_regulator_mass_flow_rate # override to use value from press sim
+m_dot_ox_press = 0.29
+#m_dot_ox_press = vehicle_pressurization_simulation.maximum_regulator_mass_flow_rate # override to use value from press sim
 cv_required_ox = Cv_Choked(PRESS_GAS, m_dot_ox_press, P2_copv, T2_copv)
 cv_required_fu = Cv_Choked(PRESS_GAS, m_dot_fu_press, P2_copv, T2_copv)
 
