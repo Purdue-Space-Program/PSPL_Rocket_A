@@ -18,7 +18,7 @@ def calc_residual_fraction_from_AoA(diameter, angle, fuel_use_volume):
 ##### FUEL TANK PARAMETERS #####
 fuel_tank_ID = p.tube_inner_diameter
 fuel_use_volume = p.fuel_tank_usable_volume
-fuel_ullage_fraction = 10 / 100
+fuel_ullage_fraction = 0 / 100
 
 angle = 0
 angle_history = []
@@ -79,5 +79,5 @@ print(f"Fuel Tube Length: {fuel_tank_length * c.M2IN:.1f} in")
 print(f"Ox Tube Length: {ox_tank_length * c.M2IN:.1f} in")
 print(f"Fuel Tank Length: {(fuel_tank_length - bulkhead_tank_slot * 2) * c.M2IN:.1f} in")
 print(f"Ox Tank Length {(ox_tank_length - bulkhead_tank_slot * 2) * c.M2IN:.1f} in")
-print(f"Real Fuel Ullage: {fuel_ullage_volume / fuel_tank_volume * 100:.1f} %")
-print(f"Real Ox Ullage: {ox_ullage_volume / ox_tank_volume * 100:.1f} %")
+print(f"Real Fuel Ullage (with bulkhead taper): {fuel_ullage_volume / fuel_tank_volume * 100:.1f} %")
+print(f"Real Ox Ullage: (with bulkhead taper): {ox_ullage_volume / ox_tank_volume * 100:.1f} %")

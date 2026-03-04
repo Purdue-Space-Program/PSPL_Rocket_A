@@ -51,7 +51,7 @@ V_OX = p.oxidizer_tank_usable_volume # [m^3] oxidizer tank total volume ########
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
-ULLAGE_OX = 10 / 100 # [] oxidizer tank volume ullage fraction
+ULLAGE_OX = 13.3 / 100 # [] oxidizer tank volume ullage fraction
 RESIDUAL_OX = 20 / 100 # [] oxidizer tank volume residual fraction
 # note: drain time is based on oxidizer residuals since that's what we'll be sensing
 
@@ -66,7 +66,7 @@ V_FU = p.fuel_tank_usable_volume # [m^3] fuel tank total volume ################
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
-ULLAGE_FU =  10 / 100 # [] fuel tank volume ullage fraction
+ULLAGE_FU =  5.1 / 100 # [] fuel tank volume ullage fraction
 
 V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
 V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
