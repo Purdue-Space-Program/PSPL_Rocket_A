@@ -14,7 +14,7 @@ from vehicle_parameters import parameters as p
 T_AMBIENT = 293 # [K] ambient temperature
 LOITER_TIME = 1 # [s] time between prepressurization and the start of flow
 LAG_TIME = 1 # [s] time the simulation should continue to run for after the run valves are closed
-DT = 0.0005 # [s] simulation step size
+DT = 0.05 # [s] simulation step size
 Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
 PLOT_OUTPUT = True # True to make pretty plots of the results :)
@@ -76,10 +76,12 @@ V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
 T_fill_ox = PropsSI('T', 'P', P_FILL, 'Q', 0, OXIDIZER) # [K] oxidizer temperature
 rho_ox_nom = PropsSI('D', 'P', P_OX, 'T', T_fill_ox, OXIDIZER) # [kg/m^3] oxidizer density
 V_dot_ox_nom = M_DOT_OX / rho_ox_nom # [m^3/s] oxidizer volumetric flow rate
+print(f"Oxidizer volumetric flow rate: {V_dot_ox_nom*1e6:.3f} [cc/s]")
 # Fuel
 T_fill_fu = T_AMBIENT # [K] fuel temperature
 rho_fu_nom = PropsSI('D', 'P', P_FU, 'T', T_AMBIENT, FUEL) # [kg/m^3] fuel density
 V_dot_fu_nom = M_DOT_FU / rho_fu_nom # [m^3/s] fuel volumetric flow rate
+print(f"Fuel volumetric flow rate: {V_dot_fu_nom*1e6:.3f} [cc/s]")
 
 # Gas properties
 R_press_gas = 8.314462 / PropsSI('M', PRESS_GAS) # [J/kgK] pressurizing gas constant
