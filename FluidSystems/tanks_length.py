@@ -37,13 +37,13 @@ plt.title("AoA vs Residual Fraction")
 plt.show()
 
 
-fuel_residual_fraction = 10 / 100
+fuel_residual_fraction = 20 / 100
 
 ##### LOX TANK PARAMETERS #####
 ox_tank_ID = p.tube_inner_diameter
 ox_use_volume = p.oxidizer_tank_usable_volume
 ox_ullage_fraction = 10 / 100
-ox_residual_fraction = 10 / 100
+ox_residual_fraction = 20 / 100
 
 ##### BULKHEAD PARAMETERS #####
 bulkhead_radius_of_curvature = 3.5 * c.IN2M
@@ -75,8 +75,9 @@ print(f"Fuel Residual: {fuel_residual_fraction * 100} %")
 print(f"Ox Ullage: {ox_ullage_fraction * 100} %")
 print(f"Ox Residual: {ox_residual_fraction * 100} %")
 print("-----RESULTS-----")
-print(f"Fuel Tank Length: {fuel_tank_length * c.M2IN:.1f} in")
-print(f"Ox Tank Length {ox_tank_length * c.M2IN:.1f} in")
-print(f"Real Fuel Ullage Volume {fuel_ullage_volume * c.M32L:.2f} L")
-print(f"Real Fuel Ullage: {fuel_tank_volume / fuel_tank_volume}")
-print(f"Ox Fuel Ullage Volume {ox_ullage_volume * c.M32L:.2f} L")
+print(f"Fuel Tube Length: {fuel_tank_length * c.M2IN:.1f} in")
+print(f"Ox Tube Length: {ox_tank_length * c.M2IN:.1f} in")
+print(f"Fuel Tank Length: {(fuel_tank_length - bulkhead_tank_slot * 2) * c.M2IN:.1f} in")
+print(f"Ox Tank Length {(ox_tank_length - bulkhead_tank_slot * 2) * c.M2IN:.1f} in")
+print(f"Real Fuel Ullage: {fuel_ullage_volume / fuel_tank_volume * 100:.1f} %")
+print(f"Real Ox Ullage: {ox_ullage_volume / ox_tank_volume * 100:.1f} %")
