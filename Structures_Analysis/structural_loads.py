@@ -1,13 +1,4 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from matplotlib.ticker import MaxNLocator, MultipleLocator
-from scipy.integrate import solve_ivp
-from scipy.io import savemat
-from pathlib import Path
 import subprocess
-
-
 
 def calculate_structural_loads(parameters, wet_mass_distribution):
     import sys

@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 import os
-from dataclasses import dataclass, fields, field
+from dataclasses import dataclass
 import matplotlib.pyplot as plt
 import copy
 import scipy.io as sio

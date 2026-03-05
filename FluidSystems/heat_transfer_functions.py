@@ -132,7 +132,8 @@ def plate_convect(g, P_tank, T_s, T_inf, L, fluid, enhancement, film=True):
     beta = -1/rho * PropsSI('d(D)/d(T)|P', 'P', P_tank, 'T', T_film, fluid)
 
     Gr = abs((g * beta * (T_s - T_inf) * L**3) / nu**2)
-    Pr = PropsSI('PRANDTL', 'P', P_tank, 'T', T_film, fluid) / PropsSI('D', 'P', P_tank, 'T', T_film, fluid)
+    
+    Pr = PropsSI('PRANDTL', 'P', P_tank, 'T', T_film, fluid) / rho
     Ra = Gr * Pr
 
     if enhancement == 'enhanced':
