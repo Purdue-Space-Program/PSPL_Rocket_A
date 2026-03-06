@@ -16,7 +16,7 @@ def calculateStabilityCaliber(center_of_pressure, center_of_mass, diameter):
 def calculateTaperRatio(tip_chord, root_chord):
     return tip_chord/root_chord
 
-def calculateAspectRatio(tip_chord, root_chord, wingspan, sweep_distance):
+def calculateAspectRatio(tip_chord, wingspan, sweep_distance):
     wing_projected_area = (tip_chord * wingspan) + (0.5 * sweep_distance * wingspan)
     aspect_ratio = (wingspan**2) / wing_projected_area
     return aspect_ratio
@@ -37,12 +37,13 @@ def main():
     target_stability_caliber = 1.75
     center_of_pressure_from_top = calculateCenterOfPressure(target_stability_caliber, parameters.wet_COM_location_from_top, parameters.tube_outer_diameter)
     dry_stability_cal = calculateStabilityCaliber(center_of_pressure_from_top, parameters.dry_COM_location_from_top, parameters.tube_outer_diameter)
-
+    print(f"parameters.wet_COM_location_from_top: {parameters.wet_COM_location_from_top * c.M2IN:.2f} inches from top")
+    print(f"parameters.dry_COM_location_from_top: {parameters.dry_COM_location_from_top * c.M2IN:.2f} inches from top")
     print(f"center_of_pressure_from_top: {center_of_pressure_from_top * c.M2IN:.2f} inches from top")
     print(f"dry_stability_cal: {dry_stability_cal:.2f} cal")
 
     shear_modulus = 26e9 # [pa]
-    fin_thickness = (3/16) * c.IN2M
+    fin_thickness = (1/8) * c.IN2M
     coefficient = 1.337 # what the fuck
     atmospheric_pressure = 1 * c.ATM2PA
 
@@ -51,7 +52,7 @@ def main():
     wingspan = parameters.wingspan
     sweep_distance = root_chord - tip_chord
     taper_ratio = calculateTaperRatio(tip_chord, root_chord)
-    aspect_ratio = calculateAspectRatio(tip_chord, root_chord, wingspan, sweep_distance)
+    aspect_ratio = calculateAspectRatio(tip_chord, wingspan, sweep_distance)
 
     critical_mach = CalculateFinFlutterCriticalMachNumber(shear_modulus/parameters.ultimate_FoS, aspect_ratio, fin_thickness, root_chord, coefficient, atmospheric_pressure, taper_ratio)
     print(f"critical_mach: {critical_mach} Mach")
