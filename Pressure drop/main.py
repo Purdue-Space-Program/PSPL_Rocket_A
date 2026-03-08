@@ -30,11 +30,11 @@ fuel_mass_flow_rate = parameters.core_fuel_mass_flow_rate * (u.kilogram / u.seco
 oxidizer_mass_flow_rate = parameters.oxidizer_mass_flow_rate * (u.kilogram / u.second)  # LOx mass flow rate
 
 saturation_temp_ox = CP.PropsSI('T', 'P', oxidizer_tank_pressure.magnitude, 'Q', 0, oxidizer_name) * u.kelvin
-saturation_temp_ipa = 453.01 * u.kelvin # This is sat temp for IPA at 250 psi
 
 oxidizer_density = CP.PropsSI("D", "P", oxidizer_tank_pressure.magnitude + 10, "T", saturation_temp_ox.magnitude, oxidizer_name) * (u.kilogram / u.meter**3)
 oxidizer_dynamic_viscosity = CP.PropsSI('V', 'P', oxidizer_tank_pressure.magnitude + 10, 'T', saturation_temp_ox.magnitude, oxidizer_name) * (u.pascal * u.second)
 oxidizer_kinetic_viscosity = oxidizer_dynamic_viscosity / oxidizer_density
+
 
 fuel_density = c.DENSITY_IPA * (u.kilogram / u.meter**3)
 fuel_dynamic_viscosity = 0.002055 * (u.pascal * u.second) # No clue if this is right, got from here: https://www.celsius-process.com/wp-content/uploads/2020/01/isopropanol.pdf

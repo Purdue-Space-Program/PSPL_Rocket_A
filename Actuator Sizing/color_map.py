@@ -7,7 +7,7 @@ from constants import *
 
 
 def calc_actuation_time(piston_diameter, piston_stroke_length):
-    pressure = 100 * PSI2PA # Setting constant 100 psi pilot pressure
+    pressure = 200 * PSI2PA # Setting constant 100 psi pilot pressure
     braking_torque = 50 * IN_LB2NM # Setting constant 50 lb in for now, will definitely change after testing
     safety_factor = 3
     rod_mass = 3.2 * LBM2KG # Estimated from CAD, just assume constant
