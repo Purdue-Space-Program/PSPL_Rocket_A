@@ -29,10 +29,11 @@ fuel_tank_pressure = parameters.nominal_tank_pressure * u.pascal
 fuel_mass_flow_rate = parameters.core_fuel_mass_flow_rate * (u.kilogram / u.second)  # Isopropyl alcohol mass flow rate
 oxidizer_mass_flow_rate = parameters.oxidizer_mass_flow_rate * (u.kilogram / u.second)  # LOx mass flow rate
 
-saturation_temp_ox = CP.PropsSI('T', 'P', oxidizer_tank_pressure.magnitude, 'Q', 0, oxidizer_name) * u.kelvin
+# saturation_temp_ox = CP.PropsSI('T', 'P', oxidizer_tank_pressure.magnitude, 'Q', 0, oxidizer_name) * u.kelvin
+# saturation_temp_ipa = 453.01 * u.kelvin # This is sat temp for IPA at 250 psi
 
-oxidizer_density = CP.PropsSI("D", "P", oxidizer_tank_pressure.magnitude + 10, "T", saturation_temp_ox.magnitude, oxidizer_name) * (u.kilogram / u.meter**3)
-oxidizer_dynamic_viscosity = CP.PropsSI('V', 'P', oxidizer_tank_pressure.magnitude + 10, 'T', saturation_temp_ox.magnitude, oxidizer_name) * (u.pascal * u.second)
+oxidizer_density = CP.PropsSI("D", "P", oxidizer_tank_pressure.magnitude, "Q", 0, oxidizer_name) * (u.kilogram / u.meter**3)
+oxidizer_dynamic_viscosity = CP.PropsSI('V', 'P', oxidizer_tank_pressure.magnitude, 'Q', 0, oxidizer_name) * (u.pascal * u.second)
 oxidizer_kinetic_viscosity = oxidizer_dynamic_viscosity / oxidizer_density
 
 
@@ -153,7 +154,7 @@ def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness
 #     return drop
     
 
-# Majority of this code is by Keshav Narayanan and Isaiah Jarvis from Rocket 4
+# Majority of this code is by Keshav Narayanan and Isaiah Jarvis for Rocket 4
 try:
     file = pd.read_excel("Pressure drop/fluid_components.xlsx")
 except:
@@ -171,20 +172,40 @@ oxidizer_pressure_array = [current_oxidizer_pressure.to(u.psi)]
 fuel_part_names = ["Fuel in Chamber"]
 oxidizer_part_names = ["Oxidizer in Chamber"]
 
+# read from bottom of the rocket to the top
+parts_engine_to_tank = range(number_of_parts-1, -1, -1)
 
-reading_ox = True    #The excel sheet will assume it is reading Ox until the 'Fuel' keyword comes up. Then it will switch to Fuel.
+second_propellant_to_read = None
+row = 1
+while second_propellant_to_read is None:
+    part_name = file.loc[parts_engine_to_tank[row], "Part Name"]
+
+    # fuck this shit
+    if part_name == "Fuel":
+        first_propellant_to_read = "Fuel"
+        second_propellant_to_read = "Oxidizer"
+    elif part_name == "Oxidizer":
+        first_propellant_to_read = "Oxidizer"
+        second_propellant_to_read = "Fuel"
+    
+    row += 1
+
+currently_reading = first_propellant_to_read    #The excel sheet will assume it is reading this until the "Fuel or Oxidizer" keyword comes up. Then it will switch to Fuel.
 print("\n--------LOx pressure drops--------:")
 
-for row in range(number_of_parts-1, -1, -1):
+for row in parts_engine_to_tank:
 
     part_name = file.loc[row, "Part Name"]
     part_type = file.loc[row, "Part Type"]
     
     is_nan = isinstance(part_name, (int, float, np.floating)) and np.isnan(part_name)
     
+    # permanently switch to other propellant
     if part_name == "Fuel":
-        # permanently switch to fuel
-        reading_ox = False
+        currently_reading = "Oxidizer"
+        print("\n--------Oxidizer pressure drops--------:")
+    elif part_name == "Oxidizer":
+        currently_reading = "Fuel"
         print("\n--------Fuel pressure drops--------:")
 
     elif isinstance(part_name, str) and part_name.strip() != "":
@@ -198,7 +219,7 @@ for row in range(number_of_parts-1, -1, -1):
         Cv = file.loc[row, 'Cv']
         
 
-        if reading_ox == True:
+        if currently_reading == "Oxidizer":
             fluid_mass_flow_rate = oxidizer_mass_flow_rate
             fluid_kinetic_viscosity = oxidizer_kinetic_viscosity
             fluid_density = oxidizer_density
@@ -211,13 +232,32 @@ for row in range(number_of_parts-1, -1, -1):
 
         match part_type:
             case "Straight Tube":
-                part_pressure_drop = CalculateStraightTubePressureDrop(tube_length, tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)
+                part_pressure_drop = CalculateStraightTubePressureDrop(tube_length, 
+                                                                       tube_outer_diameter, 
+                                                                       tube_wall_thickness, 
+                                                                       absolute_roughness, 
+                                                                       fluid_mass_flow_rate, 
+                                                                       fluid_kinetic_viscosity, 
+                                                                       fluid_density)
             
             case "Bend":
-                part_pressure_drop = CalculateTubeBendPressureDrop(angle, bend_radius, tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)
+                part_pressure_drop = CalculateTubeBendPressureDrop(angle, 
+                                                                   bend_radius, 
+                                                                   tube_outer_diameter, 
+                                                                   tube_wall_thickness, 
+                                                                   absolute_roughness, 
+                                                                   fluid_mass_flow_rate, 
+                                                                   fluid_kinetic_viscosity, 
+                                                                   fluid_density)
 
             case "Ball Valve":
-                part_pressure_drop = CalculateBallValvePressureDrop(Cv, inner_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)    
+                part_pressure_drop = CalculateBallValvePressureDrop(Cv, 
+                                                                   inner_diameter, 
+                                                                   tube_wall_thickness, 
+                                                                   absolute_roughness, 
+                                                                   fluid_mass_flow_rate, 
+                                                                   fluid_kinetic_viscosity, 
+                                                                   fluid_density)    
 
             case "Venturi":
                 venturi_inlet_pressure = current_fluid_pressure / venturi_pressure_drop_percent
@@ -233,8 +273,7 @@ for row in range(number_of_parts-1, -1, -1):
         print(f"Part Type: {part_type}\nPart Name: {part_name}\nPressure Drop: {part_pressure_drop.to(u.psi):.2f}\n")
 
 
-
-        if reading_ox == True:
+        if currently_reading == "Oxidizer":
             current_oxidizer_pressure += part_pressure_drop
             oxidizer_part_names.append(part_name)
             oxidizer_pressure_array.append(current_oxidizer_pressure.to(u.psi))
@@ -266,9 +305,10 @@ if __name__ == "__main__":
     oxidizer_part_names.reverse()
     oxidizer_pressure_array.reverse()
     
-    
-    
     use_subplots = True
+    
+    if use_subplots == True:
+        fig, axs = plt.subplots(1, 2)
     
     for count, fluid_pressure_array in enumerate([fuel_pressure_array, oxidizer_pressure_array]):
         
@@ -280,30 +320,42 @@ if __name__ == "__main__":
             fluid_part_names = oxidizer_part_names
             fluid_color = "b"
             fluid_name = "Oxidizer"
+        else:
+            raise
+        
+        
+        fluid_point_indices = np.arange(len(fluid_pressure_array))          
         
         
         if use_subplots == True:
-            plt.subplot(1, 2, count+1)
-            
+            axs[count].set_title(f"{fluid_name}")
+            axs[count].set_xlabel("Part Name")
+            axs[count].set_ylabel("Fluid Pressure [psia]")
+           
+            fluid_label_positions = fluid_point_indices + 0.5
+            axs[count].set_xlim(-0.5, len(fluid_point_indices) - 0.5)
             # make go in between ticks
-            fluid_point_indices = np.arange(len(fluid_pressure_array))          
-            fluid_label_positions = fluid_point_indices[:-1] + 0.5
-            plt.xlim(-0.5, len(fluid_point_indices) - 0.5)
-            plt.xticks(
+            axs[count].set_xticks(
                 ticks=fluid_label_positions,
-                labels=fluid_part_names[:-1],
+                labels=fluid_part_names,
                 rotation=45,
                 ha="right"
-            )  
-            plt.grid(True)
-            plt.title(fluid_name)
+            )
+            axs[count].plot(fluid_point_indices, list(float(fluid_pressure.to(u.psi).magnitude) for fluid_pressure in fluid_pressure_array), fluid_color)
+            axs[count].grid(True)
+            
         else:
-            plt.legend(["Fuel", "Oxidizer"])
-
-
+            plt.plot(fluid_point_indices, list(float(fluid_pressure.to(u.psi).magnitude) for fluid_pressure in fluid_pressure_array), fluid_color)
+            plt.xlabel("Part Name")
+            plt.ylabel("Fluid Pressure [psia]")
+            plt.grid(True)
         
-        plt.plot(fluid_point_indices, list(float(fluid_pressure.to(u.psi).magnitude) for fluid_pressure in fluid_pressure_array), fluid_color)
-        plt.xlabel("Part Name")
-        plt.ylabel("Fluid Pressure [psi]")
-    
+        
+    if use_subplots == True:
+        fig.suptitle(f"{fluid_name} Pressure Drop: Tank to Engine")
+    else:
+        plt.legend(["Fuel", "Oxidizer"])    
+
+    plt.tight_layout()
     plt.show()
+    
