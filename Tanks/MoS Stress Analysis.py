@@ -9,7 +9,7 @@ import vehicle_parameters as v
 ##### INPUT PARAMETERS #####
 inner_diameter = v.parameters.tank_inner_diameter # [m]
 wall_thickness = v.parameters.tank_wall_thickness # [m]
-tank_pressure = v.parameters.tank_pressure # [Pa]
+tank_pressure = v.parameters.nominal_tank_pressure # [Pa]
 aluminum_6061_T6_yield_strength = 35000 * PSI2PA # [Pa]
 aluminum_6061_T6_ultimate_strength = 42000 * PSI2PA # [Pa]
 FoS_yield = 1.5
@@ -35,3 +35,4 @@ print(f"Tank Pressure: {tank_pressure * PA2PSI:.2f} psi")
 
 print(f"\nYield stress MoS: {MoS_yield:.3f}")
 print(f"Ultimate stress MoS: {MoS_ultimate:.3f}")
+print(f"Tank explodes at {tank_pressure * FoS_ultimate * MoS_ultimate * PA2PSI}")

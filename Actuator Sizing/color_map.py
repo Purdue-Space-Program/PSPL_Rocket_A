@@ -7,10 +7,10 @@ from constants import *
 
 
 def calc_actuation_time(piston_diameter, piston_stroke_length):
-    pressure = 200 * PSI2PA # Setting constant 100 psi pilot pressure
-    braking_torque = 50 * IN_LB2NM # Setting constant 50 lb in for now, will definitely change after testing
+    pressure = 250 * PSI2PA # Setting constant 100 psi pilot pressure
     safety_factor = 3
-    rod_mass = 3.2 * LBM2KG # Estimated from CAD, just assume constant
+    braking_torque = 242 * safety_factor * IN_LB2NM 
+    rod_mass = 3 * LBM2KG # Estimated from CAD, just assume constant
     shaft_diameter = 0.625 * IN2M # Just assume constant
     piston_seal_length = np.pi * piston_diameter
     shaft_seal_length = np.pi * shaft_diameter # Just assume constant
@@ -54,7 +54,7 @@ def calc_actuation_time(piston_diameter, piston_stroke_length):
     return time
 
 def calc_f_net(piston_diameter, piston_stroke_length):
-    pressure = 100 * PSI2PA # Setting constant 100 psi pilot pressure
+    pressure = 250 * PSI2PA # Setting constant 100 psi pilot pressure
     braking_torque = 50 * IN_LB2NM # Setting constant 50 lb in for now, will definitely change after testing
     safety_factor = 3
     rod_mass = 3.2 * LBM2KG # Estimated from CAD, just assume constant
@@ -81,8 +81,8 @@ def calc_f_net(piston_diameter, piston_stroke_length):
     return f_net
 
 def display_color_plot():
-    bore_sizes = np.linspace(0, 3, 100) * IN2M
-    strokes = np.linspace(2, 50, 100) * IN2M
+    bore_sizes = np.linspace(1, 3, 500) * IN2M
+    strokes = np.linspace(2, 5, 500) * IN2M
     X, Y = np.meshgrid(bore_sizes, strokes)
     Z = np.zeros_like(X)
     print("This may take a while... please wait.")
@@ -112,7 +112,7 @@ def display_color_plot():
     cbar.set_label("Actuation Time (ms)")
     plt.xlabel("Piston Diameter [In]")
     plt.ylabel("Stroke Length [In]")
-    plt.title(f"Actuation Time\nBlack: Actuation times above {vmax} ms, Grey: Doesn't Actuate")
+    plt.title(f"Actuation Time\nPressure: 250 psi\nBlack: Actuation times above {vmax} ms, Grey: Doesn't Actuate")
     plt.tight_layout()
     plt.show()
 

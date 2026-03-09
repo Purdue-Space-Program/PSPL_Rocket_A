@@ -7,9 +7,9 @@ from constants import *
 
 ###############################
 # CHOOSE MODE "test" or "real"
-piston = "test" # test or real
+piston = "real" # test or real
 # OUTPUTS "on" (1) or "off" (0)
-outputs = 1
+outputs = 0
 ###############################
 
 ###############################
@@ -17,7 +17,7 @@ outputs = 1
 ###############################
 if piston == "test":
     piston_stroke_length = 2.5 * IN2M
-    rod_mass =  1 * LBM2KG # Estimated from CAD
+    rod_mass =  0.75 * LBM2KG # Estimated from CAD
     piston_diameter = 3/4 * IN2M
     piston_retracted_length = 5.97 * IN2M
     piston_extended_length = piston_retracted_length + piston_stroke_length
@@ -28,11 +28,11 @@ if piston == "test":
     shaft_seal_area = 0.21 * IN2M * shaft_seal_length
     pressure = 100 * PSI2PA
 else:
-    braking_torque = 240 * IN_LB2NM
+    braking_torque = 242 * IN_LB2NM
     safety_factor = 3
-    piston_stroke_length = 4 * IN2M
-    rod_mass = 3.2 * LBM2KG # Estimated from CAD
-    piston_diameter = 1.75 * IN2M
+    piston_stroke_length = 2.5 * IN2M
+    rod_mass = 1.5456 * LBM2KG # Estimated from CAD
+    piston_diameter = 2 * IN2M
     piston_retracted_length = 9.44 * IN2M
     piston_extended_length = piston_retracted_length + piston_stroke_length
     shaft_diameter = 0.625 * IN2M
@@ -40,7 +40,7 @@ else:
     shaft_seal_length = np.pi * shaft_diameter
     piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 series
     shaft_seal_area = 0.21 * IN2M * shaft_seal_length
-    pressure = 100 * PSI2PA
+    pressure = 250 * PSI2PA
     pass
 
 
@@ -84,7 +84,7 @@ def calc_torque_piston(braking_torque, safety_factor, piston_force, piston_strok
     arm_length = piston_stroke_length / np.sqrt(2)
     torque = arm_length * piston_force / np.sqrt(2)
     if outputs == 1:
-        print(f"The piston will produce ~{torque * NM2IN_LB:.2f} torque at {pressure} psi.")
+        print(f"The piston will produce ~{torque * NM2IN_LB:.2f} lb-in torque at {pressure * PA2PSI} psi.")
         print(f"The required torque with a safety factor of 3 is {required_torque * NM2IN_LB:.2f}")
         print(f"Length of valve arm would be {arm_length * M2IN:.2f}")
     return required_torque, arm_length, torque
