@@ -9,7 +9,7 @@ from constants import *
 # CHOOSE MODE "test" or "real"
 piston = "real" # test or real
 # OUTPUTS "on" (1) or "off" (0)
-outputs = 0
+outputs = 1
 ###############################
 
 ###############################
@@ -30,12 +30,12 @@ if piston == "test":
 else:
     braking_torque = 242 * IN_LB2NM
     safety_factor = 3
-    piston_stroke_length = 2.5 * IN2M
+    piston_stroke_length = 2 * IN2M
     rod_mass = 1.5456 * LBM2KG # Estimated from CAD
     piston_diameter = 2 * IN2M
     piston_retracted_length = 9.44 * IN2M
     piston_extended_length = piston_retracted_length + piston_stroke_length
-    shaft_diameter = 0.625 * IN2M
+    shaft_diameter = 0.63 * IN2M
     piston_seal_length = np.pi * piston_diameter
     shaft_seal_length = np.pi * shaft_diameter
     piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 series

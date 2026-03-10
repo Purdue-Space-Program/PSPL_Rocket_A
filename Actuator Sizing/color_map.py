@@ -19,9 +19,8 @@ def calc_actuation_time(piston_diameter, piston_stroke_length):
     
     ##### Calculating net force to see if the actuator will actuate #####
     piston_force = pressure * np.pi * ((piston_diameter**2) / 4)
-    # required_torque = braking_torque * safety_factor
     arm_length = piston_stroke_length / np.sqrt(2)
-    # torque = arm_length * piston_force / np.sqrt(2)
+    torque = arm_length * piston_force / np.sqrt(2)
     force_valve = braking_torque * np.sqrt(2) / arm_length
     fc_piston = (4 * piston_seal_length * M2IN) * LBF2N # assuming 4, worst case, for now
     fc_shaft = (4 * shaft_seal_length * M2IN) * LBF2N
@@ -80,9 +79,24 @@ def calc_f_net(piston_diameter, piston_stroke_length):
     
     return f_net
 
+def calc_piston_torque(piston_diameter, piston_stroke_length):
+    pressure = 250 * PSI2PA # Setting constant 100 psi pilot pressure
+    safety_factor = 3
+    braking_torque = 242 * IN_LB2NM
+    
+    ##### Calculating torque to see if piston will actuate #####
+    piston_force = pressure * np.pi * ((piston_diameter**2) / 4)
+    required_torque = braking_torque * safety_factor
+    arm_length = piston_stroke_length / np.sqrt(2)
+    torque = arm_length * piston_force / np.sqrt(2)
+    net_torque = torque - required_torque
+    if net_torque <= 0:
+        return torque, -1
+    return torque, net_torque
+
 def display_color_plot():
-    bore_sizes = np.linspace(1, 3, 500) * IN2M
-    strokes = np.linspace(2, 5, 500) * IN2M
+    bore_sizes = np.linspace(1, 2.75, 100) * IN2M
+    strokes = np.linspace(0.5, 5, 100) * IN2M
     X, Y = np.meshgrid(bore_sizes, strokes)
     Z = np.zeros_like(X)
     print("This may take a while... please wait.")
@@ -172,6 +186,55 @@ def display_color_plot():
     plt.title(f"Net Force (lbf)")
     plt.tight_layout()
     plt.show()
+
+    bore_sizes = np.linspace(1, 2.75, 100) * IN2M
+    strokes = np.linspace(0.5, 5, 100) * IN2M
+    X, Y = np.meshgrid(bore_sizes, strokes)
+    Z = np.zeros_like(X)
+    K = np.zeros_like(X)
+    print("This may take a while... please wait.")
+    for i in range(len(strokes)):
+        for j in range(len(bore_sizes)):
+            Z[i, j], K[i,j] = calc_piston_torque(
+                bore_sizes[j],
+                strokes[i],
+            )
+    K[K == -1] = np.nan  # no actuation -> gray
+
+    cmap = plt.cm.coolwarm.copy()
+    cmap.set_bad('lightgray')   # NaNs -> gray
+    mesh = plt.pcolormesh(
+        X * M2IN,
+        Y * M2IN,
+        Z * NM2IN_LB,
+        cmap=cmap,
+        vmin=0,
+    )
+    cbar = plt.colorbar(mesh)
+    cbar.set_label("Piston Torque [lb-in]")
+    plt.xlabel("Piston Diameter [In]")
+    plt.ylabel("Stroke Length [In]")
+    plt.title(f"Piston Torque\nPressure: 250 psi, Breaking Torque: 726 lb-in (Safety Factor: 3)")
+    plt.tight_layout()
+    plt.show()
+    cmap = plt.cm.coolwarm.copy()
+    cmap.set_bad('lightgray')   # NaNs -> gray
+    mesh = plt.pcolormesh(
+        X * M2IN,
+        Y * M2IN,
+        K * NM2IN_LB,
+        cmap=cmap,
+        vmin=0,
+    )
+    cbar = plt.colorbar(mesh)
+    cbar.set_label("Net Torque [lb-in]")
+    plt.xlabel("Piston Diameter [In]")
+    plt.ylabel("Stroke Length [In]")
+    plt.title(f"Net Torque\nPressure: 250 psi, Breaking Torque: 726 lb-in (Safety Factor: 3)\nGrey: Doesn't Actuate")
+    plt.tight_layout()
+    plt.show()
+
+    
 
 def stroke_fnet_plot():
     chosen_bore_size = 2 * IN2M
