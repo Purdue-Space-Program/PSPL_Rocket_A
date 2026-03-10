@@ -323,9 +323,7 @@ if __name__ == "__main__":
         else:
             raise
         
-        
-        fluid_point_indices = np.arange(len(fluid_pressure_array))          
-        
+        fluid_point_indices = np.arange(len(fluid_pressure_array))
         
         if use_subplots == True:
             axs[count].set_title(f"{fluid_name}")

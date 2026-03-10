@@ -92,7 +92,7 @@ def main():
 
     P2_copv = 4000 * c.PSI2PA
     maximum_regulator_mass_flow_rate = vehicle_pressurization_simulation.main()
-    # m_dot_ox_press = 0.4 # [kg/s] override to use specific value
+    m_dot_ox_press = 0.4 # [kg/s] override to use specific value
     cv_required_ox = Cv_Choked(PRESS_GAS, m_dot_ox_press, P2_copv, T2_copv)
     cv_required_fu = Cv_Choked(PRESS_GAS, m_dot_fu_press, P2_copv, T2_copv)
     cv_required_total = Cv_Choked(PRESS_GAS, m_dot_fu_press + m_dot_ox_press, P2_copv, T2_copv)

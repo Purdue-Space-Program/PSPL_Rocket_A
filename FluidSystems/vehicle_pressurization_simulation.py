@@ -25,7 +25,7 @@ def main(property_to_use = "density"):
     T_AMBIENT = 293 # [K] ambient temperature
     LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
     LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-    DT = 0.05 # [s] simulation step size
+    DT = 0.001 # [s] simulation step size
     Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
     TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
     PLOT_OUTPUT = True # True to make pretty plots of the results :)
@@ -439,7 +439,7 @@ def main(property_to_use = "density"):
         print(f'\tThe final COPV properties are {P_copv[-1] * c.PA2PSI:.3f} [psi] and {T_copv[-1]:.3f} [K].')
         print(f'\tThe final masses of gas in the tanks are {m_ullage_ox[-1]:.3f} [kg] in ox and {m_ullage_fu[-1]:.3f} [kg] in fuel.')
         print(f'\tThe average mass flow rate out of COPV during the burn is {(m_copv[0] - m_copv[-1])/drain_time:.3f} [kg/s].')
-        print(f"\tMaximum mass flow rate out of COPV during the burn is {maximum_regulator_mass_flow_rate:.3f} [kg/s].")
+        print(f"\nMaximum mass flow rate out of COPV during the burn is {maximum_regulator_mass_flow_rate:.3f} [kg/s].\n\n")
 
         # Checks
         # Check ideal gas law
