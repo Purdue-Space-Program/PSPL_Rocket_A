@@ -34,10 +34,10 @@ print(f"COPV Specific Gravity: {copv_gs:.2f}")
 # print(f"COPV Volumetric Flow Rate: {copv_qdot:.2f} ft^3/min")
 print(f"COPV Cv: {regulator_cv:.10f}")
 print(f"Calculated Volumetric Flow Rate: {qdot_calculated:.2f} ft^3/min")
-print(f"Calculated SCFM: {scfm_copv:.2f} scfm")
+print(f"Calculated SCFM for COPV: {scfm_copv:.2f} scfm")
 
 # LOx Relief Valve
-ox_pressure = final_pathfinder_press_sim.P_OX * c.PA2PSI # [psia]
+ox_pressure = 525 #final_pathfinder_press_sim.P_OX * c.PA2PSI # [psia]
 ox_temp = 293 * c.KELVIN2RANK # final_pathfinder_press_sim.T_fill_ox * c.KELVIN2RANK # [R]
 ox_tank_density_pressurant = PropsSI('D', 'T', ox_temp / c.KELVIN2RANK, 'P', ox_pressure / c.PA2PSI, 'Nitrogen') # kg/m^3
 ox_tank_density_air = PropsSI('D', 'T', 293.15, 'P', 101325, 'Air') # kg/m^3

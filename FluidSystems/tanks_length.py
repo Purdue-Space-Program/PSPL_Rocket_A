@@ -23,7 +23,7 @@ fuel_ullage_fraction = 0 / 100
 angle = 0
 angle_history = []
 fraction_history = []
-while angle < 45:
+while angle < 20:
     residual_fraction = calc_residual_fraction_from_AoA(fuel_tank_ID, angle, fuel_use_volume)
     fraction_history.append(residual_fraction)
     angle_history.append(angle)
@@ -37,13 +37,13 @@ plt.title("AoA vs Residual Fraction")
 plt.show()
 
 
-fuel_residual_fraction = 20 / 100
+fuel_residual_fraction = 5 / 100
 
 ##### LOX TANK PARAMETERS #####
 ox_tank_ID = p.tube_inner_diameter
 ox_use_volume = p.oxidizer_tank_usable_volume
 ox_ullage_fraction = 10 / 100
-ox_residual_fraction = 20 / 100
+ox_residual_fraction = 5 / 100
 
 ##### BULKHEAD PARAMETERS #####
 bulkhead_radius_of_curvature = 3.5 * c.IN2M

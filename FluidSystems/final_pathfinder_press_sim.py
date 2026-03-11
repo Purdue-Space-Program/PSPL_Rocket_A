@@ -12,8 +12,8 @@ from vehicle_parameters import parameters as p
 
 # Simulation settings
 T_AMBIENT = 293 # [K] ambient temperature
-LOITER_TIME = 1 # [s] time between prepressurization and the start of flow
-LAG_TIME = 1 # [s] time the simulation should continue to run for after the run valves are closed
+LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
+LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
 DT = 0.0005 # [s] simulation step size
 Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
@@ -388,7 +388,8 @@ if PLOT_OUTPUT == True:
     plt.rcParams['axes.formatter.limits'] = (-9, 9)
     
     # Plot results
-    fig, axs = plt.subplots(2, 3)
+    #fig, axs = plt.subplots(2, 3)
+    fig, axs = plt.subplots(2, 3, figsize=(18,10), constrained_layout=True)
     fig.suptitle('Constant-Pressure Pressurization Simulation Results')
 
     # COPV plots
@@ -432,6 +433,6 @@ if PLOT_OUTPUT == True:
     # manager.window.state('zoomed')
 
     
-    fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
+    #fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
     
     plt.show()
