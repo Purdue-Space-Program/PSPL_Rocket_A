@@ -17,7 +17,7 @@ mu_IPA = 0.00204 #kg/m/s #dynamic viscosity of incompressible IPA
 
 #pipes
 outer_diameter = 0.5 #inches
-wall_thickness = 0.065 #inches #other available: 0.049, 0.083 in
+wall_thickness = 0.049 #inches #other available: 0.049, 0.083, 0.065 in
 inner_diameter = outer_diameter - (2 * wall_thickness) #inches
 inner_area = np.pi * (inner_diameter / 2) ** 2 #in^2
 
