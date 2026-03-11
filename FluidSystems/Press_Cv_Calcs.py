@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
 import vehicle_parameters
 import vehicle_pressurization_simulation
-
+from heat_transfer_functions import equivalent_kg_s
 
 
 def Cv_Choked(press_gas, m_dot, P1, T1):
@@ -27,7 +27,7 @@ def Cv_Choked(press_gas, m_dot, P1, T1):
 
     # Standard conditions
     P_STD = 14.7 * c.PSI2PA # [pa] standard pressure
-    T_STD = 288.7 # [K] standard temperature
+    T_STD = 293 # [K] standard temperature
 
     rho_std_air = PropsSI('D', 'P', P_STD, 'T', T_STD, 'air') # [kg/^3] standard density of air
     rho_std_press_gas = PropsSI('D', 'P', P_STD, 'T', T_STD, press_gas) # [kg/m^3] standard density of press gas
@@ -104,6 +104,13 @@ def main():
     print(f"The maximum required Cv for pressurizing the oxidizer tank is:             {cv_required_ox:.5f}")
     print(f"The maximum required Cv for pressurizing the fuel tank is:                 {cv_required_fu:.5f}")
     print(f"The maximum required Cv for pressurizing the tanks with one regulator is:  {cv_required_total:.5f}")
+
+    # Cv for tank based on scfm from graph
+    scfm = 85
+    mdot_kg_s = equivalent_kg_s(scfm, T2_copv, PRESS_GAS)
+    cv_from_scfm = Cv_Choked(PRESS_GAS, mdot_kg_s, P2_copv, T2_copv)
+    print(f"The Cv corresponding to {scfm} scfm is: {cv_from_scfm:.5f}")
+
 
 if __name__ == "__main__":
     main()

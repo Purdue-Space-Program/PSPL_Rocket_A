@@ -227,3 +227,32 @@ def equivalent_SCFM(m_dots, Ts, gas):
     corrected_scfm = scfm / (Fg * Ft)
 
     return corrected_scfm
+
+def equivalent_kg_s(scfm, Ts, gas):
+    '''
+     Determines equivalent kg/s for regulator sizing based on SCFM and temperature
+    
+    Parameters:
+    scfm: standard cubic feet per minute of flow
+    Ts: temperature in K
+    gas: string of gas name for CoolProp (e.g. 'nitrogen')
+    Returns:
+    m_dot: equivalent mass flow rate in kg/s
+    '''
+    # Determines equivalent kg/s for regulator sizing
+
+    # Conversion factors
+    M32FT3 = 35.3147
+    SEC2MIN = 60
+
+    if gas == 'helium':
+        Fg = 2.65 # [] gas correction factor
+    elif gas == 'nitrogen':
+        Fg = 1
+    
+    Ft = -0.00212133*Ts + 1.61586 # [] temperature correction factor based on linear regression from Swagelok data
+
+    rho_ambient = PropsSI('D', 'P', 101325, 'T', 293, gas)
+    m_dot = scfm * rho_ambient / M32FT3 / SEC2MIN * Fg * Ft
+
+    return m_dot
