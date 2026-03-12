@@ -17,7 +17,7 @@ mu_IPA = 0.00204 #kg/m/s #dynamic viscosity of incompressible IPA
 
 #pipes
 outer_diameter = 0.5 #inches
-wall_thickness = 0.049 #inches #other available: 0.049, 0.083, 0.065 in
+wall_thickness = 0.083 #inches #other available: 0.049, 0.083, 0.065 in
 inner_diameter = outer_diameter - (2 * wall_thickness) #inches
 inner_area = np.pi * (inner_diameter / 2) ** 2 #in^2
 
@@ -49,13 +49,13 @@ length_IPA = 8 * c.IN2M #m #length of lower IPA pipe
 delta_P_LOx_pipe = (f_LOx * (length_LOx) / (inner_diameter * c.IN2M)) * (rho_Lox * Line_velocity_Lox ** 2) / 2 #Pa #pressure drop across lower LOx pipe
 delta_P_IPA_pipe = (f_IPA * (length_IPA) / (inner_diameter * c.IN2M)) * (rho_IPA * Line_velocity_IPA ** 2) / 2 #Pa #pressure drop across lower IPA pipe
 
-delta_P_LOx_loss = (0.05 + 0.4) * (rho_Lox * Line_velocity_Lox ** 2) / 2 #Pa #pressure drop across LOx losses (bends, fittings, etc.) estimated using K factors
-delta_P_IPA_loss = 0 #since only a straight pipe in lower plumbing, K=0
+delta_P_LOx_loss = (0.6 + (2*1.2) + 0.5) * (rho_Lox * Line_velocity_Lox ** 2) / 2 #Pa #pressure drop across LOx losses (bends, fittings, etc.) estimated using K factors
+delta_P_IPA_loss = (0.5) * (rho_IPA * Line_velocity_IPA ** 2) / 2 #Pa #pressure drop across IPA losses (bends, fittings, etc.) estimated using K factors
 
 delta_P_LOx = delta_P_LOx_pipe + delta_P_LOx_loss #Pa #total pressure drop for LOx
 delta_P_IPA = delta_P_IPA_pipe + delta_P_IPA_loss #Pa #total pressure drop for IPA
 
-print(f"LOx Line Velocity: {Line_velocity_Lox:.2f} m/s")
+print(f"LOx Line Velocity: {Line_velocity_Lox:.2f} m/s")    
 print(f"IPA Line Velocity: {Line_velocity_IPA:.2f} m/s")
 print(f"LOx Total Pressure Drop: {delta_P_LOx:.2f} Pa")
 print(f"IPA Total Pressure Drop: {delta_P_IPA:.2f} Pa")
