@@ -338,6 +338,7 @@ scfm_ox = equivalent_SCFM(mdot_ullage_ox, T_copv, PRESS_GAS)
 scfm_fu = equivalent_SCFM(mdot_ullage_fu, T_copv, PRESS_GAS)
 
 maximum_regulator_mass_flow_rate = max((mdot_ullage_fu + mdot_ullage_ox))
+scfm_regulator_mass_flow_rate = max(equivalent_SCFM(mdot_ullage_fu + mdot_ullage_ox, T_copv, PRESS_GAS))
 
 if TEXT_OUTPUT == True:
     print('RESULTS ------------------------------------------------------------------------------------------------------')
@@ -346,6 +347,7 @@ if TEXT_OUTPUT == True:
     print(f'Final Ox Mass: {m_ullage_ox[-1]:.3f} [kg], Final Fuel Mass: {m_ullage_fu[-1]:.3f} [kg]')
     print(f'Average press gas mass flow rate: {(m_copv[0] - m_copv[-1])/drain_time:.3f} [kg/s]')
     print(f"Max press gas mass flow rate: {maximum_regulator_mass_flow_rate:.3f} [kg/s]")
+    print(f"Equivalent SCFM for press gas: {scfm_regulator_mass_flow_rate:.3f} [SCFM]")
 
     # Checks
     # Check ideal gas law
