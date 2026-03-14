@@ -50,7 +50,7 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     print(f"\tBolt Material: {bolt_material}")
     
     print(f"\tJoint Member 1 Material: {joint_member_1_material}")
-    print(f"\tJoint Member 1 Thickness: {joint_member_1_thickness}")
+    print(f"\tJoint Member 1 Thickness: {joint_member_1_thickness * c.M2IN} in")
     
     print(f"\tShear Joint Type: {joint_member_1_shear_joint_type}")
     match joint_member_1_shear_joint_type:
@@ -148,6 +148,10 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
             raise ValueError("cock and ball torque")
             
     
+    limit_shear_load_per_bolt = shear_limit_load/number_of_bolts
+    print(f"limit_shear_load_per_bolt: {limit_shear_load_per_bolt * c.N2LBF:.2f} LBF")
+    
+    
     bolt_maximum_allowable_shear_ultimate_load = CalculateMaximumAllowableBoltShearLoad(bolt_F_su, bolt_minor_diameter)
     print(f"\tbolt_maximum_allowable_shear_ultimate_load: {bolt_maximum_allowable_shear_ultimate_load * c.N2LBF:.2f} LBF")
     
@@ -159,7 +163,6 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     print(f"\tjoint_member_1_maximum_allowable_bearing_yield_load: {joint_member_1_maximum_allowable_bearing_yield_load * c.N2LBF:.2f} LBF, {joint_member_1_maximum_allowable_bearing_yield_load:.2f} N")
     print(f"\tjoint_member_1_maximum_allowable_bearing_ultimate_load: {joint_member_1_maximum_allowable_bearing_ultimate_load * c.N2LBF:.2f} LBF, {joint_member_1_maximum_allowable_bearing_ultimate_load:.2f} N")
 
-    limit_shear_load_per_bolt = shear_limit_load/number_of_bolts
     
     initial_fitting_factor = 1 # since we dont know if the joint is shear or bearing critical yet (idk if this is the right way to do it tbh)
     

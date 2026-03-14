@@ -84,7 +84,7 @@ def main(property_to_use = "density"):
         PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
         
         PRESS_GAS = "nitrogen"
-        P_COPV = parameters.COPV_starting_pressure # [Pa] starting COPV pressure
+        P_COPV = 3341 * c.PSI2PA # parameters.COPV_starting_pressure # [Pa] starting COPV pressure
         T_COPV = 300 # [K] starting COPV temperature (assumed)
         GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
         local_acceleration = parameters.one_DoF_off_the_rail_acceleration # [m/s^2] local acceleration (may be > 9.81 in flight)

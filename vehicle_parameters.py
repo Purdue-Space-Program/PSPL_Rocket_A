@@ -54,7 +54,7 @@ class VehicleParameters:
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
     nominal_tank_pressure: float = 350 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
-    largest_possible_tank_pressure: float = nominal_tank_pressure + (200 * c.PSI2PA) # comes from the set pressure being higher than the nominal tank pressure to account for droop during burn
+    largest_possible_tank_pressure: float = nominal_tank_pressure / 0.75 # comes from the set pressure being higher than the nominal tank pressure to account for droop during burn
     
     oxidizer_tank_pressure: float = nominal_tank_pressure     # The estimated required oxidizer tank pressure to sustain the combustion pressure in the engine [Pascals]
     fuel_tank_pressure: float = nominal_tank_pressure     # The estimated required fuel tank pressure to sustain the combustion pressure in the engine [Pascals]
@@ -83,7 +83,7 @@ class VehicleParameters:
     injector_length: float =       1.01 * c.IN2M
     lower_length: float =          20 * c.IN2M
     tank_bulkhead_length: float =       1.22 * c.IN2M
-    mid_length: float =            5 * c.IN2M
+    mid_length: float =            8 * c.IN2M
 
     upper_length: float =          33 * c.IN2M
     recovery_bay_length: float =   30 * c.IN2M
@@ -91,7 +91,7 @@ class VehicleParameters:
 
     # COPV Parameters
     COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
-    COPV_starting_pressure: float = 4300 * c.PSI2PA # [Pa]
+    COPV_starting_pressure: float = 4000 * c.PSI2PA # [Pa]
 
     root_chord: float = 16 * c.IN2M
     tip_chord: float = 6 * c.IN2M

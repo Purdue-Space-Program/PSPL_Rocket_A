@@ -123,7 +123,7 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
 
 
         while pressurant_current_pressure > (final_pressure * c.PSI2PA):
-            print(f"pressurant_current_pressure: {pressurant_current_pressure}")
+            # print(f"pressurant_current_pressure: {pressurant_current_pressure}")
             pressurant_current_mass_flow_rate = Calculate_Choked_Mass_Flow_from_Cv(tank_with_orifice.pressurant_name, tank_with_orifice.orifice.flow_coefficient, pressurant_current_pressure, pressurant_current_temperature)
             
             new_time = time_array[-1] + dt
@@ -142,7 +142,7 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
                 pressurant_new_pressure = pressurant_current_pressure
             
             quality_value = PropsSI("Q", "T", pressurant_new_temperature, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
-            print("Q =", quality_value)
+            # print("Q =", quality_value)
             
             time_array = np.append(time_array, new_time)
             pressurant_mass_flow_rate_array = np.append(pressurant_mass_flow_rate_array, pressurant_current_mass_flow_rate)
@@ -254,8 +254,8 @@ def main():
                                         pressurant_name = parameters.oxidizer_name,
                                        )
     
-    # Simulate_Orifice_Emptying(COPV_with_orifice)
-    Simulate_Orifice_Emptying(oxidizer_tank_with_orifice)
+    Simulate_Orifice_Emptying(COPV_with_orifice)
+    # Simulate_Orifice_Emptying(oxidizer_tank_with_orifice)
 
 
 if __name__ == "__main__":
