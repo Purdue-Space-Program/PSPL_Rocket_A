@@ -1,0 +1,9 @@
+CEA_Wrap
+CoolProp
+matplotlib
+numpy
+scipy
+tqdm
+pint
+pandas
+fluids

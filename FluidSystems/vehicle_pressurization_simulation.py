@@ -1,34 +1,3 @@
-### This code was adapted from the sim made by Hugo Filmer to work for Rocket A. David Gustafsson is the one who adapted this
-
-# This code simulates the pressurization process in the propellant tanks over time, assuming a constant pressure in each tank.
-# Its primary use is to determine the final COPV pressure and therefore if the COPV is large enough.
-# Hugo Filmer
-
-from CoolProp.CoolProp import PropsSI
-import numpy as np
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-import traceback
-
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from heat_transfer_functions import *
-import constants as c
-import vehicle_parameters
-
-def main(property_to_use = "density"):
-    parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
-    
-    # Simulation settings
-    T_AMBIENT = 293 # [K] ambient temperature
-    LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
-    LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-    DT = 0.001 # [s] simulation step size
-    Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
-    TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
-    PLOT_OUTPUT = True # True to make pretty plots of the results :)
 
     # inputs
 
@@ -40,7 +9,7 @@ def main(property_to_use = "density"):
     #     ADIABATIC = False # True to ignore heat transfer in the tanks
     #     PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
     #     PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
-        
+
     #     GRAVITY = 1 * 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
     #     # COPV
     #     PRESS_GAS = 'helium'
@@ -71,10 +40,10 @@ def main(property_to_use = "density"):
     #     P_FU = P_TANK # [Pa] fuel tank nominal pressure
     #     V_FU = 2062 * c.IN32M3 # [m^3] fuel tank total volume
     #     ULLAGE_FU =  1 / 100 # [] fuel tank volume ullage fraction
-        
+
     #     V_ullage_ox = 98.9 * c.IN32M3 # [m^3] oxidizer tank ullage volume
     #     V_ullage_fu = 10 * c.IN32M3 # [m^3] fuel tank ullage volume
-        
+
     #     # V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
     #     # V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
 
@@ -82,7 +51,7 @@ def main(property_to_use = "density"):
         ADIABATIC = False # True to ignore heat transfer in the tanks
         PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
         PRESS_LINE_CHILL = False # True to account for heat transfer in the helium line that runs through the oxidizer tank
-        
+
         PRESS_GAS = "nitrogen"
         P_COPV = 3341 * c.PSI2PA # parameters.COPV_starting_pressure # [Pa] starting COPV pressure
         T_COPV = 300 # [K] starting COPV temperature (assumed)
@@ -99,7 +68,7 @@ def main(property_to_use = "density"):
         D_PRESS_LINE = (3/8) * c.IN2M # [m] fuel tank pressurization line outer diameter
         T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
         P_TANK = parameters.oxidizer_tank_pressure
-        
+
         # Oxidizer
         OXIDIZER = "oxygen"
         P_FILL = 40 * c.PSI2PA # [Pa] fill pressure for LOx (assumed)
@@ -115,7 +84,7 @@ def main(property_to_use = "density"):
         ULLAGE_OX = 10 / 100 # [] oxidizer tank volume ullage fraction
         RESIDUAL_OX = 10 / 100 # [] oxidizer tank volume residual fraction
         # note: drain time is based on oxidizer residuals since that's what we'll be sensing
-        
+
         # Fuel
         FUEL = "ethanol"
         M_DOT_FU = parameters.core_fuel_mass_flow_rate + parameters.film_fuel_mass_flow_rate # [kg/s] fuel mass flow rate
@@ -128,7 +97,7 @@ def main(property_to_use = "density"):
         ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
         ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
         ULLAGE_FU =  10 / 100 # [] fuel tank volume ullage fraction
-        
+
         V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
         V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume
     else:
@@ -275,8 +244,8 @@ def main(property_to_use = "density"):
             h_ox_interface[step] = interface_convect(local_acceleration, P_OX, T_ullage_ox[step], T_fill_ox, D_tank_inner/4, PRESS_GAS, OXIDIZER) # [W/m^2K] heat transfer coefficient between oxidizer ullage and oxidizer
             # Oxidizer heat transfers
             # Areas
-            A_ox_gas_wall = np.pi*D_tank_inner*L_char_ox # [m^2] oxidizer tank wall area exposed to ullage gas  
-            A_ox_liquid_wall = np.pi*D_tank_inner*(V_OX - V_ullage_tank_ox) / A_bulkhead # [m^2] oxidizer tank wall area exposed to oxidizer 
+            A_ox_gas_wall = np.pi*D_tank_inner*L_char_ox # [m^2] oxidizer tank wall area exposed to ullage gas
+            A_ox_liquid_wall = np.pi*D_tank_inner*(V_OX - V_ullage_tank_ox) / A_bulkhead # [m^2] oxidizer tank wall area exposed to oxidizer
             # Q_dots
             Q_dot_ox_gas_wall = h_ox_gas_wall[step] * (A_ox_gas_wall) * (T_tank_wall_ox[step] - T_ullage_ox[step]) # [W] heat transfer rate between oxidizer ullage and tank wall
             Q_dot_ox_liquid_wall = h_ox_liquid_wall[step] * (A_ox_liquid_wall) * (T_fill_ox - T_tank_wall_ox[step]) # [W/m^2K] heat transfer rate between oxidizer and tank wall
@@ -327,7 +296,7 @@ def main(property_to_use = "density"):
         # Calculate tank properties
         rho_ullage_ox[step] = m_ullage_ox[step] / V_ullage_tank_ox
         rho_ullage_fu[step] = m_ullage_fu[step] / V_ullage_tank_fu # [kg/m^3] fuel ullage density
-        
+
         h_in = PropsSI('H', 'D', rho_copv[step], 'S', s_copv, PRESS_GAS) # [J/kg] adiabatic flow between COPV and tank so isenthalpic
         # try:
         #     # print(f"\nrho_ullage_ox[step]: {rho_ullage_ox[step]}")
@@ -339,14 +308,14 @@ def main(property_to_use = "density"):
         #     traceback.print_exc()
         #     plt.plot(times, partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox)
         #     plt.show()
-        
+
         match property_to_use:
             case "density":
                 partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
-            case "pressure":        
+            case "pressure":
                 partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'P', P_OX, 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
-        
-        
+
+
         # Oxidizer e_dot
         e_dot_ox = (
             (Q_dot_ox - P_OX*V_dot_ox - rho_ullage_ox[step]*V_dot_ox*e_ullage_ox[step] + rho_ullage_ox[step]*V_dot_ox*h_in)
@@ -379,14 +348,14 @@ def main(property_to_use = "density"):
         #     T_ullage_ox[step + 1] = PropsSI('T', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step + 1], PRESS_GAS)
         # except:
         #     T_ullage_ox[step + 1] = PropsSI('T', 'P', P_OX, 'U', e_ullage_ox[step + 1], PRESS_GAS)
-        
+
         match property_to_use:
             case "density":
                 T_ullage_ox[step + 1] = PropsSI('T', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step + 1], PRESS_GAS)
-            case "pressure":        
+            case "pressure":
                 T_ullage_ox[step + 1] = PropsSI('T', 'P', P_OX, 'U', e_ullage_ox[step + 1], PRESS_GAS)
-        
-        
+
+
 
         e_ullage_fu[step + 1] = e_ullage_fu[step] + e_dot_fu * DT
         m_ullage_fu[step + 1] = m_ullage_fu[step] + mdot_ullage_fu[step] * DT
@@ -461,11 +430,11 @@ def main(property_to_use = "density"):
         end_mass = rho_copv[-1] * V_COPV + m_ullage_ox[-1] + m_ullage_fu[-1]
         print('CONSERVATION OF MASS -----------------------------------------------------------------------------------------')
         print(f'\tThe starting mass of {PRESS_GAS} is {start_mass:.6f} kg and the ending mass is {end_mass:.6f} kg for a percent change of {(end_mass - start_mass)/start_mass * 100:.3f} %')
-        
+
         # Check energy balance
         start_energy = start_mass * PropsSI('U', 'P', P_COPV, 'T', T_COPV, PRESS_GAS)
         prepress_energy = (
-            PropsSI('D', 'P', P0_copv, 'T', T0_copv, PRESS_GAS) * V_COPV * PropsSI('U', 'P', P0_copv, 'T', T0_copv, PRESS_GAS) 
+            PropsSI('D', 'P', P0_copv, 'T', T0_copv, PRESS_GAS) * V_COPV * PropsSI('U', 'P', P0_copv, 'T', T0_copv, PRESS_GAS)
             + (P_OX * V_ullage_ox) / (R_press_gas * T0_ox) * PropsSI('U', 'P', P_OX, 'T', T0_ox, PRESS_GAS)
             + (P_FU * V_ullage_fu) / (R_press_gas * T0_fu) * PropsSI('U', 'P', P_FU, 'T', T0_fu, PRESS_GAS)
         )
@@ -489,12 +458,12 @@ def main(property_to_use = "density"):
         plt.rcParams['axes.formatter.useoffset'] = False
         plt.rcParams['axes.formatter.use_mathtext'] = False
         plt.rcParams['axes.formatter.limits'] = (-9, 9)
-        
+
         # plt.plot(times, partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox)
         # plt.show()
         # plt.figure()
-        
-        
+
+
         # Plot results
         fig, axs = plt.subplots(2, 3)
         fig.suptitle('Constant-Pressure Pressurization Simulation Results')
@@ -539,7 +508,7 @@ def main(property_to_use = "density"):
         # manager = plt.get_current_fig_manager()
         # manager.window.state('zoomed')
         fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
-        
+
         # plt.show()
     return(maximum_regulator_mass_flow_rate)
 
@@ -547,5 +516,5 @@ if __name__ == "__main__":
     cases = ["density", "pressure"]
     for case in cases:
         main(case)
-        
+
     plt.show()

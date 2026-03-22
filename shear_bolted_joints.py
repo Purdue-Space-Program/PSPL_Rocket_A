@@ -48,10 +48,10 @@ def CalculateMoS(maximum_allowable_load, limit_load, FoS, fitting_factor):
 def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolts, shear_limit_load, joint_member_1_material, joint_member_1_thickness, joint_member_1_E_d_ratio, joint_member_1_shear_joint_type, yield_FoS, ultimate_FoS):
     print(f"\tBolt Name: {bolt_thread_size} UNF")
     print(f"\tBolt Material: {bolt_material}")
-    
+
     print(f"\tJoint Member 1 Material: {joint_member_1_material}")
     print(f"\tJoint Member 1 Thickness: {joint_member_1_thickness * c.M2IN} in")
-    
+
     print(f"\tShear Joint Type: {joint_member_1_shear_joint_type}")
     match joint_member_1_shear_joint_type:
         case "Single":
@@ -64,28 +64,28 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
     # material properties
     F_su_316_Stainless_Steel = 50_000 * c.PSI2PA # [psi] S-basis from MMPDS-2025
     F_su_Alloy_Steel = 153_000*0.5 * c.PSI2PA # [psi] out of my ass
-    
+
     # from MMPDS-2019: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1934065665/Common+Material+Properties
     F_bru_Aluminum_6061_T6_E_d_one_point_five = 67_000 * c.PSI2PA # [psi]
-    F_bru_Aluminum_6061_T6_E_d_two =            88_000 * c.PSI2PA # [psi] 
-    F_bry_Aluminum_6061_T6_E_d_one_point_five = 50_000 * c.PSI2PA # [psi] 
-    F_bry_Aluminum_6061_T6_E_d_two =            58_000 * c.PSI2PA # [psi] 
-    
+    F_bru_Aluminum_6061_T6_E_d_two =            88_000 * c.PSI2PA # [psi]
+    F_bry_Aluminum_6061_T6_E_d_one_point_five = 50_000 * c.PSI2PA # [psi]
+    F_bry_Aluminum_6061_T6_E_d_two =            58_000 * c.PSI2PA # [psi]
+
     F_bru_Aluminum_7055_T74511_E_d_one_point_five = 115_000 * c.PSI2PA # [psi]
-    F_bru_Aluminum_7055_T74511_E_d_two =            151_000 * c.PSI2PA # [psi] 
-    F_bry_Aluminum_7055_T74511_E_d_one_point_five = 96_000 * c.PSI2PA # [psi] 
-    F_bry_Aluminum_7055_T74511_E_d_two =            114_000 * c.PSI2PA # [psi] 
-    
-    
+    F_bru_Aluminum_7055_T74511_E_d_two =            151_000 * c.PSI2PA # [psi]
+    F_bry_Aluminum_7055_T74511_E_d_one_point_five = 96_000 * c.PSI2PA # [psi]
+    F_bry_Aluminum_7055_T74511_E_d_two =            114_000 * c.PSI2PA # [psi]
+
+
     # F_bru_Aluminum_6063_T5_E_d_one_point_five = ???_000 * c.PSI2PA # [psi]
-    F_bru_Aluminum_6063_T5_E_d_two = 46_000 * c.PSI2PA # [psi] 
-    # F_bry_Aluminum_6063_T5_E_d_one_point_five = ???_000 * c.PSI2PA # [psi] 
-    F_bry_Aluminum_6063_T5_E_d_two = 25_600 * c.PSI2PA # [psi] 
+    F_bru_Aluminum_6063_T5_E_d_two = 46_000 * c.PSI2PA # [psi]
+    # F_bry_Aluminum_6063_T5_E_d_one_point_five = ???_000 * c.PSI2PA # [psi]
+    F_bry_Aluminum_6063_T5_E_d_two = 25_600 * c.PSI2PA # [psi]
 
     F_bru_304_Stainless_Steel_E_d_two = 262_000 * c.PSI2PA
     F_bry_304_Stainless_Steel_E_d_two = 123_000 * c.PSI2PA
 
-    
+
     # source: https://purdue-space-program.atlassian.net/wiki/spaces/PL/pages/1838153742/magic+numbers
     match bolt_thread_size:
         case "#8":
@@ -103,9 +103,9 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
             bolt_minor_diameter = 0.32 * c.IN2M
         case _:
             raise ValueError("balls")
-    
+
     bolt_hole_diameter = bolt_minor_diameter
-    
+
     match joint_member_1_E_d_ratio:
         case 1.5:
             match joint_member_1_material:
@@ -138,7 +138,7 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
                     raise ValueError("cock and ball torque")
         case _:
             raise ValueError("cock and ball torque")
-    
+
     match bolt_material:
         case "316 Stainless Steel":
             bolt_F_su = F_su_316_Stainless_Steel
@@ -146,36 +146,36 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
             bolt_F_su = F_su_Alloy_Steel
         case _:
             raise ValueError("cock and ball torque")
-            
-    
+
+
     limit_shear_load_per_bolt = shear_limit_load/number_of_bolts
     print(f"limit_shear_load_per_bolt: {limit_shear_load_per_bolt * c.N2LBF:.2f} LBF")
-    
-    
+
+
     bolt_maximum_allowable_shear_ultimate_load = CalculateMaximumAllowableBoltShearLoad(bolt_F_su, bolt_minor_diameter)
     print(f"\tbolt_maximum_allowable_shear_ultimate_load: {bolt_maximum_allowable_shear_ultimate_load * c.N2LBF:.2f} LBF")
-    
+
     # for member in joint_members
-    #   
-    
+    #
+
     joint_member_1_maximum_allowable_bearing_yield_load = CalculateMaximumAllowableBearingLoad(joint_member_F_bry, bolt_hole_diameter, joint_member_1_thickness)
     joint_member_1_maximum_allowable_bearing_ultimate_load = CalculateMaximumAllowableBearingLoad(joint_member_F_bru, bolt_hole_diameter, joint_member_1_thickness)
     print(f"\tjoint_member_1_maximum_allowable_bearing_yield_load: {joint_member_1_maximum_allowable_bearing_yield_load * c.N2LBF:.2f} LBF, {joint_member_1_maximum_allowable_bearing_yield_load:.2f} N")
     print(f"\tjoint_member_1_maximum_allowable_bearing_ultimate_load: {joint_member_1_maximum_allowable_bearing_ultimate_load * c.N2LBF:.2f} LBF, {joint_member_1_maximum_allowable_bearing_ultimate_load:.2f} N")
 
-    
+
     initial_fitting_factor = 1 # since we dont know if the joint is shear or bearing critical yet (idk if this is the right way to do it tbh)
-    
+
     # bolt_shear_yield_MoS ????????????????????????? i have not found a shear yield strength value for any material so i guess it doesn't exist...
-    bolt_shear_ultimate_MoS = CalculateMoS(maximum_allowable_load=bolt_maximum_allowable_shear_ultimate_load, 
-                                           limit_load=limit_shear_load_per_bolt, 
-                                           FoS=ultimate_FoS, 
+    bolt_shear_ultimate_MoS = CalculateMoS(maximum_allowable_load=bolt_maximum_allowable_shear_ultimate_load,
+                                           limit_load=limit_shear_load_per_bolt,
+                                           FoS=ultimate_FoS,
                                            fitting_factor=initial_fitting_factor)
-    clamped_material_bearing_ultimate_MoS = CalculateMoS(maximum_allowable_load=joint_member_1_maximum_allowable_bearing_ultimate_load, 
-                                                         limit_load=limit_shear_load_per_bolt, 
-                                                         FoS=ultimate_FoS, 
+    clamped_material_bearing_ultimate_MoS = CalculateMoS(maximum_allowable_load=joint_member_1_maximum_allowable_bearing_ultimate_load,
+                                                         limit_load=limit_shear_load_per_bolt,
+                                                         FoS=ultimate_FoS,
                                                          fitting_factor=initial_fitting_factor)
-    
+
     if (bolt_maximum_allowable_shear_ultimate_load > joint_member_1_maximum_allowable_bearing_ultimate_load):
         fitting_factor = 1.15
         print(f"\tBearing Critical! 😄, Fitting Factor: {fitting_factor}")
@@ -184,24 +184,23 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolt
         print(f"\tShear Critical! 😢, Fitting Factor: {fitting_factor}")
     else:
         raise ValueError("what")
-    
-    
+
+
     bolt_shear_ultimate_MoS = CalculateMoS(bolt_maximum_allowable_shear_ultimate_load, limit_shear_load_per_bolt, ultimate_FoS, fitting_factor)
     clamped_material_bearing_ultimate_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_ultimate_load, limit_shear_load_per_bolt, ultimate_FoS, fitting_factor)
     clamped_material_bearing_yield_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, yield_FoS, fitting_factor)
     # print(f"\tdesign_shear_load_per_bolt ULTIMATE: {limit_shear_load_per_bolt*(parameters.ultimate_FoS*fitting_factor) * c.N2LBF}")
-    
+
     print(f"\t{MoS_Text_Color(bolt_shear_ultimate_MoS)}Bolt shear ultimate MoS: {bolt_shear_ultimate_MoS:.3f}{ENDC}", i_am_a_margin = True)
     print(f"\t{MoS_Text_Color(clamped_material_bearing_ultimate_MoS)}Clamped material bearing ultimate MoS: {clamped_material_bearing_ultimate_MoS:.3f}{ENDC}", i_am_a_margin = True)
     print(f"\t{MoS_Text_Color(clamped_material_bearing_yield_MoS)}Clamped material bearing yield MoS: {clamped_material_bearing_yield_MoS:.3f}{ENDC}", i_am_a_margin = True)
 
     print("", i_am_a_title = True)
-    
+
     return (bolt_shear_ultimate_MoS, clamped_material_bearing_ultimate_MoS, clamped_material_bearing_yield_MoS)
 
 @dataclass
 class JointMember:
-    # General Parameters
     material: str
     thickness: float
     E_d_ratio: float
@@ -209,7 +208,6 @@ class JointMember:
 
 @dataclass
 class ShearBoltedJoint:
-    # General Parameters
     bolt_material: str
     bolt_thread_size: str
     number_of_bolts: float
@@ -217,10 +215,10 @@ class ShearBoltedJoint:
     joint_member_1: JointMember
     yield_FoS: float
     ultimate_FoS: float
-        
+
     def Calculate_Shear_Bolted_Joint(self):
-        return Calculate_Shear_Bolted_Joint(bolt_material =  self.bolt_material, 
-                                    bolt_thread_size = self.bolt_thread_size, 
+        return Calculate_Shear_Bolted_Joint(bolt_material =  self.bolt_material,
+                                    bolt_thread_size = self.bolt_thread_size,
                                     number_of_bolts = self.number_of_bolts,
                                     shear_limit_load = self.shear_limit_load,
                                     joint_member_1_material = self.joint_member_1.material ,
@@ -232,13 +230,13 @@ class ShearBoltedJoint:
                                     )
 
 def Calculate_Shear_Bolted_Joints(parameters):
-    
+
     upper_strut = JointMember(material = "Aluminum 6063-T52",
                             thickness = 0.125 * c.IN2M,
                             E_d_ratio = 2.0,
                             shear_joint_type = "Double"
     )
-    mid_strut = copy.deepcopy(upper_strut)    
+    mid_strut = copy.deepcopy(upper_strut)
     lower_strut = copy.deepcopy(upper_strut)
     lower_strut.shear_joint_type = "Single"
 
@@ -247,10 +245,10 @@ def Calculate_Shear_Bolted_Joints(parameters):
                             E_d_ratio = 1.5,
                             shear_joint_type = "Single"
                            )
-    
-    recovery_bay = copy.deepcopy(tank_wall)    
 
-    
+    recovery_bay = copy.deepcopy(tank_wall)
+
+
     print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
     bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
     bulkhead_blowoff_limit_load = (parameters.nominal_tank_pressure * bulkhead_area) * parameters.proof_factor
@@ -260,7 +258,7 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
     bulkhead_max_limit_load = bulkhead_blowoff_limit_load
     print("\tbulkhead_max_load: bulkhead_blowoff_load")
-    
+
     # if bulkhead_blowoff_limit_load > parameters.oxygen_tank_max_load:
     #     bulkhead_max_limit_load = bulkhead_blowoff_limit_load
     #     print("\tbulkhead_max_load: bulkhead_blowoff_load")
@@ -268,8 +266,8 @@ def Calculate_Shear_Bolted_Joints(parameters):
     #     bulkhead_max_limit_load = parameters.oxygen_tank_max_load
     #     print("\tbulkhead_max_load: parameters.oxygen_tank_max_load")
 
-    tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel", 
-                                                   bolt_thread_size = "5/16\"", 
+    tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel",
+                                                   bolt_thread_size = "5/16\"",
                                                    number_of_bolts = 30,
                                                    shear_limit_load = bulkhead_max_limit_load,
                                                    joint_member_1 = tank_wall,
@@ -280,8 +278,8 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
 
     print("------------- Tank Bulkhead to Upper Strut Bolted Joint -------------", i_am_a_title=True)
-    tank_bulkhead_to_upper_strut_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
-                                                          bolt_thread_size = "#10", 
+    tank_bulkhead_to_upper_strut_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel",
+                                                          bolt_thread_size = "#10",
                                                           number_of_bolts = 2,
                                                           shear_limit_load = parameters.upper_strut_max_load,
                                                           joint_member_1 = upper_strut,
@@ -304,9 +302,9 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
 
 
-    print("------------- Recovery Bulkhead Bolted Joint -------------", i_am_a_title=True)    
-    injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
-                                                            bolt_thread_size = "1/4", 
+    print("------------- Recovery Bulkhead Bolted Joint -------------", i_am_a_title=True)
+    injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "316 Stainless Steel",
+                                                            bolt_thread_size = "1/4",
                                                             number_of_bolts = 12,
                                                             shear_limit_load = parameters.copv_tube_max_load,
                                                             joint_member_1 = recovery_bay,
@@ -314,15 +312,15 @@ def Calculate_Shear_Bolted_Joints(parameters):
                                                             ultimate_FoS = parameters.ultimate_FoS,
                                                             )
     injector_upper_half_to_fin_can_strut.Calculate_Shear_Bolted_Joint()
-    
-    
-    
+
+
+
     # print("-------------Recovery Bay Connector Bolted Joint-------------\n", i_am_a_title=True)
-    
-    
+
+
     # print("-------------Launch Lug Bolted Joint-------------", i_am_a_title=True)
-    # tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel", 
-    #                                                     bolt_thread_size = "#10", 
+    # tank_bulkhead_to_strut_joint = ShearBoltedJoint(bolt_material = "316 Stainless Steel",
+    #                                                     bolt_thread_size = "#10",
     #                                                     number_of_bolts = 2,
     #                                                     # joint_member_1 = launch_lug)
     #                                                     joint_member_1_material = "Aluminum 6061-T6", # https://www.speedymetals.com/pc-4676-8379-34-sq-wall-sq-tube-6063-t52-aluminum.aspx
@@ -331,7 +329,7 @@ def Calculate_Shear_Bolted_Joints(parameters):
     #                                                     joint_member_1_shear_limit_load = 668 * c.LBF2N,
     #                                                     shear_joint_type = "Single")
     # tank_bulkhead_to_strut_joint.Calculate_Shear_Bolted_Joint()
-    
+
     return(parameters)
 
 
@@ -342,13 +340,12 @@ def main(parameters):
 if __name__ == "__main__":
     parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
     rerun_everything = False
-    
+
     if rerun_everything:
         vehicle_main.vehicle_analysis()
     else:
         pass
-        # parameters = csv_to_dataclass(parameters_csv_filepath)    
-    
+        # parameters = csv_to_dataclass(parameters_csv_filepath)
+
     with print_filter.context_manager(print_everything=True):
         main(parameters)
-    

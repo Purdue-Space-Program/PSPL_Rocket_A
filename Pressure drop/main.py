@@ -46,12 +46,12 @@ injector_pressure_drop_percent = 0.8
 
 
 def CalculatePressureDropFromFrictionFactor(fluid_friction_factor, tube_length, tube_inner_diameter, fluid_density, fluid_line_velocity):
-    K = core.K_from_f(fluid_friction_factor, tube_length.to(u.meter).magnitude, tube_inner_diameter.to(u.meter).magnitude)
-    pressure_drop = core.dP_from_K(K, rho=fluid_density.to(u.kilogram / u.meter**3).magnitude, V=fluid_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
+    K_loss_coefficient = core.K_from_f(fluid_friction_factor, tube_length.to(u.meter).magnitude, tube_inner_diameter.to(u.meter).magnitude)
+    pressure_drop = core.dP_from_K(K_loss_coefficient, rho=fluid_density.to(u.kilogram / u.meter**3).magnitude, V=fluid_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
     pressure_drop = pressure_drop.to(u.psi)
     return (pressure_drop)
 
-# Function by Keshav Narayanan and Isaiah Jarvis from Rocket 4 
+# Function by Keshav Narayanan and Isaiah Jarvis from Rocket 4
 def CalculateFluidInPipe(tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density):
     tube_inner_diameter = (tube_outer_diameter - 2 * tube_wall_thickness).to(u.meter)  # inner diameter
 
@@ -68,10 +68,10 @@ def CalculateFluidInPipe(tube_outer_diameter, tube_wall_thickness, absolute_roug
     return (tube_inner_diameter, fluid_line_velocity, fluid_Reynolds_number, fluid_friction_factor, rel_rough)
 
 def CalculateStraightTubePressureDrop(tube_length, tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density):
-    (tube_inner_diameter, 
-     fluid_line_velocity, 
-     fluid_Reynolds_number, 
-     fluid_friction_factor, 
+    (tube_inner_diameter,
+     fluid_line_velocity,
+     fluid_Reynolds_number,
+     fluid_friction_factor,
      rel_rough) = CalculateFluidInPipe(tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)
 
     pressure_drop = CalculatePressureDropFromFrictionFactor(fluid_friction_factor, tube_length, tube_inner_diameter, fluid_density, fluid_line_velocity)
@@ -80,7 +80,7 @@ def CalculateStraightTubePressureDrop(tube_length, tube_outer_diameter, tube_wal
 
 def CalculateTubeBendPressureDrop(angle, bend_radius, tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density):
     (tube_inner_diameter, fluid_line_velocity, fluid_Reynolds_number, fluid_friction_factor, rel_rough) = CalculateFluidInPipe(tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)
-    
+
     bend_radius = bend_radius.to(u.meter)
     # Calculation of loss coefficient
     K = fittings.bend_rounded(
@@ -92,7 +92,7 @@ def CalculateTubeBendPressureDrop(angle, bend_radius, tube_outer_diameter, tube_
         Re=fluid_Reynolds_number,
         method='Crane'
     )
-    
+
 
     drop = core.dP_from_K(K, rho=fluid_density.to(u.kilogram / u.meter**3).magnitude, V=fluid_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
     drop = drop.to(u.psi)
@@ -101,7 +101,7 @@ def CalculateTubeBendPressureDrop(angle, bend_radius, tube_outer_diameter, tube_
 def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density):
     tube_outer_diameter = valve_inner_diameter + (2*tube_wall_thickness)
     (inner_dia, fluid_line_velocity, fluid_Reynolds_number, fluid_friction_factor, rel_rough) = CalculateFluidInPipe(tube_outer_diameter, tube_wall_thickness, absolute_roughness, fluid_mass_flow_rate, fluid_kinetic_viscosity, fluid_density)
-        
+
     valve_inner_diameter = valve_inner_diameter.to(u.meter)
 
     K = fittings.Cv_to_K(Cv=Cv, D=valve_inner_diameter.magnitude)
@@ -111,7 +111,7 @@ def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness
 
 # def sharp_contraction_ox(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
 #     (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
-    
+
 #     inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
 
 #     # Calculation of loss coefficient
@@ -122,7 +122,7 @@ def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness
 
 # def sharp_contraction_ipa(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
 #     (inner_diameter_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
-    
+
 #     inner_diameter_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
 
 #     # Calculation of loss coefficient
@@ -133,7 +133,7 @@ def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness
 
 # def sharp_expansion_ox(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
 #     (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
-    
+
 #     inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
 
 #     # Calculation of loss coefficient
@@ -144,7 +144,7 @@ def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness
 
 # def sharp_expansion_ipa(outer_dia_one, outer_dia_two, wall_thickness, abs_roughness):
 #     (inner_dia_one, fuel_line_velocity, oxidizer_line_velocity, reynold_ipa, reynold_ox, friction_factor_ipa, friction_factor_oxidizer, rel_rough) = CalculateFluidInPipe(outer_dia_one, wall_thickness, abs_roughness)
-    
+
 #     inner_dia_two = (outer_dia_two - 2 * wall_thickness).to(u.meter)
 
 #     # Calculation of loss coefficient
@@ -152,7 +152,7 @@ def CalculateBallValvePressureDrop(Cv, valve_inner_diameter, tube_wall_thickness
 #     drop = core.dP_from_K(K, rho=fuel_density.to(u.kilogram / u.meter**3).magnitude, V=fuel_line_velocity.to(u.meter / u.second).magnitude) * u.pascal
 #     drop = drop.to(u.psi)
 #     return drop
-    
+
 
 # Majority of this code is by Keshav Narayanan and Isaiah Jarvis for Rocket 4
 try:
@@ -187,7 +187,7 @@ while second_propellant_to_read is None:
     elif part_name == "Oxidizer":
         first_propellant_to_read = "Oxidizer"
         second_propellant_to_read = "Fuel"
-    
+
     row += 1
 
 currently_reading = first_propellant_to_read    #The excel sheet will assume it is reading this until the "Fuel or Oxidizer" keyword comes up. Then it will switch to Fuel.
@@ -197,9 +197,9 @@ for row in parts_engine_to_tank:
 
     part_name = file.loc[row, "Part Name"]
     part_type = file.loc[row, "Part Type"]
-    
+
     is_nan = isinstance(part_name, (int, float, np.floating)) and np.isnan(part_name)
-    
+
     # permanently switch to other propellant
     if part_name == "Fuel":
         currently_reading = "Oxidizer"
@@ -217,7 +217,7 @@ for row in parts_engine_to_tank:
         angle = file.loc[row, "Angle [degrees]"] * u.degree
         bend_radius = file.loc[row, "Bend Radius [in]"] * u.inch
         Cv = file.loc[row, 'Cv']
-        
+
 
         if currently_reading == "Oxidizer":
             fluid_mass_flow_rate = oxidizer_mass_flow_rate
@@ -232,37 +232,37 @@ for row in parts_engine_to_tank:
 
         match part_type:
             case "Straight Tube":
-                part_pressure_drop = CalculateStraightTubePressureDrop(tube_length, 
-                                                                       tube_outer_diameter, 
-                                                                       tube_wall_thickness, 
-                                                                       absolute_roughness, 
-                                                                       fluid_mass_flow_rate, 
-                                                                       fluid_kinetic_viscosity, 
+                part_pressure_drop = CalculateStraightTubePressureDrop(tube_length,
+                                                                       tube_outer_diameter,
+                                                                       tube_wall_thickness,
+                                                                       absolute_roughness,
+                                                                       fluid_mass_flow_rate,
+                                                                       fluid_kinetic_viscosity,
                                                                        fluid_density)
-            
+
             case "Bend":
-                part_pressure_drop = CalculateTubeBendPressureDrop(angle, 
-                                                                   bend_radius, 
-                                                                   tube_outer_diameter, 
-                                                                   tube_wall_thickness, 
-                                                                   absolute_roughness, 
-                                                                   fluid_mass_flow_rate, 
-                                                                   fluid_kinetic_viscosity, 
+                part_pressure_drop = CalculateTubeBendPressureDrop(angle,
+                                                                   bend_radius,
+                                                                   tube_outer_diameter,
+                                                                   tube_wall_thickness,
+                                                                   absolute_roughness,
+                                                                   fluid_mass_flow_rate,
+                                                                   fluid_kinetic_viscosity,
                                                                    fluid_density)
 
             case "Ball Valve":
-                part_pressure_drop = CalculateBallValvePressureDrop(Cv, 
-                                                                   inner_diameter, 
-                                                                   tube_wall_thickness, 
-                                                                   absolute_roughness, 
-                                                                   fluid_mass_flow_rate, 
-                                                                   fluid_kinetic_viscosity, 
-                                                                   fluid_density)    
+                part_pressure_drop = CalculateBallValvePressureDrop(Cv,
+                                                                   inner_diameter,
+                                                                   tube_wall_thickness,
+                                                                   absolute_roughness,
+                                                                   fluid_mass_flow_rate,
+                                                                   fluid_kinetic_viscosity,
+                                                                   fluid_density)
 
             case "Venturi":
                 venturi_inlet_pressure = current_fluid_pressure / venturi_pressure_drop_percent
                 part_pressure_drop = venturi_inlet_pressure - current_fluid_pressure
-            
+
             case "Injector":
                 injector_inlet_pressure = current_fluid_pressure / injector_pressure_drop_percent
                 part_pressure_drop = injector_inlet_pressure - current_fluid_pressure
@@ -281,11 +281,11 @@ for row in parts_engine_to_tank:
             current_fuel_pressure += part_pressure_drop
             fuel_pressure_array.append(current_fuel_pressure.to(u.psi))
             fuel_part_names.append(part_name)
-        
-            
+
+
     elif is_nan:
         print("NaN!")
-    
+
     else:
         raise ValueError("help")
 
@@ -298,20 +298,20 @@ print(f"IPA: \n\tTotal pressure drop: {fuel_total_pressure_drop.to(u.psi):.2f}\n
 print(f"LOx: \n\tTotal pressure drop: {oxidizer_total_pressure_drop.to(u.psi):.2f}\n\tChamber pressure: {chamber_pressure.to(u.psi):.2f}\n\tTank pressure: {current_oxidizer_pressure.to(u.psi):.2f}")
 
 if __name__ == "__main__":
-    
+
     # go from left to right
     fuel_part_names.reverse()
     fuel_pressure_array.reverse()
     oxidizer_part_names.reverse()
     oxidizer_pressure_array.reverse()
-    
+
     use_subplots = True
-    
+
     if use_subplots == True:
         fig, axs = plt.subplots(1, 2)
-    
+
     for count, fluid_pressure_array in enumerate([fuel_pressure_array, oxidizer_pressure_array]):
-        
+
         if fluid_pressure_array is fuel_pressure_array:
             fluid_part_names = fuel_part_names
             fluid_color = "r"
@@ -322,14 +322,14 @@ if __name__ == "__main__":
             fluid_name = "Oxidizer"
         else:
             raise
-        
+
         fluid_point_indices = np.arange(len(fluid_pressure_array))
-        
+
         if use_subplots == True:
             axs[count].set_title(f"{fluid_name}")
             axs[count].set_xlabel("Part Name")
             axs[count].set_ylabel("Fluid Pressure [psia]")
-           
+
             fluid_label_positions = fluid_point_indices + 0.5
             axs[count].set_xlim(-0.5, len(fluid_point_indices) - 0.5)
             # make go in between ticks
@@ -341,19 +341,18 @@ if __name__ == "__main__":
             )
             axs[count].plot(fluid_point_indices, list(float(fluid_pressure.to(u.psi).magnitude) for fluid_pressure in fluid_pressure_array), fluid_color)
             axs[count].grid(True)
-            
+
         else:
             plt.plot(fluid_point_indices, list(float(fluid_pressure.to(u.psi).magnitude) for fluid_pressure in fluid_pressure_array), fluid_color)
             plt.xlabel("Part Name")
             plt.ylabel("Fluid Pressure [psia]")
             plt.grid(True)
-        
-        
+
+
     if use_subplots == True:
         fig.suptitle(f"{fluid_name} Pressure Drop: Tank to Engine")
     else:
-        plt.legend(["Fuel", "Oxidizer"])    
+        plt.legend(["Fuel", "Oxidizer"])
 
     plt.tight_layout()
     plt.show()
-    

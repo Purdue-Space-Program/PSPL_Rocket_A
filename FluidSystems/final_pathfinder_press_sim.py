@@ -1,23 +1,3 @@
-from CoolProp.CoolProp import PropsSI
-import numpy as np
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-from heat_transfer_functions import *
-
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import constants as c
-from vehicle_parameters import parameters as p
-
-# Simulation settings
-T_AMBIENT = 293 # [K] ambient temperature
-LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
-LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-DT = 0.001 # [s] simulation step size
-Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
-TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
-PLOT_OUTPUT = True # True to make pretty plots of the results :)
 
 # Inputs
 ADIABATIC = False # True to ignore heat transfer in the tanks
@@ -26,7 +6,7 @@ PRESS_GAS = "nitrogen"
 P_COPV = 3342 * c.PSI2PA # [Pa] starting COPV pressure
 T_COPV = 300 # [K] starting COPV temperature (assumed)
 GRAVITY = 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
-local_acceleration = p.one_DoF_off_the_rail_acceleration 
+local_acceleration = p.one_DoF_off_the_rail_acceleration
 V_COPV = p.COPV_volume # [m^3] COPV volume
 
 # Tanks
@@ -57,7 +37,7 @@ RESIDUAL_OX = 5 / 100 # [] oxidizer tank volume residual fraction
 
 # Fuel
 FUEL = "ethanol"
-M_DOT_FU = p.film_fuel_mass_flow_rate + p.core_fuel_mass_flow_rate # [kg/s] fuel mass flow rate, with film mass flow 
+M_DOT_FU = p.film_fuel_mass_flow_rate + p.core_fuel_mass_flow_rate # [kg/s] fuel mass flow rate, with film mass flow
 P_FU = P_TANK # [Pa] fuel tank nominal pressure
 V_FU = p.fuel_tank_usable_volume # [m^3] fuel tank total volume ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
@@ -207,8 +187,8 @@ for i in tqdm(range(total_steps)):
         h_ox_interface[step] = interface_convect(local_acceleration, P_OX, T_ullage_ox[step], T_fill_ox, D_tank_inner/4, PRESS_GAS, OXIDIZER) # [W/m^2K] heat transfer coefficient between oxidizer ullage and oxidizer
         # Oxidizer heat transfers
         # Areas
-        A_ox_gas_wall = np.pi*D_tank_inner*L_char_ox # [m^2] oxidizer tank wall area exposed to ullage gas  
-        A_ox_liquid_wall = np.pi*D_tank_inner*(V_OX - V_ullage_tank_ox) / A_bulkhead # [m^2] oxidizer tank wall area exposed to oxidizer 
+        A_ox_gas_wall = np.pi*D_tank_inner*L_char_ox # [m^2] oxidizer tank wall area exposed to ullage gas
+        A_ox_liquid_wall = np.pi*D_tank_inner*(V_OX - V_ullage_tank_ox) / A_bulkhead # [m^2] oxidizer tank wall area exposed to oxidizer
         # Q_dots
         Q_dot_ox_gas_wall = h_ox_gas_wall[step] * (A_ox_gas_wall) * (T_tank_wall_ox[step] - T_ullage_ox[step]) # [W] heat transfer rate between oxidizer ullage and tank wall
         Q_dot_ox_liquid_wall = h_ox_liquid_wall[step] * (A_ox_liquid_wall) * (T_fill_ox - T_tank_wall_ox[step]) # [W/m^2K] heat transfer rate between oxidizer and tank wall
@@ -259,16 +239,16 @@ for i in tqdm(range(total_steps)):
     # Calculate tank properties
     rho_ullage_ox[step] = m_ullage_ox[step] / V_ullage_tank_ox
     rho_ullage_fu[step] = m_ullage_fu[step] / V_ullage_tank_fu # [kg/m^3] fuel ullage density
-    
+
     h_in = PropsSI('H', 'D', rho_copv[step], 'S', s_copv, PRESS_GAS) # [J/kg] adiabatic flow between COPV and tank so isenthalpic
     try:
         partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
     except:
         plt.plot(time, partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox)
         plt.show
-        
-    
-    
+
+
+
     # Oxidizer e_dot
     e_dot_ox = (
         (Q_dot_ox - P_OX*V_dot_ox - rho_ullage_ox[step]*V_dot_ox*e_ullage_ox[step] + rho_ullage_ox[step]*V_dot_ox*h_in)
@@ -371,7 +351,7 @@ if TEXT_OUTPUT == True:
     # Check energy balance
     start_energy = start_mass * PropsSI('U', 'P', P_COPV, 'T', T_COPV, PRESS_GAS)
     prepress_energy = (
-        PropsSI('D', 'P', P0_copv, 'T', T0_copv, PRESS_GAS) * V_COPV * PropsSI('U', 'P', P0_copv, 'T', T0_copv, PRESS_GAS) 
+        PropsSI('D', 'P', P0_copv, 'T', T0_copv, PRESS_GAS) * V_COPV * PropsSI('U', 'P', P0_copv, 'T', T0_copv, PRESS_GAS)
         + (P_OX * V_ullage_ox) / (R_press_gas * T0_ox) * PropsSI('U', 'P', P_OX, 'T', T0_ox, PRESS_GAS)
         + (P_FU * V_ullage_fu) / (R_press_gas * T0_fu) * PropsSI('U', 'P', P_FU, 'T', T0_fu, PRESS_GAS)
     )
@@ -384,11 +364,11 @@ if TEXT_OUTPUT == True:
     print(f'The intermediate energy after pre-pressurization is {prepress_energy/1000:.3f} kJ.')
 
 if PLOT_OUTPUT == True:
-    
+
     plt.rcParams['axes.formatter.useoffset'] = False
     plt.rcParams['axes.formatter.use_mathtext'] = False
     plt.rcParams['axes.formatter.limits'] = (-9, 9)
-    
+
     # Plot results
     #fig, axs = plt.subplots(2, 3)
     fig, axs = plt.subplots(2, 3, figsize=(18,10), constrained_layout=True)
@@ -434,7 +414,7 @@ if PLOT_OUTPUT == True:
     # manager = plt.get_current_fig_manager()
     # manager.window.state('zoomed')
 
-    
+
     #fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
-    
+
     plt.show()
