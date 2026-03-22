@@ -30,9 +30,9 @@ if piston == "test":
 else:
     braking_torque = 242 * IN_LB2NM
     safety_factor = 3
-    piston_stroke_length = 2 * IN2M
+    piston_stroke_length = 4 * IN2M
     rod_mass = 1.5456 * LBM2KG # Estimated from CAD
-    piston_diameter = 2 * IN2M
+    piston_diameter = 2.5 * IN2M
     piston_retracted_length = 9.44 * IN2M
     piston_extended_length = piston_retracted_length + piston_stroke_length
     shaft_diameter = 0.63 * IN2M

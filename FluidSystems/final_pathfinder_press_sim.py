@@ -14,16 +14,16 @@ from vehicle_parameters import parameters as p
 T_AMBIENT = 293 # [K] ambient temperature
 LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
 LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-DT = 0.0005 # [s] simulation step size
+DT = 0.001 # [s] simulation step size
 Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
 PLOT_OUTPUT = True # True to make pretty plots of the results :)
 
 # Inputs
 ADIABATIC = False # True to ignore heat transfer in the tanks
-PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
+PREPRESS = "adiabatic" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
 PRESS_GAS = "nitrogen"
-P_COPV = p.COPV_starting_pressure # [Pa] starting COPV pressure
+P_COPV = 3342 * c.PSI2PA # [Pa] starting COPV pressure
 T_COPV = 300 # [K] starting COPV temperature (assumed)
 GRAVITY = 9.81 # [m/s/s] local gravitational acceleration (may be > 9.81 in flight)
 local_acceleration = p.one_DoF_off_the_rail_acceleration 
@@ -51,8 +51,8 @@ V_OX = p.oxidizer_tank_usable_volume # [m^3] oxidizer tank total volume ########
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
-ULLAGE_OX = 13.3 / 100 # [] oxidizer tank volume ullage fraction
-RESIDUAL_OX = 20 / 100 # [] oxidizer tank volume residual fraction
+ULLAGE_OX = 18.4 / 100 # [] oxidizer tank volume ullage fraction
+RESIDUAL_OX = 5 / 100 # [] oxidizer tank volume residual fraction
 # note: drain time is based on oxidizer residuals since that's what we'll be sensing
 
 # Fuel
@@ -66,7 +66,7 @@ V_FU = p.fuel_tank_usable_volume # [m^3] fuel tank total volume ################
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
 ############################################################ FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
-ULLAGE_FU =  5.1 / 100 # [] fuel tank volume ullage fraction
+ULLAGE_FU =  6.4 / 100 # [] fuel tank volume ullage fraction
 
 V_ullage_ox = V_OX * ULLAGE_OX # [m^3] oxidizer tank ullage volume
 V_ullage_fu = V_FU * ULLAGE_FU # [m^3] fuel tank ullage volume

@@ -9,7 +9,7 @@ import vehicle_parameters as v
 ##### INPUT PARAMETERS #####
 inner_diameter = v.parameters.tank_inner_diameter # [m]
 wall_thickness = v.parameters.tank_wall_thickness # [m]
-tank_pressure = v.parameters.nominal_tank_pressure # [Pa]
+tank_pressure = v.parameters.nominal_tank_pressure / 0.75 # [Pa]
 aluminum_6061_T6_yield_strength = 35000 * PSI2PA # [Pa]
 aluminum_6061_T6_ultimate_strength = 42000 * PSI2PA # [Pa]
 FoS_yield = 1.5
