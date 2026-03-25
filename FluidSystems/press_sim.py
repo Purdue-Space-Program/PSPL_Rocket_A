@@ -12,8 +12,8 @@ from vehicle_parameters import parameters as p
 
 # Simulation settings
 T_AMBIENT = 293 # [K] ambient temperature
-LOITER_TIME = 1 # [s] time between prepressurization and the start of flow
-LAG_TIME = 1 # [s] time the simulation should continue to run for after the run valves are closed
+LOITER_TIME = 0 # [s] time between prepressurization and the start of flow
+LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
 DT = 0.0005 # [s] simulation step size
 Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
 TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
@@ -435,3 +435,14 @@ if PLOT_OUTPUT == True:
     fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
     
     plt.show()
+
+print(T_copv)
+print(P_copv)
+
+def crit_length_inputs():
+    pressure = np.array(P_copv).reshape(1,3428)
+    temperature = np.array(T_copv).reshape(1,3428)
+    mdot_lox = np.array(mdot_ullage_ox).reshape(1,3428)
+    mdot_fuel = np.array(mdot_ullage_fu).reshape(1,3428)
+    time = np.array(times).reshape(1,3428)
+    return pressure, temperature, mdot_lox, mdot_fuel, time
