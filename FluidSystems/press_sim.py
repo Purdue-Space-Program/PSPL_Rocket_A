@@ -1,4 +1,3 @@
-
 # Inputs
 ADIABATIC = False # True to ignore heat transfer in the tanks
 PREPRESS = "isothermal" # prepressurization type (choose from 'adiabatic' or 'isothermal') isothermal means infinite loiter time
@@ -416,4 +415,17 @@ if PLOT_OUTPUT == True:
 
     fig.subplots_adjust(top=0.90, bottom=0.05, hspace=0.3, left=0.05, right=0.95)
 
+
     plt.show()
+
+
+print(T_copv)
+print(P_copv)
+
+def crit_length_inputs():
+    pressure = np.array(P_copv).reshape(1,3428)
+    temperature = np.array(T_copv).reshape(1,3428)
+    mdot_lox = np.array(mdot_ullage_ox).reshape(1,3428)
+    mdot_fuel = np.array(mdot_ullage_fu).reshape(1,3428)
+    time = np.array(times).reshape(1,3428)
+    return pressure, temperature, mdot_lox, mdot_fuel, time
