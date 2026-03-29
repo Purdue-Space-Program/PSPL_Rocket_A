@@ -8,8 +8,8 @@ from constants import *
 import vehicle_parameters
 
 
-def tensile_from_chamber(diameter, pressure):
-    return ((diameter*diameter/4.0*np.pi) * pressure)/0.8
+def tensile_from_area(diameter, pressure):
+    return ((diameter*diameter/4.0*np.pi) * pressure)
 
 def tensile_from_o_ring(diameter, required_compression_per_linear_inch):
     return (diameter*np.pi) * required_compression_per_linear_inch
@@ -53,83 +53,101 @@ def MOS(calculated, actual):
 
 if __name__ == "__main__":
     
+
     parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()    
     proof_stress = 140000
     safety_factor = 1.4*1.15
     preload_percent = 0.75
     torque_variation = 0.25
     #Pathfinder
-    bolt_major_diameter_plates = 0.19 #0.25
-    bolt_minor_diameter_plates = 0.1528 #0.2075
+    bolt_major_diameter_main = 0.19 #0.25
+    bolt_minor_diameter_main = 0.1528 #0.2075
     bolt_major_diameter_pintle = 0.125
     bolt_minor_diameter_pintle = 0.0979
-    chamber_diameter = 4.9
+    chamber_diameter = 5
     chamber_wall_thickness = 0.25
-    chamber_pressure = 250
+    chamber_pressure = 200
     #CMS
     #bolt_diameter_plates_major = 0.25
     #bolt_diameter_plates_minor = 0.2075
     #chamber_diameter = 5.05
     #chamber_pressure = 200
 
-    nut_diameter_plates = bolt_major_diameter_plates*2.5
+    nut_diameter_main = bolt_major_diameter_main*2.5
     ED_ratio = 1.5
     chamber_wall_thickness = 0.25
 
-    chamber_input_values = "Pathfinder"
-    if chamber_input_values == "Pathfinder":
-        tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
-        tensile_force_from_outer_o_ring = tensile_from_o_ring(5.44301,70)
-        tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.44302,70)
-        tensile_force_from_film_o_ring = tensile_from_o_ring(4.193,70)
-        tensile_force_from_manifold_o_ring = tensile_from_o_ring(.443,70)
-        force_o_rings = {tensile_force_from_outer_o_ring,tensile_force_from_chamber_o_ring,tensile_force_from_film_o_ring,tensile_force_from_manifold_o_ring}
-        tensile_force_from_o_rings = sum_forces(force_o_rings, 1)
-        print(f"tensile_force_from_chamber_plates: {tensile_force_from_chamber_plates:.2f}")
-        print(f"tensile_force_from_o_rings: {tensile_force_from_o_rings:.2f}")
 
-    elif chamber_input_values == "CMS":
-        
-        tensile_force_from_chamber_plates = tensile_from_chamber(chamber_diameter,chamber_pressure)
-        tensile_force_from_outer_o_ring = 0
-        tensile_force_from_chamber_o_ring = tensile_from_o_ring(5.19301,70)
-        tensile_force_from_film_o_ring = 0 
-        tensile_force_from_manifold_o_ring = 0 
+    force_manifold_pressure = tensile_from_area(chamber_diameter,chamber_pressure/0.8)
+    print(f"force_injector_pressure: {force_manifold_pressure:.2f}")
 
-    forces_plates = {tensile_force_from_chamber_plates,tensile_force_from_o_rings}
-    net_force_plates = sum_forces(forces_plates, safety_factor)
-    lower_bound_preload_plates = lower_preload(bolt_minor_diameter_plates,proof_stress,preload_percent,torque_variation)
-    upper_bound_preload_plates = upper_preload(bolt_minor_diameter_plates,proof_stress,preload_percent)
-    calculated_number_of_bolts_plates = bolts(net_force_plates,lower_bound_preload_plates)
-    print(f"net_force_plates: {net_force_plates:.2f}")
-    print(f"lower_bound_preload_plates: {lower_bound_preload_plates:.2f}")
-    print(f"upper_bound_preload_plates: {upper_bound_preload_plates:.2f}")
-    print(f"calculated_number_of_bolts_plates: {calculated_number_of_bolts_plates:.2f}")
+    force_pintle_pressure = tensile_from_area(.98,chamber_pressure/0.8)
+    print(f"force_pintle_pressure: {force_pintle_pressure:.2f}")
 
-    actual_number_bolts_plates = 15
-    MOS_plates = MOS(calculated_number_of_bolts_plates, actual_number_bolts_plates)
-    print(f"actual_number_bolts_plates: {actual_number_bolts_plates:.2f}")
-    print(f"MOS_plates: {MOS_plates:.2f}")
 
-    tensile_force_from_chamber_pintle = tensile_from_chamber(.98,500)
-    tensile_force_from_pintle_o_ring = tensile_from_o_ring(1.505,70)
-    print(f"tensile_force_from_chamber_pintle: {tensile_force_from_chamber_pintle:.2f}")
-    print(f"tensile_force_from_pintle_o_ring: {tensile_force_from_pintle_o_ring:.2f}")
+    force_outer_o_ring = tensile_from_o_ring(5.44301,40)
+    force_film_o_ring = tensile_from_o_ring(4.193,40)
+    force_PT_o_ring = tensile_from_o_ring(.443,70)
+    force_injector_o_rings = sum_forces({force_outer_o_ring,force_film_o_ring,force_PT_o_ring}, 1)
+    print(f"force_injector_o_rings: {force_injector_o_rings:.2f}")
+    
+    net_force_injector = sum_forces({force_manifold_pressure,force_injector_o_rings}, safety_factor)
+    print(f"net_force_injector: {net_force_injector:.2f}")
 
-    flange_diameter = diameter(ED_ratio, bolt_major_diameter_plates, nut_diameter_plates, chamber_diameter, chamber_wall_thickness)
+
+    force_upper_o_ring = tensile_from_o_ring(5.44302,70)
+    force_lower_o_ring = tensile_from_o_ring(5.44302,70)
+    force_chamber_o_rings = sum_forces({force_upper_o_ring,force_lower_o_ring}, 1)
+    print(f"force_chamber_o_rings: {force_chamber_o_rings:.2f}")
+
+    net_force_chamber = sum_forces({force_manifold_pressure,force_chamber_o_rings}, safety_factor)
+    print(f"net_force_chamber: {net_force_chamber:.2f}")
+
+
+    force_pintle_o_ring = tensile_from_o_ring(1.505,70)
+    print(f"force_pintle_o_ring: {force_pintle_o_ring:.2f}")
+
+    net_force_pintle = sum_forces({force_pintle_pressure,force_pintle_o_ring}, safety_factor)
+    print(f"net_force_pintle: {net_force_pintle:.2f}")
+
+    flange_diameter = diameter(ED_ratio, bolt_major_diameter_main, nut_diameter_main, chamber_diameter, chamber_wall_thickness)
     print(f"flange_diameter: {flange_diameter:.2f}")
 
-    forces_pintle = {tensile_force_from_chamber_pintle,tensile_force_from_pintle_o_ring}
-    net_force_pintle = sum_forces(forces_pintle, safety_factor)
+
+    lower_bound_preload_main = lower_preload(bolt_minor_diameter_main,proof_stress,preload_percent,torque_variation)
+    upper_bound_preload_main = upper_preload(bolt_minor_diameter_main,proof_stress,preload_percent)
+    print(f"lower_bound_preload_main: {lower_bound_preload_main:.2f}")
+    print(f"upper_bound_preload_main: {upper_bound_preload_main:.2f}")
+
     lower_bound_preload_pintle = lower_preload(bolt_minor_diameter_pintle,proof_stress,preload_percent,torque_variation)
     upper_bound_preload_pintle = upper_preload(bolt_minor_diameter_pintle,proof_stress,preload_percent)
-    calculated_number_of_bolts_pintle = bolts(net_force_pintle,lower_bound_preload_pintle)
-    print(f"net_force_pintle: {net_force_pintle:.2f}")
     print(f"lower_bound_preload_pintle: {lower_bound_preload_pintle:.2f}")
     print(f"upper_bound_preload_pintle: {upper_bound_preload_pintle:.2f}")
+
+
+    calculated_number_of_bolts_injector = bolts(net_force_injector,lower_bound_preload_main)
+    print(f"calculated_number_of_bolts_injector: {calculated_number_of_bolts_injector:.2f}")
+
+    actual_number_bolts_injector = 9
+    MOS_injector = MOS(calculated_number_of_bolts_injector, actual_number_bolts_injector)
+    print(f"actual_number_bolts_injector: {actual_number_bolts_injector:.2f}")
+    print(f"MOS_injector: {MOS_injector:.2f}")
+
+
+    calculated_number_of_bolts_chamber= bolts(net_force_chamber,lower_bound_preload_main)
+    print(f"calculated_number_of_bolts_chamber: {calculated_number_of_bolts_chamber:.2f}")
+
+    actual_number_bolts_chamber = 9
+    MOS_chamber = MOS(calculated_number_of_bolts_chamber, actual_number_bolts_chamber)
+    print(f"actual_number_bolts_chamber: {actual_number_bolts_chamber:.2f}")
+    print(f"MOS_chamber: {MOS_chamber:.2f}")
+
+
+    calculated_number_of_bolts_pintle = bolts(net_force_pintle,lower_bound_preload_pintle)
     print(f"calculated_number_of_bolts_pintle: {calculated_number_of_bolts_pintle:.2f}")
 
     actual_number_bolts_pintle = 6
     MOS_pintle = MOS(calculated_number_of_bolts_pintle, actual_number_bolts_pintle)
     print(f"actual_number_bolts_pintle: {actual_number_bolts_pintle:.2f}")
     print(f"MOS_pintle: {MOS_pintle:.2f}")
+
