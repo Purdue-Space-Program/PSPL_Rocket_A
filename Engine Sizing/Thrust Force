@@ -77,7 +77,8 @@ Isp = cea_results["Isp"] * ureg.s
 
 exit_velocity = Isp * g #* ureg.meter_per_second
 
-#NASA SP_125 expanded version of weight flow rate
+#NASA SP_125 expanded version of weight flow rate 
+#ommited conversion factor g_c since we want mass flow rate
 
 rho_c = cea_results["rho_c"] * (ureg.kilogram / (ureg.meter**3)) # density of combustion products at chamber conditions in kg/m^3
 throat_diameter = parameters.chamber_throat_diameter * ureg.meter
