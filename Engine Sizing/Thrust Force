@@ -1,0 +1,106 @@
+import sys
+import os
+import numpy as np
+from numpy.ma import sqrt
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import vehicle_parameters
+import constants as c
+
+os.environ["CEA_USE_LEGACY"] = "1" # https://github.com/civilwargeeky/CEA_Wrap/issues/8
+import CEA_Wrap as CEA
+
+from pint import UnitRegistry
+ureg = UnitRegistry()
+
+parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+
+chamber_pressure = 150 * ureg.psi
+fuel_name = "ipa"
+oxidizer_name = "liquid oxygen"
+OF_Ratio = 1
+
+
+def RunCEA(
+    chamber_pressure,
+    fuel_name,
+    oxidizer_name,
+    OF_Ratio,
+):
+    chamber_pressure = chamber_pressure * c.PSI2BAR # convert to bar for CEA input
+
+    # convert regular string for propellants to what CEA_wrap uses
+    if fuel_name == "ethanol":
+        CEA_fuel_name = CEA.Fuel("C2H5OH(L)", temp=290)
+    elif fuel_name == "kerosene":
+        CEA_fuel_name = CEA.Fuel("Jet-A(L)", temp=290)
+    elif fuel_name == "ipa":
+        CEA_fuel_name = CEA.Fuel("C3H8O,2propanol", temp=290)
+    else:
+        raise ValueError(f"{fuel_name} not supported")
+
+    if oxidizer_name == "liquid oxygen":
+        CEA_oxidizer_name = CEA.Oxidizer("O2(L)", temp=90) # 90 K is temperature of oxidizer upon injection into combustion (same as copperhead's sizing)
+    else:
+        raise ValueError(f"{oxidizer_name} not supported")
+
+    exit_pressure = 1 # [bar]
+    pressure_ratio = chamber_pressure / exit_pressure # assume exit pressure is constantly at the pressure of air a bit above sea level
+
+    rocket = CEA.RocketProblem(
+        pressure =       chamber_pressure,
+        pip =            pressure_ratio, # pip is "Pressure ratio of chamber pressure to exit pressure." github.com/civilwargeeky/CEA_Wrap/blob/main/README.md#rocket-problem-constructor-additional-parameters
+        materials =      [CEA_fuel_name, CEA_oxidizer_name],
+        o_f =            OF_Ratio,
+        pressure_units = "bar",
+        analysis_type= "equilibrium",
+    )
+
+    cea_results = rocket.run()
+
+    #print ("CEA result keys:", list(cea_results.keys()))
+
+    return{
+        "Isp": cea_results.isp, #seconds
+        "rho_c": cea_results.c_rho, # kg/m^3
+        "p_c": cea_results.c_p, #bar
+        "T_c": cea_results.c_t, #K
+        "gamma": cea_results.gamma, #specific heat ratio
+    }
+
+cea_results = RunCEA(chamber_pressure, fuel_name, oxidizer_name, OF_Ratio)
+
+g = 9.81 * (ureg.meter / ureg.second**2) # m/s^2, acceleration due to gravity
+
+Isp = cea_results["Isp"] * ureg.s
+
+exit_velocity = Isp * g #* ureg.meter_per_second
+
+#NASA SP_125 expanded version of weight flow rate
+
+rho_c = cea_results["rho_c"] * (ureg.kilogram / (ureg.meter**3)) # density of combustion products at chamber conditions in kg/m^3
+throat_diameter = parameters.chamber_throat_diameter * ureg.meter
+A_t = np.pi * ((throat_diameter/2)**2) #* ureg.meter**2 #throat area
+
+p_c = cea_results["p_c"] * c.BAR2PA * ureg.Pa #Pa, pressure of combustion products at chamber conditions
+T_c = cea_results["T_c"] * ureg.kelvin # K, stagnation temperature of combustion products at chamber conditions
+gamma = cea_results["gamma"] # specific heat ratio of combustion products
+R = p_c / (rho_c * T_c) # J/kg-K, specific gas constant for combustion products
+
+
+m_dot_sqrt = ((gamma * ((2 / (gamma + 1))**((gamma+1)/(gamma-1)))) / (R * T_c))**(0.5) # sqrt term in NASA SP_125 weight flow rate equation
+m_dot = A_t * p_c * m_dot_sqrt 
+m_dot = (m_dot).to(ureg.kilogram / ureg.second) # kg/s, mass flow rate of combustion products through the throat
+
+
+
+thrust_Force = (m_dot * exit_velocity) #N
+thrust_Force = thrust_Force.to(ureg.newton) # convert to Newtons
+print(f"Thrust Force: {thrust_Force:.2f} ")
+
+
+
+
+
+
