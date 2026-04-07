@@ -32,20 +32,36 @@ def CalculateCircleAreaWithDiameter(diameter):
     circle_area = np.pi*((diameter/2)**2)
     return (circle_area)
 
-def CalculateMaximumAllowableBoltShearLoad(material_strength, bolt_diameter):
+def CalculateMaximumAllowableBoltShearLoad(material_strength, 
+                                           bolt_diameter):
     maximum_allowable_shear_load = material_strength * CalculateCircleAreaWithDiameter(bolt_diameter)
     return (maximum_allowable_shear_load)
 
-def CalculateMaximumAllowableBearingLoad(joint_member_material_strength, bolt_hole_diameter, plate_thickness):
+def CalculateMaximumAllowableBearingLoad(joint_member_material_strength, 
+                                         bolt_hole_diameter, 
+                                         plate_thickness):    
     maximum_allowable_bearing_load = joint_member_material_strength * bolt_hole_diameter * plate_thickness
     return (maximum_allowable_bearing_load)
 
-def CalculateMoS(maximum_allowable_load, limit_load, FoS, fitting_factor):
+def CalculateMoS(maximum_allowable_load, 
+                 limit_load, 
+                 FoS, 
+                 fitting_factor):
     MoS = (maximum_allowable_load/(limit_load*FoS*fitting_factor)) - 1
     return (MoS)
 
 
-def Calculate_Shear_Bolted_Joint(bolt_thread_size, bolt_material, number_of_bolts, shear_limit_load, joint_member_1_material, joint_member_1_thickness, joint_member_1_E_d_ratio, joint_member_1_shear_joint_type, yield_FoS, ultimate_FoS):
+def Calculate_Shear_Bolted_Joint(bolt_thread_size, 
+                                 bolt_material, 
+                                 number_of_bolts, 
+                                 shear_limit_load, 
+                                 joint_member_1_material, 
+                                 joint_member_1_thickness, 
+                                 joint_member_1_E_d_ratio, 
+                                 joint_member_1_shear_joint_type, 
+                                 yield_FoS, 
+                                 ultimate_FoS
+                                 ):
     print(f"\tBolt Name: {bolt_thread_size} UNF")
     print(f"\tBolt Material: {bolt_material}")
 
@@ -251,12 +267,12 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
     print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
     bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
-    bulkhead_blowoff_limit_load = (parameters.nominal_tank_pressure * bulkhead_area) * parameters.proof_factor
-    bulkhead_blowoff_limit_load = (parameters.largest_possible_tank_pressure * bulkhead_area) * parameters.proof_factor
-    print(f"\tBulkhead blowoff load: {bulkhead_blowoff_limit_load:.2f} N, {bulkhead_blowoff_limit_load * c.N2LBF :.2f} LBF")
+    bulkhead_nominal_pressure_blowoff_limit_load = (parameters.nominal_tank_pressure * bulkhead_area) * parameters.proof_factor
+    bulkhead_largest_possible_pressure_blowoff_limit_load = (parameters.largest_possible_tank_pressure * bulkhead_area) * parameters.proof_factor
+    print(f"\tBulkhead blowoff load: {bulkhead_largest_possible_pressure_blowoff_limit_load:.2f} N, {bulkhead_largest_possible_pressure_blowoff_limit_load * c.N2LBF :.2f} LBF")
     # print(f"\tOxygen tank max load: {parameters.oxygen_tank_max_load:.2f} N, {parameters.oxygen_tank_max_load * c.N2LBF :.2f} LBF")
 
-    bulkhead_max_limit_load = bulkhead_blowoff_limit_load
+    bulkhead_max_limit_load = bulkhead_largest_possible_pressure_blowoff_limit_load
     print("\tbulkhead_max_load: bulkhead_blowoff_load")
 
     # if bulkhead_blowoff_limit_load > parameters.oxygen_tank_max_load:
@@ -301,7 +317,6 @@ def Calculate_Shear_Bolted_Joints(parameters):
     tank_bulkhead_to_lower_strut_joint.Calculate_Shear_Bolted_Joint()
 
 
-
     print("------------- Recovery Bulkhead Bolted Joint -------------", i_am_a_title=True)
     injector_upper_half_to_fin_can_strut = ShearBoltedJoint(bolt_material = "316 Stainless Steel",
                                                             bolt_thread_size = "1/4",
@@ -338,14 +353,15 @@ def main(parameters):
     return(parameters)
 
 if __name__ == "__main__":
-    parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
     rerun_everything = False
 
     if rerun_everything:
         vehicle_main.vehicle_analysis()
     else:
         pass
+        # an idea i have is that the alternative to running everything is using the last saved parameters and giving a warning say it might not be as accurate/up to date
         # parameters = csv_to_dataclass(parameters_csv_filepath)
 
-    with print_filter.context_manager(print_everything=True):
-        main(parameters)
+        parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+        with print_filter.context_manager(print_everything=True):
+            main(parameters)    
