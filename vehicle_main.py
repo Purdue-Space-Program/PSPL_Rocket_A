@@ -22,7 +22,7 @@ def vehicle_analysis():
     six_DoF_file_path = (repository_root_path / ".." / "PSPL-6DOF"/ "TheSixDoF").resolve()
     structures_analysis_file_path = (repository_root_path / "Structures_Analysis").resolve()
     
-    parameters, wet_mass_distribution, _ = vehicle_parameters.main()
+    parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
     parameters = six_DoF_caller.main(parameters)
     parameters = rdof_v2.main(parameters)
     parameters, wet_mass_distribution = structural_loads.main(parameters, wet_mass_distribution)
