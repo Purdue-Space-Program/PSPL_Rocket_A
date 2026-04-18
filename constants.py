@@ -84,6 +84,7 @@ YIELD_STRENGTH_AL = 276 * 10**6  # [Pa] Yield strength
 ULTIMATE_STRENGTH_AL = 310 * 10**6  # [Pa] Ultimate tensile strength
 YOUNGS_MODULUS = 68.9 * 10**9  # [Pa] Modulus of elasticity
 POISSON_RATIO_AL = 0.33  # [1] Poisson's ratio
+AlUMINUM_CTE = 23.6e-6 # [1/°C] Coefficient of Thermal Expansion. Source: https://asm.matweb.com/search/specificmaterial.asp?bassnum=ma6061t6
 
 # Inconel 718 (https://asm.matweb.com/search/specificmaterial.asp?bassnum=ninc34)
 
@@ -97,7 +98,11 @@ DENSITY_CARBON_FIBER = 1790  # [kg/m^3] HexTow AS4 Carbon Fiber Density
 
 DENSITY_SS316 = 7980  # [kg/m^3] Density
 
-# Fluids Constants
+PTFE_CTE = 86e-6 # [1/°C] Coefficient of Thermal Expansion. Source: https://www.bearingworks.com/uploaded-assets/pdfs/retainers/ptfe-datasheet.pdf
+
+
+
+### Fluids Constants
 
 VENTURI_DP_RATIO = (
     1 / 1.2

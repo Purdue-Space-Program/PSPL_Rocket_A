@@ -28,13 +28,13 @@ def MoS_Text_Color(MoS):
         text_color = RED
     return(text_color)
 
-def CalculateCircleAreaWithDiameter(diameter):
+def Calculate_Circle_Area(diameter):
     circle_area = np.pi*((diameter/2)**2)
     return (circle_area)
 
 def CalculateMaximumAllowableBoltShearLoad(material_strength, 
                                            bolt_diameter):
-    maximum_allowable_shear_load = material_strength * CalculateCircleAreaWithDiameter(bolt_diameter)
+    maximum_allowable_shear_load = material_strength * Calculate_Circle_Area(bolt_diameter)
     return (maximum_allowable_shear_load)
 
 def CalculateMaximumAllowableBearingLoad(joint_member_material_strength, 
@@ -266,7 +266,7 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
 
     print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
-    bulkhead_area = CalculateCircleAreaWithDiameter(parameters.tank_inner_diameter)
+    bulkhead_area = Calculate_Circle_Area(parameters.tank_inner_diameter)
     bulkhead_nominal_pressure_blowoff_limit_load = (parameters.nominal_tank_pressure * bulkhead_area) * parameters.proof_factor
     bulkhead_largest_possible_pressure_blowoff_limit_load = (parameters.largest_possible_tank_pressure * bulkhead_area) * parameters.proof_factor
     print(f"\tBulkhead blowoff load: {bulkhead_largest_possible_pressure_blowoff_limit_load:.2f} N, {bulkhead_largest_possible_pressure_blowoff_limit_load * c.N2LBF :.2f} LBF")
