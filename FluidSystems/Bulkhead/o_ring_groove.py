@@ -1,5 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
+from tabulate import tabulate
 
 import sys
 import os
@@ -31,7 +32,7 @@ def Calculate_Circle_Area(diameter):
     circle_area = np.pi*(circle_radius**2)
     return (circle_area)
 
-def Perform_O_Ring_Seal_Analysis(parameters):
+def Perform_O_Ring_Seals_Analysis(parameters):
     
     def Calculate_O_Ring_Squeeze(o_ring_seal_type, gland_outer_diameter, gland_inner_diameter, o_ring_width):
         match o_ring_seal_type:
@@ -72,9 +73,27 @@ def Perform_O_Ring_Seal_Analysis(parameters):
         
         return(o_ring_fill)
     
-    
-    
-    
+    def Calculate_O_Ring_Stretch(free_inner_diameter, fixed_inner_diameter):
+        # empirical formulas from page 54 of parker o-ring handbook
+        
+        diameter_stretch_percent = ((fixed_inner_diameter - free_inner_diameter) / free_inner_diameter) * 100
+        
+        X = diameter_stretch_percent
+        
+        # i put a negative in front of the original formula because the change is a decrease
+        if ((X >= 0) and (X <= 3)):
+            o_ring_width_change_percent = -(-0.005 + 1.19*X - 0.19*(X**2) - 0.001*(X**3) + 0.008*(X**4))
+
+        elif ((X > 3) and (X <= 25)):
+            o_ring_width_change_percent = -(0.56 + 0.59*X - 0.0046*(X**2))
+        else:
+            raise ValueError("fuck")
+        
+        # the empirical formula will give a non-zero o_ring_width_change_percent for a stretch of zero
+        o_ring_width_change_percent = min(0.0, o_ring_width_change_percent)
+        
+        return(o_ring_width_change_percent)
+        
     @dataclass
     class Material:
         name: str
@@ -97,16 +116,11 @@ def Perform_O_Ring_Seal_Analysis(parameters):
             return(temperature_strain)
         
         @property
-        def current_temperature_width(self):
-            current_temperature_width = self.original_temperature_width * (1 + self.temperature_strain)
-            return(current_temperature_width)
-        
-        @property
-        def current_temperature_free_outer_diameter(self):
+        def free_outer_diameter(self):
             return self.original_temperature_free_outer_diameter * (1 + ((self.current_temperature - self.original_temperature) * self.material.CTE))
         
         @property
-        def current_temperature_free_inner_diameter(self):
+        def free_inner_diameter(self):
             return self.original_temperature_free_inner_diameter * (1 + ((self.current_temperature - self.original_temperature) * self.material.CTE))
     
     @dataclass
@@ -127,17 +141,17 @@ def Perform_O_Ring_Seal_Analysis(parameters):
             return(temperature_strain)
         
         @property
-        def current_temperature_gland_outer_diameter(self):
+        def gland_outer_diameter(self):
             current_temperature_gland_outer_diameter = self.original_temperature_gland_outer_diameter * (1 + self.temperature_strain)
             return(current_temperature_gland_outer_diameter)
         
         @property
-        def current_temperature_gland_inner_diameter(self):
+        def gland_inner_diameter(self):
             current_temperature_gland_inner_diameter = self.original_temperature_gland_inner_diameter * (1 + self.temperature_strain)
             return(current_temperature_gland_inner_diameter)
         
         @property
-        def current_temperature_groove_outer_diameter(self):
+        def groove_outer_diameter(self):
             current_temperature_groove_outer_diameter = self.original_temperature_groove_outer_diameter * (1 + self.temperature_strain)
             return(current_temperature_groove_outer_diameter)
         
@@ -152,28 +166,50 @@ def Perform_O_Ring_Seal_Analysis(parameters):
         o_ring: ORing
         gland: ORingGland
 
+        # you need values from both the o-ring and the gland to calculate this because of squeeze
+        @property
+        def o_ring_width(self):
+            
+            current_temperature_o_ring_width = self.o_ring.original_temperature_width * (1 + self.o_ring.temperature_strain)
+            
+            o_ring_stretch_width_change_percent = Calculate_O_Ring_Stretch(free_inner_diameter = self.o_ring.free_inner_diameter, fixed_inner_diameter = self.gland.gland_inner_diameter)            
+            current_temperature_and_squeezed_width = current_temperature_o_ring_width * (1 + (o_ring_stretch_width_change_percent/100))
+            
+            return(current_temperature_and_squeezed_width)
+
+
         def Calculate_O_Ring_Squeeze(self):
              return(Calculate_O_Ring_Squeeze(
                                         o_ring_seal_type = self.gland.o_ring_seal_type, 
-                                        gland_outer_diameter = self.gland.current_temperature_gland_outer_diameter, 
-                                        gland_inner_diameter = self.gland.current_temperature_gland_inner_diameter, 
-                                        o_ring_width = self.o_ring.current_temperature_width,
+                                        gland_outer_diameter = self.gland.gland_outer_diameter, 
+                                        gland_inner_diameter = self.gland.gland_inner_diameter, 
+                                        o_ring_width = self.o_ring_width,
                                      ))
              
         def Calculate_Radial_Seal_Diametral_Clearance(self):
             return(Calculate_Radial_Seal_Diametral_Clearance(
-                                                        gland_outer_diameter = self.gland.current_temperature_gland_outer_diameter,
-                                                        groove_outer_diameter = self.gland.current_temperature_groove_outer_diameter,
+                                                        gland_outer_diameter = self.gland.gland_outer_diameter,
+                                                        groove_outer_diameter = self.gland.groove_outer_diameter,
                                                      ))
             
         def Calculate_O_Ring_Fill(self):
             return(Calculate_O_Ring_Fill(
                                     o_ring_seal_type = self.gland.o_ring_seal_type, 
-                                    gland_outer_diameter = self.gland.current_temperature_gland_outer_diameter, 
-                                    gland_inner_diameter = self.gland.current_temperature_gland_inner_diameter, 
+                                    gland_outer_diameter = self.gland.gland_outer_diameter, 
+                                    gland_inner_diameter = self.gland.gland_inner_diameter, 
                                     gland_width = self.gland.current_temperature_width,
-                                    o_ring_width = self.o_ring.current_temperature_width,
-                                 ))    
+                                    o_ring_width = self.o_ring_width,
+                                 ))
+            
+        def Analyze(self):
+            squeeze = self.Calculate_O_Ring_Squeeze()
+            diametral_clearance = self.Calculate_Radial_Seal_Diametral_Clearance()
+            fill = self.Calculate_O_Ring_Fill()
+            o_ring_temperature = self.o_ring.current_temperature
+            gland_temperature = self.gland.current_temperature
+            
+            output = ["LOx", o_ring_temperature, squeeze*100, diametral_clearance*c.M2IN, fill*100]
+            return(output)
     
     
     PTFE = Material(
@@ -214,31 +250,29 @@ def Perform_O_Ring_Seal_Analysis(parameters):
 
  
     print(f"\nOxidizer Tank Radial O-ring Seal:")
-    squeeze = oxidizer_tank_radial_o_ring_seal.Calculate_O_Ring_Squeeze()
-    diametral_clearance = oxidizer_tank_radial_o_ring_seal.Calculate_Radial_Seal_Diametral_Clearance()
-    fill = oxidizer_tank_radial_o_ring_seal.Calculate_O_Ring_Fill()
-    o_ring_temperature = oxidizer_tank_radial_o_ring_seal.o_ring.current_temperature
-    gland_temperature = oxidizer_tank_radial_o_ring_seal.gland.current_temperature
     
-    print("\n")
-    print(f"-------------------------------------------------------------------------------")
-    print(f"| Seal | O-Ring Temperature [°K] | Squeeze [%] | Diametral Clearance [in] | Fill [%] |")
-    print(f"-------------------------------------------------------------------------------")
-    print(f"| LOx  |{o_ring_temperature:^25.2f}|{squeeze * 100:^13.2f}|{diametral_clearance * c.M2IN:^26.4f}|{fill * 100:^10.2f}|")
+    # room temperature installation
+    output_table_data = []
+    output_table_headers = ["Seal Name", "O-Ring Temperature [°K]", "Squeeze [%]", "Diametral Clearance [in]", "Fill [%]"]
+    
+    output = oxidizer_tank_radial_o_ring_seal.Analyze()
+    output_table_data.append(output)
+
+    # when fully in cryogenic fluid
+    nitrogen_saturation_temperature = 77 # [°K]
+    oxidizer_tank_radial_o_ring_seal.o_ring.current_temperature = nitrogen_saturation_temperature
+    oxidizer_tank_radial_o_ring_seal.gland.current_temperature = nitrogen_saturation_temperature
+    
+    output = oxidizer_tank_radial_o_ring_seal.Analyze()
+    output_table_data.append(output)
     
     
-    # print(f"oxidizer_tank_radial_o_ring_seal.o_ring.temperature: {oxidizer_tank_radial_o_ring_seal.o_ring.original_temperature}°K")
-    # nitrogen_saturation_temperature = 77 # [k]
-    # oxidizer_tank_radial_o_ring_seal.o_ring.original_temperature = nitrogen_saturation_temperature
-    # oxidizer_tank_radial_o_ring_seal.o_ring_gland.original_temperature = nitrogen_saturation_temperature
-    
-    # print(f"\noxidizer_tank_radial_o_ring_seal.o_ring.temperature: {oxidizer_tank_radial_o_ring_seal.o_ring.original_temperature}°K")
-    # oxidizer_tank_radial_o_ring_seal.Calculate_O_Ring_Squeeze()
-    # oxidizer_tank_radial_o_ring_seal.Calculate_Radial_Seal_Diametral_Clearance()
+    print(tabulate(output_table_data, headers=output_table_headers, colglobalalign=("center"), tablefmt="grid"))
+    # print(tabulate(output_table_data, headers=output_table_headers, tablefmt="pipe"))
     
     
 def main(parameters):
-    parameters = Perform_O_Ring_Seal_Analysis(parameters)
+    parameters = Perform_O_Ring_Seals_Analysis(parameters)
     return(parameters)
 
 if __name__ == "__main__":
