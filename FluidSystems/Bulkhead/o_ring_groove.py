@@ -1,6 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
 from tabulate import tabulate
+import sympy as sp
 
 import sys
 import os
@@ -27,27 +28,53 @@ u = UnitRegistry()
 # O-Ring glands are the entire area that the o-ring exists in (so including the gap between bore diameter and the plug diameter)
 
 
-def Calculate_Circle_Area(diameter):
-    circle_radius = (diameter/2)
-    circle_area = np.pi*(circle_radius**2)
-    return (circle_area)
-
 def Perform_O_Ring_Seals_Analysis(parameters):
     
-    def Calculate_O_Ring_Squeeze(o_ring_seal_type, gland_outer_diameter, gland_inner_diameter, o_ring_width):
+    def Calculate_Circle_Area(diameter):
+        circle_radius = (diameter/2)
+        circle_area = np.pi*(circle_radius**2)
+        return (circle_area)
+
+    def Calculate_Von_Mises_Plane_Stress(first_principal_stress, second_principal_stress):
+        sigma_A = first_principal_stress
+        sigma_B = second_principal_stress
+        von_Mises_stress = (sigma_A**2 - sigma_A*sigma_B + sigma_B**2)**(1/2)
+
+        return(von_Mises_stress)
+    
+    def Calculate_O_Ring_Hoop_Stress_from_Stretch(free_inner_diameter, fixed_inner_diameter, Youngs_modulus):
+        stretch_percent = ((fixed_inner_diameter - free_inner_diameter) / free_inner_diameter) * 100
+        hoop_stress = Youngs_modulus * (stretch_percent/100)
+        
+        return(hoop_stress)
+    
+    def Calculate_O_Ring_Compressive_Stress_from_Squeeze(squeeze_percentage, Youngs_modulus):
+        compressive_stress = Youngs_modulus * (-squeeze_percentage/100)
+        
+        return(compressive_stress)
+    
+    def Calculate_O_Ring_Stress(free_inner_diameter, fixed_inner_diameter, Youngs_modulus, squeeze_percentage):
+        o_ring_hoop_stress = Calculate_O_Ring_Hoop_Stress_from_Stretch(free_inner_diameter, fixed_inner_diameter, Youngs_modulus)
+        o_ring_compressive_stress = Calculate_O_Ring_Compressive_Stress_from_Squeeze(squeeze_percentage, Youngs_modulus)
+        von_Mises_stress = Calculate_Von_Mises_Plane_Stress(o_ring_hoop_stress, o_ring_compressive_stress)
+        print(f"von_Mises_stress: {von_Mises_stress}")
+        return(von_Mises_stress)
+    
+    
+    def Calculate_O_Ring_Squeeze_Percentage(o_ring_seal_type, gland_outer_diameter, gland_inner_diameter, o_ring_width):
         match o_ring_seal_type:
             case "radial male":
                 gland_depth = (gland_outer_diameter - gland_inner_diameter) / 2
-                squeeze = (o_ring_width - gland_depth) / o_ring_width # percentage squeeze
+                squeeze_percentage = ((o_ring_width - gland_depth) / o_ring_width) * 100
             
             case "face":
                 raise ValueError("this o_ring_seal_type is not programmed yet")
             case _:
                 raise ValueError("unsupported o_ring_seal_type")
     
-        print(f"squeeze: {squeeze * 100:.2f} %")
+        print(f"squeeze: {squeeze_percentage:.2f} %")
         
-        return(squeeze)
+        return(squeeze_percentage)
     
     def Calculate_Radial_Seal_Diametral_Clearance(gland_outer_diameter, groove_outer_diameter):
         diametral_clearance = gland_outer_diameter - groove_outer_diameter
@@ -93,18 +120,29 @@ def Perform_O_Ring_Seals_Analysis(parameters):
         o_ring_width_change_percent = min(0.0, o_ring_width_change_percent)
         
         return(o_ring_width_change_percent)
-        
+    
+    
+    # sp.init_printing()
+    # o_ring_width, gland_depth = sp.symbols("o_ring_width gland_depth")
+
+    # squeeze_percentage = ((o_ring_width - gland_depth) / o_ring_width) * 100
+
+    # print(sp.latex(squeeze_percentage))        
+    
+    
+    
+    
     @dataclass
     class Material:
         name: str
         CTE: float
+        Youngs_modulus: float
     
     @dataclass
     class ORing:
         original_temperature_width: float # referred to as the Cross-Section in the diagram of page 89 of Parker O-Ring Handbook
         original_temperature_free_outer_diameter: float
         original_temperature_free_inner_diameter: float
-        # squeeze??????????
         original_temperature: float # temperature at which the dimensions are given
         current_temperature: float # temperature at which the dimensions are given
         material: Material
@@ -178,8 +216,8 @@ def Perform_O_Ring_Seals_Analysis(parameters):
             return(current_temperature_and_squeezed_width)
 
 
-        def Calculate_O_Ring_Squeeze(self):
-             return(Calculate_O_Ring_Squeeze(
+        def Calculate_O_Ring_Squeeze_Percentage(self):
+             return(Calculate_O_Ring_Squeeze_Percentage(
                                         o_ring_seal_type = self.gland.o_ring_seal_type, 
                                         gland_outer_diameter = self.gland.gland_outer_diameter, 
                                         gland_inner_diameter = self.gland.gland_inner_diameter, 
@@ -200,26 +238,49 @@ def Perform_O_Ring_Seals_Analysis(parameters):
                                     gland_width = self.gland.current_temperature_width,
                                     o_ring_width = self.o_ring_width,
                                  ))
-            
+        
+        def Calculate_O_Ring_Hoop_Stress_from_Stretch(self):
+            return(Calculate_O_Ring_Hoop_Stress_from_Stretch(
+                                                                    free_inner_diameter = self.o_ring.free_inner_diameter,
+                                                                    fixed_inner_diameter = self.gland.gland_inner_diameter,
+                                                                    Youngs_modulus = self.o_ring.material.Youngs_modulus,
+                                                                   ))
+        
+        # i dont think this is correct for a lot of reasons (assumptions about o-ring and stresses)
+        # def Calculate_O_Ring_Stress(self):
+        #     return(Calculate_O_Ring_Stress(
+        #         free_inner_diameter = self.o_ring.free_inner_diameter,
+        #         fixed_inner_diameter = self.gland.gland_inner_diameter,
+        #         Youngs_modulus = self.o_ring.material.Youngs_modulus,
+        #         squeeze_percentage = self.Calculate_O_Ring_Squeeze(),  
+        #     ))
+
+       
         def Analyze(self):
-            squeeze = self.Calculate_O_Ring_Squeeze()
+            squeeze = self.Calculate_O_Ring_Squeeze_Percentage()
             diametral_clearance = self.Calculate_Radial_Seal_Diametral_Clearance()
             fill = self.Calculate_O_Ring_Fill()
             o_ring_temperature = self.o_ring.current_temperature
             gland_temperature = self.gland.current_temperature
+            hoop_stress = self.Calculate_O_Ring_Hoop_Stress_from_Stretch()
             
-            output = ["LOx", o_ring_temperature, squeeze*100, diametral_clearance*c.M2IN, fill*100]
+            # output = ["LOx", o_ring_temperature, gland_temperature, squeeze, diametral_clearance*c.M2IN, fill*100, hoop_stress*c.PA2PSI]
+            output = ["LOx", o_ring_temperature, gland_temperature, squeeze, diametral_clearance*c.M2IN, fill*100]
+            
+            
             return(output)
     
-    
+
     PTFE = Material(
                     name = "PTFE",
                     CTE = c.PTFE_CTE,
+                    Youngs_modulus = c.PTFE_YOUNGS_MODULUS,
                     )
     
     Aluminum = Material(
                     name = "Aluminum",
                     CTE = c.AlUMINUM_CTE,
+                    Youngs_modulus = c.ALUMINUM_YOUNGS_MODULUS,
                     )
     
     
@@ -234,7 +295,10 @@ def Perform_O_Ring_Seals_Analysis(parameters):
     bulkhead_o_ring_gland = ORingGland( 
                                         o_ring_seal_type = "radial male",
                                         original_temperature_gland_outer_diameter = 5.750 * c.IN2M,
+                                        
                                         original_temperature_gland_inner_diameter = 5.528 * c.IN2M,
+                                        # original_temperature_gland_inner_diameter = 5.747 * c.IN2M,
+                                        
                                         original_temperature_groove_outer_diameter = 5.747 * c.IN2M,
                                         original_temperature_width = 0.187 * c.IN2M,
                                         original_temperature = c.T_AMBIENT,
@@ -253,7 +317,8 @@ def Perform_O_Ring_Seals_Analysis(parameters):
     
     # room temperature installation
     output_table_data = []
-    output_table_headers = ["Seal Name", "O-Ring Temperature [°K]", "Squeeze [%]", "Diametral Clearance [in]", "Fill [%]"]
+    # output_table_headers = ["Seal Name", "O-Ring Temperature [°K]", "Gland Temperature [°K]", "Squeeze [%]", "Diametral Clearance [in]", "Fill [%]", "O-Ring Hoop Stress [psi]"]
+    output_table_headers = ["Seal Name", "O-Ring Temperature [°K]", "Gland Temperature [°K]", "Squeeze [%]", "Diametral Clearance [in]", "Fill [%]"]
     
     output = oxidizer_tank_radial_o_ring_seal.Analyze()
     output_table_data.append(output)
@@ -267,7 +332,7 @@ def Perform_O_Ring_Seals_Analysis(parameters):
     output_table_data.append(output)
     
     
-    print(tabulate(output_table_data, headers=output_table_headers, colglobalalign=("center"), tablefmt="grid"))
+    print(tabulate(output_table_data, headers = output_table_headers, colglobalalign = ("center"), tablefmt = "grid"))
     # print(tabulate(output_table_data, headers=output_table_headers, tablefmt="pipe"))
     
     

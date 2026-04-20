@@ -91,7 +91,7 @@ class VehicleParameters:
 
     # COPV Parameters
     COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
-    COPV_starting_pressure: float = 4000 * c.PSI2PA # [Pa]
+    COPV_starting_pressure: float = 3300 * c.PSI2PA # [Pa]
 
     root_chord: float = 16 * c.IN2M
     tip_chord: float = 6 * c.IN2M
