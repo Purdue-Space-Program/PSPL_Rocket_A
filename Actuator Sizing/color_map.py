@@ -7,7 +7,7 @@ from constants import *
 
 
 def calc_actuation_time(piston_diameter, piston_stroke_length):
-    pressure = 250 * PSI2PA # Setting constant 100 psi pilot pressure
+    pressure = 100 * PSI2PA # Setting constant 100 psi pilot pressure
     safety_factor = 3
     braking_torque = 242 * safety_factor * IN_LB2NM 
     rod_mass = 3 * LBM2KG # Estimated from CAD, just assume constant
@@ -53,7 +53,7 @@ def calc_actuation_time(piston_diameter, piston_stroke_length):
     return time
 
 def calc_f_net(piston_diameter, piston_stroke_length):
-    pressure = 250 * PSI2PA # Setting constant 100 psi pilot pressure
+    pressure = 100 * PSI2PA # Setting constant 100 psi pilot pressure
     braking_torque = 50 * IN_LB2NM # Setting constant 50 lb in for now, will definitely change after testing
     safety_factor = 3
     rod_mass = 3.2 * LBM2KG # Estimated from CAD, just assume constant
@@ -80,7 +80,7 @@ def calc_f_net(piston_diameter, piston_stroke_length):
     return f_net
 
 def calc_piston_torque(piston_diameter, piston_stroke_length):
-    pressure = 250 * PSI2PA # Setting constant 100 psi pilot pressure
+    pressure = 100 * PSI2PA # Setting constant 100 psi pilot pressure
     safety_factor = 3
     braking_torque = 242 * IN_LB2NM
     
@@ -95,8 +95,8 @@ def calc_piston_torque(piston_diameter, piston_stroke_length):
     return torque, net_torque
 
 def display_color_plot():
-    bore_sizes = np.linspace(1, 2.75, 100) * IN2M
-    strokes = np.linspace(0.5, 5, 100) * IN2M
+    bore_sizes = np.linspace(1, 3, 500) * IN2M
+    strokes = np.linspace(1, 5, 500) * IN2M
     X, Y = np.meshgrid(bore_sizes, strokes)
     Z = np.zeros_like(X)
     print("This may take a while... please wait.")
@@ -126,7 +126,7 @@ def display_color_plot():
     cbar.set_label("Actuation Time (ms)")
     plt.xlabel("Piston Diameter [In]")
     plt.ylabel("Stroke Length [In]")
-    plt.title(f"Actuation Time\nPressure: 250 psi\nBlack: Actuation times above {vmax} ms, Grey: Doesn't Actuate")
+    plt.title(f"Actuation Time\nPressure: 100 psi\nBlack: Actuation times above {vmax} ms, Grey: Doesn't Actuate")
     plt.tight_layout()
     plt.show()
 
@@ -155,8 +155,8 @@ def display_color_plot():
 
 
     #################### PLOT NET FORCE #####################
-    bore_sizes = np.linspace(0, 3, 100) * IN2M
-    strokes = np.linspace(2, 50, 100) * IN2M
+    bore_sizes = np.linspace(0, 3, 500) * IN2M
+    strokes = np.linspace(1, 50, 500) * IN2M
     X, Y = np.meshgrid(bore_sizes, strokes)
     Z = np.zeros_like(X)
 
@@ -187,8 +187,8 @@ def display_color_plot():
     plt.tight_layout()
     plt.show()
 
-    bore_sizes = np.linspace(1, 2.75, 100) * IN2M
-    strokes = np.linspace(0.5, 5, 100) * IN2M
+    bore_sizes = np.linspace(1.5, 3, 1000) * IN2M
+    strokes = np.linspace(2, 5, 1000) * IN2M
     X, Y = np.meshgrid(bore_sizes, strokes)
     Z = np.zeros_like(X)
     K = np.zeros_like(X)
@@ -214,7 +214,7 @@ def display_color_plot():
     cbar.set_label("Piston Torque [lb-in]")
     plt.xlabel("Piston Diameter [In]")
     plt.ylabel("Stroke Length [In]")
-    plt.title(f"Piston Torque\nPressure: 250 psi, Breaking Torque: 726 lb-in (Safety Factor: 3)")
+    plt.title(f"Piston Torque\nPressure: 100 psi, Breaking Torque: 726 lb-in (Safety Factor: 3)")
     plt.tight_layout()
     plt.show()
     cmap = plt.cm.coolwarm.copy()
@@ -230,8 +230,9 @@ def display_color_plot():
     cbar.set_label("Net Torque [lb-in]")
     plt.xlabel("Piston Diameter [In]")
     plt.ylabel("Stroke Length [In]")
-    plt.title(f"Net Torque\nPressure: 250 psi, Breaking Torque: 726 lb-in (Safety Factor: 3)\nGrey: Doesn't Actuate")
+    plt.title(f"Net Torque\nPressure: 100 psi, Breaking Torque: 726 lb-in (Safety Factor: 3)\nGrey: Doesn't Actuate")
     plt.tight_layout()
+    plt.plot(2.5, 4, 'ro') 
     plt.show()
 
     
@@ -251,5 +252,5 @@ def stroke_fnet_plot():
     plt.grid()
     plt.show()
 
-stroke_fnet_plot()
+#stroke_fnet_plot()
 display_color_plot()

@@ -33,8 +33,8 @@ MoS_ultimate = calc_MoS(limit_load_stress, aluminum_6061_T6_ultimate_strength, F
 print(f"\nYield FoS: {FoS_yield}, Ultimate FoS: {FoS_ultimate}")
 print(f"Tank Pressure: {tank_pressure * PA2PSI:.2f} psi")
 
-print(f"Tank Hoop Stress: {limit_load_stress * PA2PSI / 1000} ksi")
+print(f"Tank Hoop Stress: {limit_load_stress * PA2PSI / 1000:.1f} ksi")
 print(f"\nYield stress MoS: {MoS_yield:.3f}")
 print(f"Ultimate stress MoS: {MoS_ultimate:.3f}")
-print(f"Zero margin yield pressure: {tank_pressure * FoS_yield * MoS_ultimate * PA2PSI} ")
-print(f"Tank explodes at {tank_pressure * FoS_ultimate * MoS_ultimate * PA2PSI}")
+print(f"Zero margin yield pressure: {aluminum_6061_T6_yield_strength / FoS_yield * (2 * wall_thickness / inner_diameter) * PA2PSI:.1f} psi")
+print(f"Tank explodes at {aluminum_6061_T6_ultimate_strength / FoS_ultimate * (2 * wall_thickness / inner_diameter) * PA2PSI:.1f} psi")

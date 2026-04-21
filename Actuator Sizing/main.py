@@ -35,12 +35,12 @@ else:
     piston_diameter = 2.5 * IN2M
     piston_retracted_length = 9.44 * IN2M
     piston_extended_length = piston_retracted_length + piston_stroke_length
-    shaft_diameter = 0.63 * IN2M
+    shaft_diameter = 0.625 * IN2M
     piston_seal_length = np.pi * piston_diameter
     shaft_seal_length = np.pi * shaft_diameter
     piston_seal_area = 0.21 * IN2M * piston_seal_length # worst case scenario, 300 series
     shaft_seal_area = 0.21 * IN2M * shaft_seal_length
-    pressure = 250 * PSI2PA
+    pressure = 100 * PSI2PA
     pass
 
 
