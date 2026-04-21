@@ -2,6 +2,7 @@
 # These functions go with the constant-pressure press sim
 # Hugo Filmer
 
+import CoolProp
 from CoolProp.CoolProp import PropsSI
 import numpy as np
 
@@ -106,16 +107,29 @@ def wall_convect(g, P_tank, T_s, T_inf, L, fluid):
 
     T_film = (T_s + T_inf)/2
 
-    rho = PropsSI('D', 'P', P_tank, 'T', T_film, fluid)
-    nu = PropsSI('V', 'P', P_tank, 'T', T_film, fluid) / rho
-    beta = -1/rho * PropsSI('d(D)/d(T)|P', 'P', P_tank, 'T', T_film, fluid)
+    fluid_HEOS = CoolProp.AbstractState("HEOS", fluid)
+    fluid_HEOS.update(CoolProp.PT_INPUTS, P_tank, T_film)
+    
+    rho = fluid_HEOS.rhomass()
+    mu = fluid_HEOS.viscosity()
+    nu = mu / rho
+    beta = -1/rho * fluid_HEOS.first_partial_deriv(CoolProp.iDmass, CoolProp.iT, CoolProp.iP)
+    # rho = PropsSI('D', 'P', P_tank, 'T', T_film, fluid)
+    # nu = PropsSI('V', 'P', P_tank, 'T', T_film, fluid) / rho
+    # beta = -1/rho * PropsSI('d(D)/d(T)|P', 'P', P_tank, 'T', T_film, fluid)
 
     Gr = abs((g * beta * (T_s - T_inf) * L**3) / nu**2)
-    Pr = PropsSI('PRANDTL', 'P', P_tank, 'T', T_film, fluid) / PropsSI('D', 'P', P_tank, 'T', T_film, fluid)
+    
+    Pr = fluid_HEOS.Prandtl() / rho
+    # Pr = PropsSI('PRANDTL', 'P', P_tank, 'T', T_film, fluid) / rho
+    
     Ra = Gr * Pr
 
     Nu = 0.1 * Ra**(1/3)
-    k = PropsSI('L', 'P', P_tank, 'T', T_film, fluid)
+
+    k = fluid_HEOS.conductivity()
+    # k = PropsSI('L', 'P', P_tank, 'T', T_film, fluid)
+    
     h = Nu * k / L
 
     return h
@@ -127,13 +141,25 @@ def plate_convect(g, P_tank, T_s, T_inf, L, fluid, enhancement, film=True):
     else:
         T_film = T_inf
 
-    rho = PropsSI('D', 'P', P_tank, 'T', T_film, fluid)
-    nu = PropsSI('V', 'P', P_tank, 'T', T_film, fluid) / rho
-    beta = -1/rho * PropsSI('d(D)/d(T)|P', 'P', P_tank, 'T', T_film, fluid)
+    fluid_HEOS = CoolProp.AbstractState("HEOS", fluid)
+    
+    fluid_HEOS.update(CoolProp.PT_INPUTS, P_tank, T_film)
+    rho = fluid_HEOS.rhomass()
+    mu = fluid_HEOS.viscosity()
+    nu = mu / rho
+    beta = -1/rho * fluid_HEOS.first_partial_deriv(CoolProp.iDmass, CoolProp.iT, CoolProp.iP)
+    
+
+    # rho = PropsSI('D', 'P', P_tank, 'T', T_film, fluid)
+    # nu = PropsSI('V', 'P', P_tank, 'T', T_film, fluid) / rho
+    # beta = -1/rho * PropsSI('d(D)/d(T)|P', 'P', P_tank, 'T', T_film, fluid)
 
     Gr = abs((g * beta * (T_s - T_inf) * L**3) / nu**2)
     
-    Pr = PropsSI('PRANDTL', 'P', P_tank, 'T', T_film, fluid) / rho
+    
+    Pr = fluid_HEOS.Prandtl() / rho
+    # Pr = PropsSI('PRANDTL', 'P', P_tank, 'T', T_film, fluid) / rho
+
     Ra = Gr * Pr
 
     if enhancement == 'enhanced':
@@ -141,7 +167,10 @@ def plate_convect(g, P_tank, T_s, T_inf, L, fluid, enhancement, film=True):
     elif enhancement == 'reduced':
         Nu = 0.27 * Ra**(1/4)
 
-    k = PropsSI('L', 'P', P_tank, 'T', T_film, fluid)
+
+    k = fluid_HEOS.conductivity()
+    # k = PropsSI('L', 'P', P_tank, 'T', T_film, fluid)
+    
     h = Nu * k / L
 
     return h

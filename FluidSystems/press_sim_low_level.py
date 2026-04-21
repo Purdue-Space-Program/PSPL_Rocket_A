@@ -4,6 +4,7 @@
 # Its primary use is to determine the final COPV pressure and therefore if the COPV is large enough.
 # Hugo Filmer
 
+import CoolProp
 from CoolProp.CoolProp import PropsSI
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,7 +27,7 @@ def main(property_to_use = "density"):
     T_AMBIENT = 293 # [K] ambient temperature
     LOITER_TIME = 0 # [s] time between pre-pressurization and the start of flow
     LAG_TIME = 0 # [s] time the simulation should continue to run for after the run valves are closed
-    DT = 0.001 # [s] simulation step size
+    DT = 0.0003 # [s] simulation step size
     Q_FACTOR = 2 # [] factor to multiply heat transfer by (for conservatism)
     TEXT_OUTPUT = True # True to print summary output, including conservation and EoS checks
     PLOT_OUTPUT = True # True to make pretty plots of the results :)
@@ -86,19 +87,19 @@ def main(property_to_use = "density"):
         local_acceleration = parameters.one_DoF_off_the_rail_acceleration # [m/s^2] local acceleration (may be > 9.81 in flight)
         
         # COPV
-        P_COPV =parameters.COPV_starting_pressure # [Pa] starting COPV pressure
+        P_COPV = parameters.COPV_starting_pressure # [Pa] starting COPV pressure
         T_COPV = 300 # [K] starting COPV temperature (assumed)
-        V_COPV =parameters.COPV_volume # [m^3] COPV volume
+        V_COPV = parameters.COPV_volume # [m^3] COPV volume
 
         # Tanks
-        D_TANK =parameters.tank_outer_diameter # [m] tank outer diameter
-        T_TANK =parameters.tank_wall_thickness # [m] tank wall thickness
+        D_TANK = parameters.tank_outer_diameter # [m] tank outer diameter
+        T_TANK = parameters.tank_wall_thickness # [m] tank wall thickness
         RHO_TANK = c.DENSITY_AL # [kg/m^3] tank material density (aluminum)
         M_BULKHEAD = 1.5 * c.LBM2KG # [kg] bulkhead mass (single bulkhead)
         CP_TANK = 500 # [J/kgK] tank material specific heat
         D_PRESS_LINE = (3/8) * c.IN2M # [m] fuel tank pressurization line outer diameter
         T_PRESS_LINE = 0.049 * c.IN2M # [m] fuel tank pressurization line wall thickness
-        P_TANK =parameters.oxidizer_tank_pressure
+        P_TANK = parameters.oxidizer_tank_pressure
         
         # Oxidizer
         OXIDIZER = "oxygen"
@@ -272,6 +273,9 @@ def main(property_to_use = "density"):
     step = 0 # current simulation step
     time = 0 # [s] current simulation time
     
+    fuel_HEOS = CoolProp.AbstractState("HEOS", PRESS_GAS)
+    oxidizer_HEOS = CoolProp.AbstractState("HEOS", PRESS_GAS)
+    COPV_HEOS = CoolProp.AbstractState("HEOS", PRESS_GAS)
     
     for i in tqdm(range(total_steps)):
 
@@ -345,7 +349,11 @@ def main(property_to_use = "density"):
         rho_ullage_ox[step] = m_ullage_ox[step] / V_ullage_tank_ox
         rho_ullage_fu[step] = m_ullage_fu[step] / V_ullage_tank_fu # [kg/m^3] fuel ullage density
 
-        h_in = PropsSI('H', 'D', rho_copv[step], 'S', s_copv, PRESS_GAS) # [J/kg] adiabatic flow between COPV and tank so isenthalpic
+        # h_in = PropsSI('H', 'D', rho_copv[step], 'S', s_copv, PRESS_GAS) # [J/kg] adiabatic flow between COPV and tank so isenthalpic
+        
+        COPV_HEOS.update(CoolProp.DmassSmass_INPUTS, rho_copv[step], s_copv)
+        h_in = COPV_HEOS.hmass()
+        
             # try:
             #     # print(f"\nrho_ullage_ox[step]: {rho_ullage_ox[step]}")
             #     # print(f"e_ullage_ox[step]: {e_ullage_ox[step]}")
@@ -359,9 +367,17 @@ def main(property_to_use = "density"):
 
         match property_to_use:
             case "density":
-                partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
+                # partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
+                
+                oxidizer_HEOS.update(CoolProp.DmassUmass_INPUTS, rho_ullage_ox[step], e_ullage_ox[step])
+                partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = oxidizer_HEOS.first_partial_deriv(CoolProp.iDmass, CoolProp.iUmass, CoolProp.iP)
+
+            
             case "pressure":
-                partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'P', P_OX, 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
+                # partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = PropsSI('d(D)/d(U)|P', 'P', P_OX, 'U', e_ullage_ox[step], PRESS_GAS) # [1/Jm^3] partial derivative of oxidizer ullage density WRT internal energy
+                
+                oxidizer_HEOS.update(CoolProp.PUmass_INPUTS, P_OX, e_ullage_ox[step])
+                partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step] = oxidizer_HEOS.first_partial_deriv(CoolProp.iDmass, CoolProp.iUmass, CoolProp.iP)
 
         # Oxidizer e_dot
         e_dot_ox = (
@@ -371,7 +387,9 @@ def main(property_to_use = "density"):
         # Oxidizer Mdot
         mdot_ullage_ox[step] = partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_ox[step]*e_dot_ox*V_ullage_tank_ox + rho_ullage_ox[step]*V_dot_ox # [kg/s] rate of change of mass in oxidizer ullage
 
-        partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_fuel = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_fu[step], 'U', e_ullage_fu[step], PRESS_GAS) # [1/Jm^3] partial derivative of fuel ullage density WRT internal energy
+        # partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_fuel = PropsSI('d(D)/d(U)|P', 'D', rho_ullage_fu[step], 'U', e_ullage_fu[step], PRESS_GAS) # [1/Jm^3] partial derivative of fuel ullage density WRT internal energy
+        fuel_HEOS.update(CoolProp.DmassUmass_INPUTS, rho_ullage_fu[step], e_ullage_fu[step])
+        partial_derivative_of_ullage_density_with_respect_to_internal_energy_in_fuel = fuel_HEOS.first_partial_deriv(CoolProp.iDmass, CoolProp.iUmass, CoolProp.iP)
 
         # Fuel e_dot
         if PRESS_LINE_CHILL == True:
@@ -398,14 +416,21 @@ def main(property_to_use = "density"):
 
         match property_to_use:
             case "density":
-                T_ullage_ox[step + 1] = PropsSI('T', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step + 1], PRESS_GAS)
+                # T_ullage_ox[step + 1] = PropsSI('T', 'D', rho_ullage_ox[step], 'U', e_ullage_ox[step + 1], PRESS_GAS)
+                oxidizer_HEOS.update(CoolProp.DmassUmass_INPUTS, rho_ullage_ox[step], e_ullage_ox[step + 1])
+                T_ullage_ox[step + 1] = oxidizer_HEOS.T()
             case "pressure":
-                T_ullage_ox[step + 1] = PropsSI('T', 'P', P_OX, 'U', e_ullage_ox[step + 1], PRESS_GAS)
+                # T_ullage_ox[step + 1] = PropsSI('T', 'P', P_OX, 'U', e_ullage_ox[step + 1], PRESS_GAS)
+                oxidizer_HEOS.update(CoolProp.PUmass_INPUTS, P_OX, e_ullage_ox[step + 1])
+                T_ullage_ox[step + 1] = oxidizer_HEOS.T()
 
 
         e_ullage_fu[step + 1] = e_ullage_fu[step] + e_dot_fu * DT
         m_ullage_fu[step + 1] = m_ullage_fu[step] + mdot_ullage_fu[step] * DT
-        T_ullage_fu[step + 1] = PropsSI('T', 'D', rho_ullage_fu[step], 'U', e_ullage_fu[step + 1], PRESS_GAS)
+
+        # T_ullage_fu[step + 1] = PropsSI('T', 'D', rho_ullage_fu[step], 'U', e_ullage_fu[step + 1], PRESS_GAS)
+        fuel_HEOS.update(CoolProp.DmassUmass_INPUTS, rho_ullage_fu[step], e_ullage_fu[step + 1])
+        T_ullage_fu[step + 1] = fuel_HEOS.T()
 
         T_tank_wall_ox[step + 1] = T_tank_wall_ox[step] + (Q_dot_ox_tank * DT) / (m_tank_ox * CP_TANK)
         T_tank_wall_fu[step + 1] = T_tank_wall_fu[step] + (Q_dot_fu_tank * DT) / (m_tank_fu * CP_TANK)
@@ -417,8 +442,12 @@ def main(property_to_use = "density"):
         mdot_total = mdot_ullage_ox[step] + mdot_ullage_fu[step]
         m_copv[step + 1] = m_copv[step] - mdot_total * DT
         rho_copv[step + 1] = m_copv[step + 1] / V_COPV
-        P_copv[step + 1] = PropsSI('P', 'D', rho_copv[step + 1], 'S', s_copv, PRESS_GAS)
-        T_copv[step + 1] = PropsSI('T', 'D', rho_copv[step + 1], 'S', s_copv, PRESS_GAS)
+        
+        # P_copv[step + 1] = PropsSI('P', 'D', rho_copv[step + 1], 'S', s_copv, PRESS_GAS)
+        # T_copv[step + 1] = PropsSI('T', 'D', rho_copv[step + 1], 'S', s_copv, PRESS_GAS)
+        COPV_HEOS.update(CoolProp.DmassSmass_INPUTS, rho_copv[step + 1], s_copv)
+        P_copv[step + 1] = COPV_HEOS.p()
+        T_copv[step + 1] = COPV_HEOS.T()
 
         # Time inexorably advances
         step += 1
@@ -504,7 +533,7 @@ def main(property_to_use = "density"):
         
         #fig, axs = plt.subplots(2, 3)
         fig, axs = plt.subplots(2, 3, figsize=(18,10), constrained_layout=True)
-        fig.suptitle('Constant-Pressure Pressurization Simulation Results')
+        fig.suptitle(f"Constant-Pressure Pressurization Simulation Results, Property to use: {property_to_use}")
 
         # COPV plots
         axs[0, 0].plot(times, P_copv * c.PA2PSI, 'g')
@@ -551,9 +580,11 @@ def main(property_to_use = "density"):
     return(maximum_regulator_mass_flow_rate)
 
 if __name__ == "__main__":
-    cases = ["density", "pressure"]
+    properties_to_use = ["density"]
+    # properties_to_use = ["pressure"]
+    # properties_to_use = ["density", "pressure"]
     
-    for case in cases:
-        main(case)
+    for property_to_use in properties_to_use:
+        main(property_to_use)
 
     plt.show()

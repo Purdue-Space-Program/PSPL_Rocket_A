@@ -11,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import constants as c
-import Press_Cv_Calcs
+# import Press_Cv_Calcs
 import vehicle_parameters
 
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
@@ -88,14 +88,16 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
         pressurant_initial_mass_flow_rate = 0 # [kg/s]
         pressurant_initial_temperature = tank_with_orifice.pressurant_initial_temperature # [k]
         pressurant_initial_pressure = tank_with_orifice.pressurant_initial_pressure
+        
         if tank_with_orifice.pressurant_name == "oxygen":
             pressurant_initial_density = PropsSI("D", "P", pressurant_initial_pressure, "Q", 1, tank_with_orifice.pressurant_name)
             pressurant_initial_entropy = PropsSI("S", "P", pressurant_initial_pressure, "Q", 1, tank_with_orifice.pressurant_name)
-            final_pressure = 30
+            pressurant_final_pressure = 30 * c.PSI2PA
+            
         elif tank_with_orifice.pressurant_name == "nitrogen":
             pressurant_initial_density = PropsSI("D", "T", pressurant_initial_temperature, "P", pressurant_initial_pressure, tank_with_orifice.pressurant_name)
             pressurant_initial_entropy = PropsSI("S", "T", pressurant_initial_temperature, "P", pressurant_initial_pressure, tank_with_orifice.pressurant_name)
-            final_pressure = 100
+            pressurant_final_pressure = 100 * c.PSI2PA
 
         pressurant_initial_mass = tank_with_orifice.volume * pressurant_initial_density
 
@@ -122,11 +124,14 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
         pressurant_temperature_array = np.append(pressurant_temperature_array, pressurant_current_temperature)
 
 
-        while pressurant_current_pressure > (final_pressure * c.PSI2PA):
+        while pressurant_current_pressure > pressurant_final_pressure:
             # print(f"pressurant_current_pressure: {pressurant_current_pressure}")
-            pressurant_current_mass_flow_rate = Calculate_Choked_Mass_Flow_from_Cv(tank_with_orifice.pressurant_name, tank_with_orifice.orifice.flow_coefficient, pressurant_current_pressure, pressurant_current_temperature)
-
             new_time = time_array[-1] + dt
+            
+            pressurant_current_mass_flow_rate = Calculate_Choked_Mass_Flow_from_Cv(press_gas = tank_with_orifice.pressurant_name,
+                                                                                   Cv = tank_with_orifice.orifice.flow_coefficient, 
+                                                                                   P1 = pressurant_current_pressure, 
+                                                                                   T1 = pressurant_current_temperature)
             pressurant_new_mass = pressurant_mass_array[-1] - (pressurant_current_mass_flow_rate * dt)
             pressurant_new_density = pressurant_new_mass / tank_with_orifice.volume
 
@@ -146,9 +151,9 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
 
             time_array = np.append(time_array, new_time)
             pressurant_mass_flow_rate_array = np.append(pressurant_mass_flow_rate_array, pressurant_current_mass_flow_rate)
-            pressurant_pressure_array = np.append(pressurant_pressure_array, pressurant_new_pressure)
-            pressurant_density_array = np.append(pressurant_density_array, pressurant_new_density)
             pressurant_mass_array = np.append(pressurant_mass_array, pressurant_new_mass)
+            pressurant_density_array = np.append(pressurant_density_array, pressurant_new_density)
+            pressurant_pressure_array = np.append(pressurant_pressure_array, pressurant_new_pressure)
             pressurant_temperature_array = np.append(pressurant_temperature_array, pressurant_new_temperature)
 
             current_time = new_time

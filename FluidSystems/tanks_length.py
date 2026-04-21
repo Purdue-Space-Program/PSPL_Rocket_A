@@ -18,7 +18,7 @@ def calc_residual_fraction_from_AoA(diameter, angle, fuel_use_volume):
 ##### FUEL TANK PARAMETERS #####
 fuel_tank_ID = p.tube_inner_diameter
 fuel_use_volume = p.fuel_tank_usable_volume
-fuel_ullage_fraction = 0 / 100
+fuel_ullage_fraction = 10 / 100
 
 angle = 0
 angle_history = []

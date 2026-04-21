@@ -90,7 +90,7 @@ class VehicleParameters:
     nosecone_length: float =       15 * c.IN2M
 
     # COPV Parameters
-    COPV_volume: float = 4.70 * c.L2M3 # [m^3] 
+    COPV_volume: float = 3.00 * c.L2M3 # [m^3] https://www.amazon.com/TUXING-Pressure-Composite-Cylinder-Snorkeling/dp/B0967TLQXL/136-1379546-6060126?pd_rd_w=zN9w4&content-id=amzn1.sym.2cd14f8d-eb5c-4042-b934-4a05eafd2874&pf_rd_p=2cd14f8d-eb5c-4042-b934-4a05eafd2874&pf_rd_r=YYHCFB81W1ACXQ7KT62Z&pd_rd_wg=axL8f&pd_rd_r=f2afa23f-746c-4bb1-8f64-518bd3feb668&pd_rd_i=B0967TLQXL&psc=1
     COPV_starting_pressure: float = 3300 * c.PSI2PA # [Pa]
 
     root_chord: float = 16 * c.IN2M
