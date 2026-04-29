@@ -60,8 +60,8 @@ if __name__ == "__main__":
     preload_percent = 0.75
     torque_variation = 0.25
     #Pathfinder
-    bolt_major_diameter_main = 0.19 #0.25
-    bolt_minor_diameter_main = 0.1528 #0.2075
+    bolt_major_diameter_main = 0.25 #0.19
+    bolt_minor_diameter_main = 0.2075 #0.1528
     bolt_major_diameter_pintle = 0.125
     bolt_minor_diameter_pintle = 0.0979
     chamber_diameter = 5
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     calculated_number_of_bolts_injector = bolts(net_force_injector,lower_bound_preload_main)
     print(f"calculated_number_of_bolts_injector: {calculated_number_of_bolts_injector:.2f}")
 
-    actual_number_bolts_injector = 9
+    actual_number_bolts_injector = 6
     MOS_injector = MOS(calculated_number_of_bolts_injector, actual_number_bolts_injector)
     print(f"actual_number_bolts_injector: {actual_number_bolts_injector:.2f}")
     print(f"MOS_injector: {MOS_injector:.2f}")
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     calculated_number_of_bolts_chamber= bolts(net_force_chamber,lower_bound_preload_main)
     print(f"calculated_number_of_bolts_chamber: {calculated_number_of_bolts_chamber:.2f}")
 
-    actual_number_bolts_chamber = 9
+    actual_number_bolts_chamber = 6
     MOS_chamber = MOS(calculated_number_of_bolts_chamber, actual_number_bolts_chamber)
     print(f"actual_number_bolts_chamber: {actual_number_bolts_chamber:.2f}")
     print(f"MOS_chamber: {MOS_chamber:.2f}")
