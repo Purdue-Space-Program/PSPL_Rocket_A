@@ -133,7 +133,7 @@ def calculate_trajectory(
         drag_force = (
             0.5 * rho * velocity**2 * ascent_drag_coefficient * reference_area
         )  # [N] force of drag
-        weight = c.GRAVITY * mass  # [N] downward force due to gravity
+        weight = c.STANDARD_GRAVITY * mass  # [N] downward force due to gravity
 
         acceleration = (thrust - drag_force - weight) / mass  # acceleration equation of motion
         acceleration_array.append(acceleration)
@@ -333,7 +333,7 @@ def calculate_trajectory_variable_burn(
         drag_force = (
             0.5 * rho * velocity**2 * ascent_drag_coefficient * reference_area
         )  # [N] force of drag
-        weight = c.GRAVITY * mass  # [N] downward force due to gravity
+        weight = c.STANDARD_GRAVITY * mass  # [N] downward force due to gravity
 
         acceleration = (thrust - drag_force - weight) / mass  # acceleration equation of motion
         acceleration_array.append(acceleration)

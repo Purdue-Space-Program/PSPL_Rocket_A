@@ -1,4 +1,14 @@
-CEA_Wrap
+CEA_Wrap # if you get an error when trying to import it in a script then try:
+# When CEA_Wrap launches Dan_CEA2.exe, I get:
+# CompletedProcess(... Dan_CEA2.exe ..., returncode=3221225781, stdout='', stderr='')
+# and then:
+# RuntimeError: Running CEA failed with errors. Output dumped to CEA_Wrap_error.out
+# Running Dan_CEA2.exe directly showed a Windows popup:
+# "The code execution cannot proceed because libgfortran-5.dll was not found."
+# Installing MSYS2 and adding C:\msys64\ucrt64\bin to my Windows PATH fixed it. In VS Code, I had to fully kill the VS Code process tree with:
+# taskkill /F /T /IM Code.exe
+# before the integrated terminal picked up the updated PATH.
+
 CoolProp
 matplotlib
 numpy

@@ -3,8 +3,9 @@ import sys
 import os
 from CoolProp.CoolProp import PropsSI
 import matplotlib.pyplot as plt
-from dataclasses import dataclass
-import copy
+from dataclasses import dataclass, field
+import CoolProp
+
 
 os.chdir(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -41,33 +42,48 @@ def Cv_Choked_from_SCFM(press_gas, SCFM_pressurant, P1, T1):
 
     return Cv
 
-def Calculate_Choked_Mass_Flow_from_Cv(press_gas, Cv, P1, T1):
 
-    # Unit conversions
-    SEC2MIN = 1 / 60
-    K2R = 9 / 5
+# Unit conversions
+SEC2MIN = 1 / 60
+K2R = 9 / 5
 
-    # Constants
-    N2 = 22.67 # units constant for flow rate equation
+# Constants
+N2 = 22.67 # units constant for flow rate equation
 
-    # Standard conditions
-    P_STD = c.ATM2PA # [pa] standard pressure
-    T_STD = 288.7 # [K] standard temperature
+# Standard conditions
+P_STD = c.ATM2PA # [pa] standard pressure
+T_STD = 288.7 # [K] standard temperature
 
 
-    rho_std_air = PropsSI('D', 'P', P_STD, 'T', T_STD, 'air') # [kg/^3] standard density of air
-    rho_std_press_gas = PropsSI('D', 'P', P_STD, 'T', T_STD, press_gas) # [kg/m^3] standard density of press gas
+rho_std_air = PropsSI('D', 'P', P_STD, 'T', T_STD, 'air') # [kg/^3] standard density of air
 
-    Gg_press_gas = rho_std_press_gas / rho_std_air # [] specific gravity of press gas
+
+def Calculate_Choked_Mass_Flow_from_Cv(Cv, P1, T1, TankWithOrifice):
+
+    # # Unit conversions
+    # SEC2MIN = 1 / 60
+    # K2R = 9 / 5
+
+    # # Constants
+    # N2 = 22.67 # units constant for flow rate equation
+
+    # # Standard conditions
+    # P_STD = c.ATM2PA # [pa] standard pressure
+    # T_STD = 288.7 # [K] standard temperature
+
+
+    # rho_std_air = PropsSI('D', 'P', P_STD, 'T', T_STD, 'air') # [kg/^3] standard density of air
+    # rho_std_press_gas = PropsSI('D', 'P', P_STD, 'T', T_STD, HEOS.name()) # [kg/m^3] standard density of press gas
+
 
     P1_psi = P1 * c.PA2PSI # [psia] inlet pressure in psia
     T1_r = T1 * K2R # [deg R] inlet temperature in deg R
 
-    SCFM_press_gas = Cv / (np.sqrt(Gg_press_gas * T1_r) / (0.471 * N2 * P1_psi))
+    SCFM_press_gas = Cv / (np.sqrt(TankWithOrifice.Gg_press_gas * T1_r) / (0.471 * N2 * P1_psi))
 
     q_std_press_gas = SCFM_press_gas / (c.M32FT3 / SEC2MIN) # [m^3/s] standard volumetric flow rate of press gas
 
-    m_dot = q_std_press_gas * rho_std_press_gas
+    m_dot = q_std_press_gas * TankWithOrifice.rho_std_press_gas
 
     return m_dot
 
@@ -80,12 +96,12 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
     print(f"orifice {tank_with_orifice.orifice.nominal_size}: {tank_with_orifice.orifice.flow_coefficient:.5f} Cv")
 
 
-    dt = 0.5
+    dt = 1
 
     for model_type in tank_with_orifice.model_types:
 
         initial_time = 0
-        pressurant_initial_mass_flow_rate = 0 # [kg/s]
+        pressurant_initial_mass_flow_rate = np.nan # [kg/s]
         pressurant_initial_temperature = tank_with_orifice.pressurant_initial_temperature # [k]
         pressurant_initial_pressure = tank_with_orifice.pressurant_initial_pressure
         
@@ -95,8 +111,12 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
             pressurant_final_pressure = 30 * c.PSI2PA
             
         elif tank_with_orifice.pressurant_name == "nitrogen":
-            pressurant_initial_density = PropsSI("D", "T", pressurant_initial_temperature, "P", pressurant_initial_pressure, tank_with_orifice.pressurant_name)
-            pressurant_initial_entropy = PropsSI("S", "T", pressurant_initial_temperature, "P", pressurant_initial_pressure, tank_with_orifice.pressurant_name)
+            # pressurant_initial_density = PropsSI("D", "T", pressurant_initial_temperature, "P", pressurant_initial_pressure, tank_with_orifice.pressurant_name)
+            # pressurant_initial_entropy = PropsSI("S", "T", pressurant_initial_temperature, "P", pressurant_initial_pressure, tank_with_orifice.pressurant_name)
+            tank_with_orifice.HEOS.update(CoolProp.PT_INPUTS, pressurant_initial_pressure, pressurant_initial_temperature)
+            pressurant_initial_density = tank_with_orifice.HEOS.rhomass()
+            pressurant_initial_entropy = tank_with_orifice.HEOS.smass()
+            
             pressurant_final_pressure = 100 * c.PSI2PA
 
         pressurant_initial_mass = tank_with_orifice.volume * pressurant_initial_density
@@ -123,30 +143,51 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
         pressurant_mass_array = np.append(pressurant_mass_array, pressurant_current_mass)
         pressurant_temperature_array = np.append(pressurant_temperature_array, pressurant_current_temperature)
 
+        regulator_set_pressure = 300 * c.PSI2PA
+        pressurant_in_tank_HEOS = CoolProp.AbstractState("HEOS", "Nitrogen")
 
         while pressurant_current_pressure > pressurant_final_pressure:
             # print(f"pressurant_current_pressure: {pressurant_current_pressure}")
             new_time = time_array[-1] + dt
             
-            pressurant_current_mass_flow_rate = Calculate_Choked_Mass_Flow_from_Cv(press_gas = tank_with_orifice.pressurant_name,
-                                                                                   Cv = tank_with_orifice.orifice.flow_coefficient, 
-                                                                                   P1 = pressurant_current_pressure, 
-                                                                                   T1 = pressurant_current_temperature)
+            pressurant_in_tank_HEOS.update(CoolProp.HmassP_INPUTS, tank_with_orifice.HEOS.hmass(), regulator_set_pressure)
+            pressurant_in_tank_temperature = pressurant_in_tank_HEOS.T()
+            
+            pressurant_current_mass_flow_rate = Calculate_Choked_Mass_Flow_from_Cv(Cv = tank_with_orifice.orifice.flow_coefficient, 
+                                                                                #    P1 = pressurant_current_pressure, 
+                                                                                #    T1 = pressurant_current_temperature,
+                                                                                   P1 = regulator_set_pressure,
+                                                                                   T1 = pressurant_in_tank_temperature,
+                                                                                   TankWithOrifice = tank_with_orifice
+                                                                                   )
+            pressurant_current_mass_flow_rate = pressurant_current_mass_flow_rate * 2 # orifice on each tank
+            
             pressurant_new_mass = pressurant_mass_array[-1] - (pressurant_current_mass_flow_rate * dt)
             pressurant_new_density = pressurant_new_mass / tank_with_orifice.volume
 
             if model_type == "isentropic expansion":
                 pressurant_new_entropy = pressurant_initial_entropy
-                pressurant_new_temperature = PropsSI("T", "S", pressurant_new_entropy, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
-                pressurant_new_pressure = PropsSI("P", "S", pressurant_new_entropy, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
+                
+                # pressurant_new_temperature = PropsSI("T", "S", pressurant_new_entropy, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
+                # pressurant_new_pressure = PropsSI("P", "S", pressurant_new_entropy, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
+                
+                tank_with_orifice.HEOS.update(CoolProp.DmassSmass_INPUTS, pressurant_new_density, pressurant_new_entropy)
+                pressurant_new_temperature = tank_with_orifice.HEOS.T()
+                pressurant_new_pressure = tank_with_orifice.HEOS.p()
+                
             elif model_type == "isothermal expansion":
                 pressurant_new_temperature = pressurant_current_temperature
-                pressurant_new_pressure = PropsSI("P", "T", pressurant_new_temperature, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
-            elif model_type == "boil-off":
+
+                # pressurant_new_pressure = PropsSI("P", "T", pressurant_new_temperature, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
+            
+                tank_with_orifice.HEOS.update(CoolProp.DmassT_INPUTS, pressurant_new_density, pressurant_new_temperature)
+                pressurant_new_pressure = tank_with_orifice.HEOS.p()
+            
+            elif model_type == "boil-off": # defunct
                 pressurant_new_temperature = pressurant_current_temperature
                 pressurant_new_pressure = pressurant_current_pressure
 
-            quality_value = PropsSI("Q", "T", pressurant_new_temperature, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
+            # quality_value = PropsSI("Q", "T", pressurant_new_temperature, "D", pressurant_new_density, tank_with_orifice.pressurant_name)
             # print("Q =", quality_value)
 
             time_array = np.append(time_array, new_time)
@@ -173,6 +214,11 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
             time_array = time_array/60
             time_unit_name = "Minutes"
 
+        # plt.plot(time_array, pressurant_pressure_array * c.PA2PSI)
+        # plt.ylabel(f"Pressure [PSI]")
+        # plt.xlabel(f"Time [{time_unit_name}]")
+        # plt.grid()
+
         ax[0,0].plot(time_array, pressurant_pressure_array * c.PA2PSI)
         ax[0,0].set_ylabel(f"Pressure [PSI]")
         ax[0,0].set_xlabel(f"Time [{time_unit_name}]")
@@ -193,11 +239,16 @@ def Simulate_Orifice_Emptying(tank_with_orifice):
         ax[1,1].set_xlabel(f"Time [{time_unit_name}]")
         ax[1,1].grid()
 
+        # plt.title(f"Emptying {tank_with_orifice.pressurant_name} in {tank_with_orifice.name} through {tank_with_orifice.orifice.nominal_size} orifice using {model_type} model")
         fig.suptitle(f"Emptying {tank_with_orifice.pressurant_name} in {tank_with_orifice.name} through {tank_with_orifice.orifice.nominal_size} orifice using {model_type} model")
         # plt.xlabel("inlet pressure [psi]")
         # plt.ylabel("mass flow rate [kg]")
 
-        fig.legend(tank_with_orifice.model_types)
+        
+    ax[0,0].axhline(y = parameters.COPV_starting_pressure * c.PA2PSI, color='r', linestyle='--')
+    fig.legend([*tank_with_orifice.model_types, f"Target COPV Starting Pressure = {parameters.COPV_starting_pressure * c.PA2PSI:.0f} psia"])
+    # plt.axhline(y = parameters.COPV_starting_pressure * c.PA2PSI, color='r', linestyle='--')
+    # plt.legend([*tank_with_orifice.model_types, f"Target COPV Starting Pressure = {parameters.COPV_starting_pressure * c.PA2PSI:.0f} psia"])
     plt.show()
 
 def main():
@@ -208,6 +259,7 @@ def main():
         test_flow_rate: float
         test_pressure: float
         flow_coefficient: float = None
+        HEOS: CoolProp.AbstractState = field(init=False)
 
     @dataclass
     class TankWithOrifice:
@@ -218,6 +270,13 @@ def main():
         orifice: Orifice
         model_types: str
         pressurant_name: str
+        
+        def __post_init__(self):
+            self.HEOS = CoolProp.AbstractState("HEOS", self.pressurant_name)
+            
+            self.HEOS.update(CoolProp.PT_INPUTS, P_STD, T_STD)
+            self.rho_std_press_gas = self.HEOS.rhomass()
+            self.Gg_press_gas = self.rho_std_press_gas / rho_std_air # [] specific gravity of pressurant
 
     # data from: https://catalog.okeefecontrols.com/Download/Standard-Conditions-in-Flow-Measurement-5-18-21.pdf
     orifice_0010 = Orifice(
@@ -234,14 +293,15 @@ def main():
                           )
 
     # orifice_0.... = Orifice(
-    #                         nominal_size = "0.125",
-    #                         test_flow_rate = 1263/60, # [SCFM]
+    #                         nominal_size = "0. ....",
+    #                         test_flow_rate = .../60, # [SCFM]
     #                         test_pressure = (80 * c.PSI2PA) + c.ATM2PA,
     #                       )
 
     COPV_with_orifice = TankWithOrifice(
                                         name = "COPV",
-                                        pressurant_initial_pressure = parameters.COPV_starting_pressure,
+                                        # pressurant_initial_pressure = parameters.COPV_starting_pressure,
+                                        pressurant_initial_pressure = 4000 * c.PSI2PA,
                                         pressurant_initial_temperature = c.T_AMBIENT,
                                         volume = parameters.COPV_volume,
                                         orifice = orifice_0010,
@@ -249,7 +309,7 @@ def main():
                                         pressurant_name = parameters.pressurant_name,
                                        )
 
-    oxidizer_tank_with_orifice = TankWithOrifice(
+    oxidizer_tank_with_orifice = TankWithOrifice( # defunct
                                         name = "Liquid Oxygen Tank",
                                         pressurant_initial_pressure = 250 * c.PSI2PA,
                                         pressurant_initial_temperature = PropsSI("T", "P", 50 * c.PSI2PA, "Q", 1, "Oxygen"),

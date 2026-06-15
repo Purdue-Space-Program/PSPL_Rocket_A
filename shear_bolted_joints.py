@@ -242,7 +242,7 @@ class ShearBoltedJoint:
                                     joint_member_1_E_d_ratio = self.joint_member_1.E_d_ratio,
                                     joint_member_1_shear_joint_type = self.joint_member_1.shear_joint_type,
                                     yield_FoS = self.yield_FoS,
-                                    ultimate_FoS= self.ultimate_FoS,
+                                    ultimate_FoS = self.ultimate_FoS,
                                     )
 
 def Calculate_Shear_Bolted_Joints(parameters):

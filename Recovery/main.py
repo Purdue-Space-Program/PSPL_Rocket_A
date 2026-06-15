@@ -43,7 +43,7 @@ def main():
     else:
         raise ValueError("!!parachute does not exist!!")
 
-    weight_force = c.GRAVITY * rocket_mass
+    weight_force = c.STANDARD_GRAVITY * rocket_mass
     terminal_velocity = math.sqrt((2*weight_force)/(effective_parachute_area*drag_coefficient*air_density)) # solving for velocity setting weight and Drag equal
     drag_force = 0.5 * drag_coefficient * air_density * effective_parachute_area *(terminal_velocity**2) # https://www.grc.nasa.gov/www/k-12/VirtualAero/BottleRocket/airplane/rktvrecv.html
     descent_time = max_height/terminal_velocity

@@ -10,12 +10,13 @@ import vehicle_main
 import print_filter
 
 
-def name_of_script_main_function(parameters):
+def Name_of_Script_Main_Function(parameters):
     pass
 
 def main(parameters):
-    parameters = name_of_script_main_function(parameters)
+    parameters = Name_of_Script_Main_Function(parameters)
     return(parameters)
 
 if __name__ == "__main__":
     parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
+    main(parameters)

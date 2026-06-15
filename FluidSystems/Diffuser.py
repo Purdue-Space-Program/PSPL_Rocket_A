@@ -8,7 +8,7 @@ from constants import *
 import vehicle_parameters
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 ##### OPERATING CONDITIONS #####
-g = GRAVITY
+g = STANDARD_GRAVITY
 n2_temperature = 0 # [K] Temperature of N2 at diffuser exit???
 n2_mdot = 0.6 # [kg/s] Assumed for now, quite high 
 ullage_pressure = parameters.nominal_tank_pressure # [Pa] Diffuser exit pressure of N2 / Ullage Pressure
