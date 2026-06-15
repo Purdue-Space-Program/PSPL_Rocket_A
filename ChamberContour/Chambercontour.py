@@ -157,18 +157,18 @@ def nozzle_contour(Dt, exp_ratio, Lstar, contract_ratio, con_angle, Dc, filename
     return -x_arr* c.M2IN, y_arr* c.M2IN
 
 
-expansion_ratio = 2.288 # [n/a]
-Lstar = 45 * c.IN2M # [meters]
+expansion_ratio = 4.69 # [n/a]
+Lstar = 1.422 # [meters]
 con_angle = 45 # [degrees]
 filename = 'chamber_contour'
 theta_n = 20.88
 theta_e = 14.6
 
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
-chamber_inner_diameter = parameters.chamber_inner_diameter # [meters]
+chamber_inner_diameter = 2 * c.IN2M # [meters]
 chamber_area = np.pi * ((chamber_inner_diameter/2)**2) # [m^2]
 
-throat_diameter = parameters.chamber_throat_diameter # [meters]
+throat_diameter = 0.5 * c.IN2M # [meters]
 throat_area = np.pi * ((throat_diameter/2)**2) # [m^2]
 
 contract_ratio = chamber_area/throat_area
