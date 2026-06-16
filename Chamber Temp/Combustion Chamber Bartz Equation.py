@@ -292,7 +292,7 @@ def recovery_temperature(T_static, gamma, M, Pr):
 
     r = Pr ** (1/2)
     T_r = T_static * (1 + ((r*(gamma-1)/2) * M**2))
-
+    print(T_r)
     return T_r
 
 
