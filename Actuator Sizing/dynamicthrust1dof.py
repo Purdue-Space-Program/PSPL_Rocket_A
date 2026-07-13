@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 import main as m # ensure that outputs = 0 in main file to suppress plots and prints!!!
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 csv_path_atmosphere = os.path.join(os.path.dirname(__file__), "atmosphere.csv")
 ATMOSPHERE_DATA = pd.read_csv(csv_path_atmosphere)

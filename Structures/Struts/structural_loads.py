@@ -8,8 +8,8 @@ def calculate_structural_loads(parameters, wet_mass_distribution):
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-    import vehicle_parameters_functions
-    import vehicle_main
+    import Vehicle_Level.vehicle_parameters_functions as vehicle_parameters_functions
+    import Vehicle_Level.vehicle_main as vehicle_main
     import constants as c
     # print("\n\n")
     # print(f"os.getcwd: {os.getcwd()}")
@@ -60,5 +60,5 @@ def main(parameters, wet_mass_distribution):
     return(parameters, wet_mass_distribution)
 
 if __name__ == "__main__":
-    from vehicle_parameters import parameters, wet_mass_distribution
+    from Vehicle_Level.vehicle_parameters import parameters, wet_mass_distribution
     main(parameters, wet_mass_distribution)

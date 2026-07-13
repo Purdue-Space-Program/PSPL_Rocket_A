@@ -14,7 +14,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 def main():
     max_height = parameters.one_DoF_estimated_apogee # [m]

@@ -18,7 +18,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 
 def main(property_to_use = "density"):
     parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()

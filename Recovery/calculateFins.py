@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-from vehicle_parameters import parameters
+from Vehicle_Level.vehicle_parameters import parameters
 import constants as c
 import csv
 

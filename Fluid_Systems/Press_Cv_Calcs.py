@@ -11,7 +11,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 import vehicle_pressurization_simulation
 from heat_transfer_functions import equivalent_kg_s
 

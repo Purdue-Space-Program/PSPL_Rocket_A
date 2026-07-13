@@ -13,11 +13,11 @@ import os
 from pathlib import Path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 
-import vehicle_parameters_functions
-import vehicle_main
-import print_filter
+import Vehicle_Level.vehicle_parameters_functions as vehicle_parameters_functions
+import Vehicle_Level.vehicle_main as vehicle_main
+import Vehicle_Level.print_filter as print_filter
 
 
 def run_six_DoF(parameters):

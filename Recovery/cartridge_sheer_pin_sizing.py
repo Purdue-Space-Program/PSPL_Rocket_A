@@ -9,7 +9,7 @@ import os
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-import vehicle_parameters as v
+import Vehicle_Level.vehicle_parameters as v
 
 
 def calculatePressure(mass_g, initialTemperature_K, deltaTemperature_K, radius_in, length_in):

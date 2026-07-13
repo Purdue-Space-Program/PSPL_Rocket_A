@@ -3,15 +3,15 @@ from pathlib import Path
 import scipy.io as sio 
 import numpy as np
 
-import vehicle_parameters
-import vehicle_parameters_functions
-import print_filter
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
+import Vehicle_Level.vehicle_parameters_functions as vehicle_parameters_functions
+import Vehicle_Level.print_filter as print_filter
 import constants as c
 
 import SFD.six_DoF_caller as six_DoF_caller
 import SFD.RDOF_2.rdof_v2 as rdof_v2
-import Structures_Analysis.structural_loads as structural_loads
-import shear_bolted_joints
+import Structures.Struts.structural_loads as structural_loads
+import Structures.shear_bolted_joints as shear_bolted_joints
 
 
 def vehicle_analysis():

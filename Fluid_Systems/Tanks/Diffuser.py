@@ -5,7 +5,7 @@ import sys
 from CoolProp.CoolProp import PropsSI
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 ##### OPERATING CONDITIONS #####
 g = STANDARD_GRAVITY

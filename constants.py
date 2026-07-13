@@ -3,7 +3,6 @@ import numpy as np
 
 # Main function
 
-CONVERGE_TOLERANCE = 0.01  # [kg] Allowable difference between masses for Structures and Propulsion to converge
 OUTPUT_PRECISION = 3  # [1] Number of digits to round outputs to
 
 # Conversion Factors
@@ -21,13 +20,11 @@ PSI2BAR = PSI2PA * PA2BAR  # [bar/psi] Conversion factor from psi to bar
 BAR2PA = 1 / PA2BAR  # [Pa/bar] Conversion factor from bar to Pa
 
 ## Temperature
-
 RANK2KELVIN = 5 / 9  # [K/R] Conversion factor from R to K
 KELVIN2RANK = 1 / RANK2KELVIN  # [R/K] Conversion factor from K to R
 T_AMBIENT = 290  # [K] Ambient temperature (62 F)
 
 ## Mass
-
 LBM2KG = 0.453592  # [kg/lbm] Conversion factor from lbm to kg
 KG2LBM = 1 / LBM2KG  # [lbm/kg] Conversion factor from kg to lbm
 
@@ -35,7 +32,6 @@ G2KG = 0.001  # [kg/g] Conversion factor from g to kg
 KG2G = 1 / G2KG  # [g/kg] Conversion factor from kg to g
 
 ## Length
-
 IN2M = 0.0254  # [m/in] Conversion factor from in to m
 M2IN = 1 / IN2M  # [in/m] Conversion factor from m to in
 
@@ -43,12 +39,10 @@ M2FT = 3.28084  # [ft/m] Conversion factor from m to ft
 FT2M = 1 / M2FT  # [m/ft] Conversion factor from ft to m
 
 ## Area
-
 IN22M2 = IN2M**2  # [m^2/in^2] Conversion factor from in^2 to m^2
 M22IN2 = 1 / IN22M2  # [in^2/m^2] Conversion factor from m^2 to in^2
 
 ## Volume
-
 L2M3 = 0.001  # [m^3/l] Conversion factor from L to m^3
 M32L = 1 / L2M3  # [1/m^3] Conversion factor from m^3 to L
 
@@ -59,12 +53,10 @@ M32FT3 = 35.3147  # [ft^3/m^3] Conversion factor from m^3 to ft^3
 FT32M3 = 1 / M32FT3  # [m^3/ft^3] Conversion factor from ft^3 to m^3
 
 ## Force
-
 N2LBF = 0.224809  # [lbf/N] Conversion factor from N to lbf
 LBF2N = 1 / N2LBF  # [N/lbf] Conversion factor from lbf to N
 
 ## Torque
-
 NM2IN_LB = 8.8507457676 # Conversion factor from Newton-meter to in-lbf
 IN_LB2NM = 1 / NM2IN_LB # Conversion factor from in-lbf to Newton-meter
 
@@ -72,7 +64,6 @@ NM2FT_LB = N2LBF*M2FT # Conversion factor from Newton-meter to ft-lbf
 FT_LB2NM = 1 / NM2FT_LB # Conversion factor from ft-lbf to Newton-meter
 
 # Speed
-
 NM2FT_LBRPM2RADS = (2 * np.pi) / 60
 
 ### Material Properties
@@ -94,14 +85,11 @@ DENSITY_CARBON_FIBER = 1790  # [kg/m^3] HexTow AS4 Carbon Fiber Density
 ## 316 Stainless Steel
 DENSITY_SS316 = 7980  # [kg/m^3] Density
 
-
 PTFE_CTE = 86e-6 # [1/°C] Coefficient of Thermal Expansion. Source: https://www.bearingworks.com/uploaded-assets/pdfs/retainers/ptfe-datasheet.pdf
 PTFE_YOUNGS_MODULUS = 2.25e9  # [Pa] Modulus of elasticity. Source: https://treborintl.com/properties-for-molded-ptfe/
 
 
-
 ### Fluids Constants
-
 VENTURI_DP_RATIO = (
     1 / 1.2
 )  # [1] venturi outlet pressure / tank pressure, based on NASA venturi documentation & testing
@@ -132,7 +120,6 @@ N2_GAS_CONSTANT = 296.80  # [J/kgK] Nitrogen gas constant
 FILL_PRESSURE = 60  # [psi] Tank pressure during fill, based on CMS fill ops
 
 # Propellant Properties
-
 WATER_PERCENTAGE = 0  # [1] Percentage of water in the ethanol & IPA mixtures
 
 DENSITY_ETHANOL = 785  # [kg/m^3] Ethanol density at STP (https://www.engineeringtoolbox.com/ethanol-ethyl-alcohol-properties-C2H6O-d_2027.html)

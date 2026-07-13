@@ -8,10 +8,10 @@ import io
 from dataclasses import dataclass, fields, field, make_dataclass, asdict
 import scipy.io as sio 
 import numpy as np
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
-from vehicle_parameters import VehicleParameters, MassComponent, MassDistribution
+from Vehicle_Level.vehicle_parameters import VehicleParameters, MassComponent, MassDistribution
 
 def load_matlab_struct_as_dataclass(file_path_string):
     weird_matlab_struct = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=True, simplify_cells=False)

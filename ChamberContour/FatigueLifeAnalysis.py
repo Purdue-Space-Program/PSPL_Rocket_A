@@ -15,7 +15,7 @@ from scipy.optimize import brentq
 from scipy.optimize import newton
 #from utils.MATERIAL_PROPERTIES import get_material_properties
 import Chambercontour as chamber
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 
 xchamb, ychamb = chamber.nozzle_contour(parameters.chamber_throat_diameter, chamber.expansion_ratio, chamber.Lstar, parameters.contraction_ratio, chamber.con_angle, parameters.chamber_inner_diameter, chamber.filename)

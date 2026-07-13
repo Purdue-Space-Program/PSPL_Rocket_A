@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-from vehicle_parameters import parameters as p
+from Vehicle_Level.vehicle_parameters import parameters as p
 
 def calc_ullage_volume_bulkhead(radius, depth):
     return ((np.pi * depth**2 / 3) * (3 * radius - depth))

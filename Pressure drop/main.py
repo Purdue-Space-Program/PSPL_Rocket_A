@@ -16,7 +16,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import constants as c
-from vehicle_parameters import parameters
+from Vehicle_Level.vehicle_parameters import parameters
 
 u = UnitRegistry()
 

@@ -11,9 +11,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
-import vehicle_parameters
-import vehicle_parameters_functions
-import vehicle_main
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
+import Vehicle_Level.vehicle_parameters_functions as vehicle_parameters_functions
+import Vehicle_Level.vehicle_main as vehicle_main
 import constants as c
 
 try:

@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import constants as c
 # import Press_Cv_Calcs
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 

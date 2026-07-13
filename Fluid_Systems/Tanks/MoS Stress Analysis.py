@@ -4,7 +4,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-import vehicle_parameters as v
+import Vehicle_Level.vehicle_parameters as v
 
 ##### INPUT PARAMETERS #####
 inner_diameter = v.parameters.tank_inner_diameter # [m]

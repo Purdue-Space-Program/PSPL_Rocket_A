@@ -6,7 +6,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import vehicle_parameters
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 import Chambercontour as chamber
 parameters, wet_mass_distribution, dry_mass_distribution = vehicle_parameters.main()
 xchamb, ychamb = chamber.nozzle_contour(parameters.chamber_throat_diameter, chamber.expansion_ratio, chamber.Lstar, parameters.contraction_ratio, chamber.con_angle, parameters.chamber_inner_diameter, chamber.filename)
