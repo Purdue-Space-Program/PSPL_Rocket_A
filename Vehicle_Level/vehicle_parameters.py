@@ -244,13 +244,13 @@ def Setup_Vehicle_Parameters(show_plots = False, print_outputs = False, print_co
     #     - strut mass
 
 
-    def CalcCylinderVolume(diameter, length):
+    def Calculate_Cylinder_Volume(diameter, length):
         radius = diameter/2
-        volume = np.pi * (radius**2) * length # off the dome!
+        volume = 3.14159265358979 * (radius**2) * length # off the dome!
         return volume
 
-    def CalcTubeVolume(OD, ID, length):
-        volume = CalcCylinderVolume(OD, length) - CalcCylinderVolume(ID, length)
+    def Calc_Tube_Volume(OD, ID, length):
+        volume = Calculate_Cylinder_Volume(OD, length) - Calculate_Cylinder_Volume(ID, length)
         return volume
 
 
@@ -283,7 +283,7 @@ def Setup_Vehicle_Parameters(show_plots = False, print_outputs = False, print_co
     mass_per_fin_can_strut = 2.309 * c.LBM2KG # [lbm]
     total_lower_strut_mass = number_of_fin_can_struts * mass_per_fin_can_strut # [kg]
 
-    lower_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.lower_length)
+    lower_panels_mass = c.DENSITY_AL * Calc_Tube_Volume(panels_outer_diameter, panels_inner_diameter, parameters.lower_length)
 
     valves_mass = 2 * 3.26 * c.LBM2KG # fuel and ox 3/4 inch valve https://habonim.com/wp-content/uploads/2020/08/C47-BD_C47__2023_VO4_28-06-23.pdf
 
@@ -295,35 +295,35 @@ def Setup_Vehicle_Parameters(show_plots = False, print_outputs = False, print_co
         bulkhead_top_thickness = 0.76 * c.IN2M
 
         bulkhead_mass =  c.DENSITY_AL * (
-            (CalcCylinderVolume(propellant_tank_outer_diameter, parameters.tank_bulkhead_length) - 
-            CalcCylinderVolume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), parameters.tank_bulkhead_length - bulkhead_top_thickness))
+            (Calculate_Cylinder_Volume(propellant_tank_outer_diameter, parameters.tank_bulkhead_length) - 
+            Calculate_Cylinder_Volume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), parameters.tank_bulkhead_length - bulkhead_top_thickness))
         )
     else:
         bulkhead_mass = 1.971 * c.LBM2KG # [lbm] measured CAD value
 
-    fuel_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, parameters.fuel_tank_length)
+    fuel_tank_wall_mass = c.DENSITY_AL * Calc_Tube_Volume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, parameters.fuel_tank_length)
     fuel_tank_dry_mass = fuel_tank_wall_mass + parameters.fuel_residual_mass
     fuel_tank_wet_mass = fuel_tank_dry_mass + parameters.fuel_used_mass
 
     # total_mid_strut_mass
-    mid_panels_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.mid_length)
+    mid_panels_mass = c.DENSITY_AL * Calc_Tube_Volume(panels_outer_diameter, panels_inner_diameter, parameters.mid_length)
     mid_mass = mid_panels_mass
 
-    oxidizer_tank_wall_mass = c.DENSITY_AL * CalcTubeVolume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, parameters.oxidizer_tank_length)
+    oxidizer_tank_wall_mass = c.DENSITY_AL * Calc_Tube_Volume(propellant_tank_outer_diameter, propellant_tank_inner_diameter, parameters.oxidizer_tank_length)
     oxidizer_tank_dry_mass = oxidizer_tank_wall_mass + parameters.oxidizer_residual_mass
     oxidizer_tank_wet_mass = oxidizer_tank_dry_mass + parameters.oxidizer_used_mass
 
     regulator_mass = 1.200 # regulator https://valvesandregulators.aquaenvironment.com/item/high-flow-reducing-regulators-2/873-d-high-flow-dome-loaded-reducing-regulators/item-1659
     copv_mass = 2.9 # [kg]
-    upper_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(parameters.tube_outer_diameter, parameters.tube_inner_diameter, parameters.upper_length)
+    upper_airframe_tube_mass = c.DENSITY_AL * Calc_Tube_Volume(parameters.tube_outer_diameter, parameters.tube_inner_diameter, parameters.upper_length)
     upper_mass = regulator_mass + copv_mass + upper_airframe_tube_mass
 
-    recovery_bay_airframe_tube_mass = c.DENSITY_AL * CalcTubeVolume(parameters.tube_outer_diameter, parameters.tube_inner_diameter, parameters.recovery_bay_length)
+    recovery_bay_airframe_tube_mass = c.DENSITY_AL * Calc_Tube_Volume(parameters.tube_outer_diameter, parameters.tube_inner_diameter, parameters.recovery_bay_length)
     recovery_bay_mass = recovery_bay_airframe_tube_mass + parameters.parachute_mass
 
     tungsten_cube = 10 * c.LBM2KG
 
-    nosecone_mass = c.DENSITY_AL * CalcTubeVolume(panels_outer_diameter, panels_inner_diameter, parameters.nosecone_length) + tungsten_cube
+    nosecone_mass = c.DENSITY_AL * Calc_Tube_Volume(panels_outer_diameter, panels_inner_diameter, parameters.nosecone_length) + tungsten_cube
 
     # structures = 15 * c.LBM2KG # structures ! funny
 
@@ -338,7 +338,7 @@ def Setup_Vehicle_Parameters(show_plots = False, print_outputs = False, print_co
         upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
         mid =                     MassComponent(name = "mid",                         mass = mid_mass,                         length = parameters.mid_length),
         lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
-        oxidizer_tank =       MassComponent(name = "wet_oxidizer_tank",           mass = oxidizer_tank_wet_mass,           length = parameters.oxidizer_tank_length),
+        oxidizer_tank =           MassComponent(name = "wet_oxidizer_tank",           mass = oxidizer_tank_wet_mass,           length = parameters.oxidizer_tank_length),
         upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
         upper =                   MassComponent(name = "upper",                       mass = upper_mass,                       length = parameters.upper_length),
         recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,                length = parameters.recovery_bay_length),
@@ -354,7 +354,7 @@ def Setup_Vehicle_Parameters(show_plots = False, print_outputs = False, print_co
         upper_fuel_bulkhead =     MassComponent(name = "upper_fuel_bulkhead",         mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
         mid =                     MassComponent(name = "mid",                         mass = mid_mass,                         length = parameters.mid_length),
         lower_oxidizer_bulkhead = MassComponent(name = "lower_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
-        oxidizer_tank =       MassComponent(name = "dry_oxidizer_tank",           mass = oxidizer_tank_dry_mass,           length = parameters.oxidizer_tank_length),
+        oxidizer_tank =           MassComponent(name = "dry_oxidizer_tank",           mass = oxidizer_tank_dry_mass,           length = parameters.oxidizer_tank_length),
         upper_oxidizer_bulkhead = MassComponent(name = "upper_oxidizer_bulkhead",     mass = bulkhead_mass,                    length = parameters.tank_bulkhead_length),
         upper =                   MassComponent(name = "upper",                       mass = upper_mass,                       length = parameters.upper_length),
         recovery_bay =            MassComponent(name = "recovery_bay",                mass = recovery_bay_mass,                length = parameters.recovery_bay_length),
