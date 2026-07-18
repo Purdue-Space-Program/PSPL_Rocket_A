@@ -13,8 +13,26 @@ IN2M = 0.0254;  % [m/in] Conversion factor from in to m
 M2IN = 1 / IN2M;  % [in/m] Conversion factor from m to in
 
 % Importing SFD and RFD
-currentDirectory = pwd;
-cd('C:../SFD')
+
+repository_directory_name = "PSPL_Rocket_A";
+starting_directory = pwd;
+
+[~, current_directory_name] = fileparts(pwd);
+
+fuck = 0;
+while ~strcmp(current_directory_name, repository_directory_name)
+    fuck = fuck + 1;
+    if fuck > 20
+        cd(starting_directory);
+        error("Couldn't Find Repository directory starting_directory: %s", starting_directory);
+    end
+
+    cd('..');
+    [~, current_directory_name] = fileparts(pwd);
+end
+
+cd('SFD')
+
 sfdData = load('sfd_outputs_max_q.mat');
 rfdData = load('rfd_outputs_recovery.mat');
 lengthLoadssfd = sfdData.length_along_rocket_linspace * M2IN; % Length along the rocket converted to inches
@@ -32,6 +50,26 @@ if override_loads == false
     momentLoadsrfd = rfdData.bending_array * 8.85; % Moment loads conevrted to inch-pounds
 else
     fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
     axialLoadssfd = 200 * ones(1, numel(lengthLoadssfd));
     shearLoadssfd = 200 * ones(1, numel(lengthLoadssfd));
     momentLoadssfd = 30 * ones(1, numel(lengthLoadssfd));
@@ -39,9 +77,19 @@ else
     axialLoadsrfd = 200 * ones(1, numel(lengthLoadsrfd));
     shearLoadsrfd = 200 * ones(1, numel(lengthLoadsrfd));
     momentLoadsrfd = 30 * ones(1, numel(lengthLoadsrfd));
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
+    fprintf("!!!!!!!!!WARNING USING FAKE LOADS!!!!!!!!!");
 end
 
-cd(currentDirectory)
 
 
 %% Net Load Calcs
@@ -180,3 +228,6 @@ end
 
 % fprintf('Compression: %.2f\n', maxCompression / 3)
 % fprintf('Tension: %.2f\n', maxTension / 3)
+
+
+cd(starting_directory)

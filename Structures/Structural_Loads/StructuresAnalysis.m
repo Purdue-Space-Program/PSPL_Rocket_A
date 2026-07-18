@@ -17,7 +17,7 @@ K = 0.9; % Effective length factor Fixed-Fixed
 length = objectInQuestion.length; % Length (in)
 distance = [objectInQuestion.distance, objectInQuestion.distance - length]; % Distance from Aft to top (in)
 radius = objectInQuestion.radius; % Distance from center axis (in)
-name = objectInQuestion.name; % Name of the objectin in question
+name = objectInQuestion.name; % Name of the object in in question
 material = objectInQuestion.material; % Material properties from object
 
 

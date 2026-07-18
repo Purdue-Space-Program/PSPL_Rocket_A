@@ -3,15 +3,18 @@ from pathlib import Path
 import scipy.io as sio 
 import numpy as np
 
-import Vehicle_Level.vehicle_parameters as vehicle_parameters
-import Vehicle_Level.vehicle_parameters_functions as vehicle_parameters_functions
-import Vehicle_Level.print_filter as print_filter
+# sorry
+import sys,pathlib,collections,importlib.abc; r=next(p for p in pathlib.Path(__file__).resolve().parents if p.name=="PSPL_Rocket_A");   m=collections.defaultdict(list); [m[f.stem.casefold()].append(f) for f in r.rglob("*.py") if f.stem.isidentifier() and f.name != "__init__.py" and not (set(f.relative_to(r).parts)&{".git",".venv","__pycache__","build","dist"})]; dup={k:v for k,v in m.items() if   len(v)>1}; sys.meta_path.insert(0,type("AmbiguousBareImportBlocker",(importlib.abc.MetaPathFinder,),{"find_spec":lambda   self,fullname,path=None,target=None: (_ for _ in ()).throw(ImportError(f"The import {fullname!r} could refer to any following packages: "+" ".join("\n\t" + str(p.relative_to(r)) for p in dup[fullname.casefold()])+f"\n\nSpecify which package it is by using the folder.\nFor example:\n\t'import SFD.{fullname}'")) if "." not in fullname and fullname.casefold() in dup else None})()); sys.path.insert(0,str(r)) if str(r) not   in sys.path else None; [sys.path.append(str(v[0].parent)) for k,v in m.items() if k not in dup and str(v[0].parent) not in sys.path]
+
+import vehicle_parameters
+import vehicle_parameters_functions
+import print_filter
 import constants as c
 
-import SFD.six_DoF_caller as six_DoF_caller
-import SFD.RDOF_2.rdof_v2 as rdof_v2
-import Structures.Struts.structural_loads as structural_loads
-import Structures.shear_bolted_joints as shear_bolted_joints
+import six_DoF_caller
+import rdof_v2
+import structural_loads
+import shear_bolted_joints
 
 
 def vehicle_analysis():

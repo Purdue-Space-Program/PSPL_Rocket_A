@@ -17,8 +17,8 @@ def calculate_structural_loads(parameters, wet_mass_distribution):
     # print("\n\n")
     
     repository_root_path, _ = vehicle_parameters_functions.Get_Repository_Root_Path()
-    structures_analysis_file_path = (repository_root_path / "Structures_Analysis").resolve()
-    structural_loads_file_path = (repository_root_path / "Structures_Analysis" / "structural_loads.mat").resolve()
+    structures_analysis_file_path = (repository_root_path / "Structures" / "Structural_Loads").resolve()
+    structural_loads_file_path = (structures_analysis_file_path / "structural_loads.mat").resolve()
     structural_loads_script_file_path = (structures_analysis_file_path / "Full_Rocket_Analysis.m")
 
     vehicle_parameters_functions.ExportObjectToMat(wet_mass_distribution, structures_analysis_file_path / "wet_mass_distribution.mat")
