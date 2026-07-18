@@ -269,6 +269,7 @@ def Calculate_Shear_Bolted_Joints(parameters):
     bulkhead_area = Calculate_Circle_Area(parameters.tank_inner_diameter)
     bulkhead_nominal_pressure_blowoff_limit_load = (parameters.nominal_tank_pressure * bulkhead_area) * parameters.proof_factor
     bulkhead_largest_possible_pressure_blowoff_limit_load = (parameters.largest_possible_tank_pressure * bulkhead_area) * parameters.proof_factor
+    print(f"\tBulkhead blowoff pressure: {parameters.largest_possible_tank_pressure * parameters.proof_factor / 1000 :.2f} kPa, {parameters.largest_possible_tank_pressure * parameters.proof_factor * c.PA2PSI :.2f} psi")
     print(f"\tBulkhead blowoff load: {bulkhead_largest_possible_pressure_blowoff_limit_load:.2f} N, {bulkhead_largest_possible_pressure_blowoff_limit_load * c.N2LBF :.2f} LBF")
     # print(f"\tOxygen tank max load: {parameters.oxygen_tank_max_load:.2f} N, {parameters.oxygen_tank_max_load * c.N2LBF :.2f} LBF")
 
@@ -284,7 +285,7 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
     tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel",
                                                    bolt_thread_size = "5/16\"",
-                                                   number_of_bolts = 30,
+                                                   number_of_bolts = 20,
                                                    shear_limit_load = bulkhead_max_limit_load,
                                                    joint_member_1 = tank_wall,
                                                    yield_FoS = parameters.yield_FoS,
