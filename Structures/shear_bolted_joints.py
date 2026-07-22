@@ -268,9 +268,7 @@ def Calculate_Shear_Bolted_Joints(parameters):
     print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
     bulkhead_area = Calculate_Circle_Area(parameters.tank_inner_diameter)
     
-    
     bulkhead_hydroproof_pressure_blowoff_limit_load = parameters.hydroproof_tank_pressure * bulkhead_area
-    
     bulkhead_max_limit_load = bulkhead_hydroproof_pressure_blowoff_limit_load
     
     print(f"\tHydroproof tank pressure: {parameters.hydroproof_tank_pressure / 1000 :.2f} kPa, {parameters.hydroproof_tank_pressure * c.PA2PSI :.2f} psi")

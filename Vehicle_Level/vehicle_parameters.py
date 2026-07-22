@@ -13,11 +13,10 @@ import constants as c
 
 @dataclass
 class VehicleParameters:
-    # Structural Parameters
+    # factors of shit
     yield_FoS: float = 1.5
     ultimate_FoS: float = 2.0
     hydroproof_factor: float = 1.5
-    # bending_FoS: float = None
 
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 
@@ -54,9 +53,9 @@ class VehicleParameters:
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
     nominal_tank_pressure: float = 350 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
-    maximum_tank_pressure_to_acount_for_droop: float = nominal_tank_pressure / 0.75 # comes from the set pressure being higher than the nominal tank pressure to account for droop during burn
-    maximum_allowable_tank_pressure: float = (25 * c.PSI2PA) * round(maximum_tank_pressure_to_acount_for_droop / (25 * c.PSI2PA)) # relief valves sold in increments of 25 psi
-    hydroproof_tank_pressure: float = maximum_allowable_tank_pressure * hydroproof_factor
+    maximum_tank_pressure_to_acount_for_droop: float = None
+    maximum_allowable_tank_pressure: float = None
+    hydroproof_tank_pressure: float = None
     
     oxidizer_tank_pressure: float = nominal_tank_pressure     # The estimated required oxidizer tank pressure to sustain the combustion pressure in the engine [Pascals]
     fuel_tank_pressure: float = nominal_tank_pressure     # The estimated required fuel tank pressure to sustain the combustion pressure in the engine [Pascals]
@@ -163,7 +162,7 @@ class VehicleParameters:
 
     def __setattr__(self, name, value):
         if getattr(self, "_frozen", False) and name != "_frozen":
-            raise AttributeError("The vehicle parameters are frozen, you cannot change values, ask David how to change these values")
+            raise AttributeError("The vehicle parameters are frozen, you cannot change values, to unfreeze it use:\n\tparameters.unfreeze()\nAnd then to refreeze:\n\tparameters.freeze()")
         super().__setattr__(name, value)
 
 
