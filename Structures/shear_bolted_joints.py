@@ -267,14 +267,16 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
     print("-------------Tank Wall to Bulkhead Bolted Joint-------------", i_am_a_title=True)
     bulkhead_area = Calculate_Circle_Area(parameters.tank_inner_diameter)
-    bulkhead_nominal_pressure_blowoff_limit_load = (parameters.nominal_tank_pressure * bulkhead_area) * parameters.proof_factor
-    bulkhead_largest_possible_pressure_blowoff_limit_load = (parameters.largest_possible_tank_pressure * parameters.proof_factor + 344738) * bulkhead_area
-    print(f"\tBulkhead blowoff pressure: {(parameters.largest_possible_tank_pressure * parameters.proof_factor + 344738) / 1000 :.2f} kPa, {(parameters.largest_possible_tank_pressure * parameters.proof_factor + 344738) * c.PA2PSI :.2f} psi")
-    print(f"\tBulkhead blowoff load: {bulkhead_largest_possible_pressure_blowoff_limit_load:.2f} N, {bulkhead_largest_possible_pressure_blowoff_limit_load * c.N2LBF :.2f} LBF")
+    
+    
+    bulkhead_hydroproof_pressure_blowoff_limit_load = parameters.hydroproof_tank_pressure * bulkhead_area
+    
+    bulkhead_max_limit_load = bulkhead_hydroproof_pressure_blowoff_limit_load
+    
+    print(f"\tHydroproof tank pressure: {parameters.hydroproof_tank_pressure / 1000 :.2f} kPa, {parameters.hydroproof_tank_pressure * c.PA2PSI :.2f} psi")
+    print(f"\tHydroproof limit load: {bulkhead_hydroproof_pressure_blowoff_limit_load:.2f} N, {bulkhead_hydroproof_pressure_blowoff_limit_load * c.N2LBF :.2f} LBF")
     # print(f"\tOxygen tank max load: {parameters.oxygen_tank_max_load:.2f} N, {parameters.oxygen_tank_max_load * c.N2LBF :.2f} LBF")
 
-    bulkhead_max_limit_load = bulkhead_largest_possible_pressure_blowoff_limit_load
-    print("\tbulkhead_max_load: bulkhead_blowoff_load")
 
     # if bulkhead_blowoff_limit_load > parameters.oxygen_tank_max_load:
     #     bulkhead_max_limit_load = bulkhead_blowoff_limit_load
@@ -285,7 +287,7 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
     tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel",
                                                    bolt_thread_size = "5/16\"",
-                                                   number_of_bolts = 21,
+                                                   number_of_bolts = 20,
                                                    shear_limit_load = bulkhead_max_limit_load,
                                                    joint_member_1 = tank_wall,
                                                    yield_FoS = parameters.yield_FoS,

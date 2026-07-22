@@ -16,7 +16,7 @@ class VehicleParameters:
     # Structural Parameters
     yield_FoS: float = 1.5
     ultimate_FoS: float = 2.0
-    proof_factor: float = 1.5
+    hydroproof_factor: float = 1.5
     # bending_FoS: float = None
 
     # General Parameters
@@ -55,7 +55,8 @@ class VehicleParameters:
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
     nominal_tank_pressure: float = 350 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
     maximum_tank_pressure_to_acount_for_droop: float = nominal_tank_pressure / 0.75 # comes from the set pressure being higher than the nominal tank pressure to account for droop during burn
-    largest_possible_tank_pressure: float = (25 * c.PSI2PA) * round(maximum_tank_pressure_to_acount_for_droop / (25 * c.PSI2PA)) # relief valves sold in increments of 25 psi
+    maximum_allowable_tank_pressure: float = (25 * c.PSI2PA) * round(maximum_tank_pressure_to_acount_for_droop / (25 * c.PSI2PA)) # relief valves sold in increments of 25 psi
+    hydroproof_tank_pressure: float = maximum_allowable_tank_pressure * hydroproof_factor
     
     oxidizer_tank_pressure: float = nominal_tank_pressure     # The estimated required oxidizer tank pressure to sustain the combustion pressure in the engine [Pascals]
     fuel_tank_pressure: float = nominal_tank_pressure     # The estimated required fuel tank pressure to sustain the combustion pressure in the engine [Pascals]
