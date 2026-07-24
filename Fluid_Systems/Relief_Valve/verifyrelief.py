@@ -38,15 +38,16 @@ def calc_kd_and_orifice(inlet_size):
         raise ValueError("Invalid inlet size. Choose either 1/8, 1/4, 3/8, or 1/2.")
     return dia_in, Kd
 
-ambient_temp = 293 # [K] Most conservative for flow calcs
+ambient_temp = 300 # [K]
 ambient_pressure = 1 * c.ATM2PA
-set_pressure = 500 # [psia] 
+set_pressure = 475 # [psia] 
+overpressure = 1.1 # 10% overpressure for flow calcs
 inlet_size = "1/2" # Choose either 1/8, 1/4, 3/8, or 1/2
 
 dia_in, Kd = calc_kd_and_orifice(inlet_size)
-mdot, scfm = calc_flow_generant(set_pressure * 1.1, dia_in, Kd, ambient_temp * c.KELVIN2RANK) # Using 110% of nominal set pressure
+mdot, scfm = calc_flow_generant(set_pressure * overpressure, dia_in, Kd, ambient_temp * c.KELVIN2RANK) # Using 110% of nominal set pressure
 print("INPUT PARAMETERS")
-print(f"Input Pressure (110% of Nominal Set Pressure): {set_pressure * 1.1} psia")
+print(f"Input Pressure (110% of Nominal Set Pressure): {set_pressure * overpressure} psia")
 print(f"Input Temperature (Most conservative): {ambient_temp} K")
 print(f"Inlet Size: {inlet_size} in")
 print("OUTPUT PARAMETERS")
@@ -59,7 +60,7 @@ print(f"Max SCFM: {scfm:.2f} SCFM")
 scfm_values = []
 for inlet_size in inlet_sizes:
     dia_in, Kd = calc_kd_and_orifice(inlet_size)
-    mdot, scfm = calc_flow_generant(set_pressure * 1.1, dia_in, Kd, ambient_temp * c.KELVIN2RANK)
+    mdot, scfm = calc_flow_generant(set_pressure * overpressure, dia_in, Kd, ambient_temp * c.KELVIN2RANK)
     scfm_values.append(scfm)
 
 plt.plot(inlet_sizes, scfm_values, marker='o')
@@ -72,7 +73,7 @@ pressure_values = np.linspace(400, 1000, 100) # [psia]
 scfm_pressure_values = []
 for p in pressure_values:
     dia_in, Kd = calc_kd_and_orifice("1/2")
-    mdot, scfm = calc_flow_generant(p * 1.1, dia_in, Kd, ambient_temp * c.KELVIN2RANK)
+    mdot, scfm = calc_flow_generant(p * overpressure, dia_in, Kd, ambient_temp * c.KELVIN2RANK)
     scfm_pressure_values.append(scfm)
 
 plt.plot(pressure_values, scfm_pressure_values)
