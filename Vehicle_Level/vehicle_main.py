@@ -10,6 +10,7 @@ import vehicle_parameters
 import vehicle_parameters_functions
 import print_filter
 import constants as c
+import pressure_calculations
 
 import six_DoF_caller
 import rdof_v2
@@ -29,6 +30,8 @@ def vehicle_analysis():
     parameters = six_DoF_caller.main(parameters)
     parameters = rdof_v2.main(parameters)
     parameters, wet_mass_distribution = structural_loads.main(parameters, wet_mass_distribution)
+    
+    parameters = pressure_calculations.main(parameters)
     parameters = shear_bolted_joints.main(parameters)
 
     vehicle_parameters_functions.ExportObjectToCSV(parameters, PSPL_ROCKET_A_file_path)

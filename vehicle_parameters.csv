@@ -1,4 +1,4 @@
-# Accessed: 2026-07-19_02-14-51 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-07-21_22-42-42 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: Vehicle_Level/vehicle_main.py
 parameter_name,value
 yield_FoS,1.5
@@ -30,8 +30,8 @@ maximum_expected_burn_time,3.3962499999999998
 maximum_expected_jet_thrust,3668.40899619095
 nominal_tank_pressure,2413166.0
 maximum_tank_pressure_to_acount_for_droop,3217554.6666666665
-maximum_allowable_tank_pressure,3275011.0
-hydroproof_tank_pressure,4912516.5
+maximum_allowable_tank_pressure,3602512.1
+hydroproof_tank_pressure,5403768.15
 oxidizer_tank_pressure,2413166.0
 fuel_tank_pressure,2413166.0
 tank_outer_diameter,0.15239999999999998
@@ -77,13 +77,13 @@ one_DoF_estimated_apogee,819.9119737628168
 six_DoF_off_the_rail_TWR,
 six_DoF_off_the_rail_acceleration,
 six_DoF_off_the_rail_velocity,
-six_DoF_max_Q_acceleration,69.88365264306522
-six_DoF_max_Q_mach,0.6540535198539891
-six_DoF_max_Q_velocity,224.34035730991826
-six_DoF_max_Q_horizontal_velocity,49.43162018394115
-six_DoF_apogee_horizontal_velocity,41.7095151987689
+six_DoF_max_Q_acceleration,69.52399380340333
+six_DoF_max_Q_mach,0.6526182686794257
+six_DoF_max_Q_velocity,223.84806615704304
+six_DoF_max_Q_horizontal_velocity,18.29365977581291
+six_DoF_apogee_horizontal_velocity,14.031531087868805
 six_DoF_total_impulse,
-six_DoF_estimated_apogee,2791.468932229022
+six_DoF_estimated_apogee,2894.8508981301025
 wet_mass,47.51553774058722
 dry_mass,43.89414993098722
 total_length,3.3687766000000003
