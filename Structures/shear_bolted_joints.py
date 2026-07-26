@@ -293,7 +293,7 @@ def Calculate_Shear_Bolted_Joints(parameters):
 
     tank_wall_to_bulkhead_joint = ShearBoltedJoint(bolt_material = "Alloy Steel",
                                                    bolt_thread_size = "5/16\"",
-                                                   number_of_bolts = 24,
+                                                   number_of_bolts = 26,
                                                    shear_limit_load = bulkhead_max_limit_load,
                                                    joint_member_1 = tank_wall,
                                                    yield_FoS = parameters.yield_FoS,

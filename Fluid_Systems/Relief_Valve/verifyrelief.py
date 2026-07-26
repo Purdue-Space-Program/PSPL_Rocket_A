@@ -40,18 +40,18 @@ def calc_kd_and_orifice(inlet_size):
 
 ambient_temp = 300 # [K]
 ambient_pressure = 1 * c.ATM2PA
-set_pressure = 475 # [psia] 
-overpressure = 1.1 # 10% overpressure for flow calcs
-inlet_size = "1/2" # Choose either 1/8, 1/4, 3/8, or 1/2
+regulator_set_pressure = 475 # [psia] 
+relief_valve_overpressure_factor = 1.1 # 10% overpressure for flow calcs
+relief_valve_inlet_size = "1/2" # Choose either 1/8, 1/4, 3/8, or 1/2
 
-dia_in, Kd = calc_kd_and_orifice(inlet_size)
-mdot, scfm = calc_flow_generant(set_pressure * overpressure, dia_in, Kd, ambient_temp * c.KELVIN2RANK) # Using 110% of nominal set pressure
+diameter_inches, Kd = calc_kd_and_orifice(relief_valve_inlet_size)
+mdot, scfm = calc_flow_generant(regulator_set_pressure * relief_valve_overpressure_factor, diameter_inches, Kd, ambient_temp * c.KELVIN2RANK) # Using 110% of nominal set pressure
 print("INPUT PARAMETERS")
-print(f"Input Pressure (110% of Nominal Set Pressure): {set_pressure * overpressure} psia")
+print(f"Input Pressure (110% of Nominal Set Pressure): {regulator_set_pressure * relief_valve_overpressure_factor} psia")
 print(f"Input Temperature (Most conservative): {ambient_temp} K")
-print(f"Inlet Size: {inlet_size} in")
+print(f"Inlet Size: {relief_valve_inlet_size} in")
 print("OUTPUT PARAMETERS")
-print(f"Calculated Orifice Diameter: {dia_in} in")
+print(f"Calculated Orifice Diameter: {diameter_inches} in")
 print(f"Calculated Discharge Coefficient (Kd): {Kd}")
 print(f"Max Mass Flow Rate: {mdot:.2f} kg/s")
 print(f"Max SCFM: {scfm:.2f} SCFM")
@@ -72,8 +72,8 @@ plt.show()'''
 pressure_values = np.linspace(400, 1000, 100) # [psia]
 scfm_pressure_values = []
 for p in pressure_values:
-    dia_in, Kd = calc_kd_and_orifice("1/2")
-    mdot, scfm = calc_flow_generant(p * overpressure, dia_in, Kd, ambient_temp * c.KELVIN2RANK)
+    diameter_inches, Kd = calc_kd_and_orifice("1/2")
+    mdot, scfm = calc_flow_generant(p * relief_valve_overpressure_factor, diameter_inches, Kd, ambient_temp * c.KELVIN2RANK)
     scfm_pressure_values.append(scfm)
 
 plt.plot(pressure_values, scfm_pressure_values)
