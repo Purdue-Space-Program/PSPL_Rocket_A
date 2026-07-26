@@ -1,10 +1,10 @@
 import math
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import constants as c
 import numpy as np
 import matplotlib.pyplot as plt
+
+import sys,pathlib,collections,importlib.abc; r=next(p for p in pathlib.Path(__file__).resolve().parents if p.name=="PSPL_Rocket_A");   m=collections.defaultdict(list); [m[f.stem.casefold()].append(f) for f in r.rglob("*.py") if f.stem.isidentifier() and f.name != "__init__.py" and not (set(f.relative_to(r).parts)&{".git",".venv","__pycache__","build","dist"})]; dup={k:v for k,v in m.items() if   len(v)>1}; sys.meta_path.insert(0,type("AmbiguousBareImportBlocker",(importlib.abc.MetaPathFinder,),{"find_spec":lambda   self,fullname,path=None,target=None: (_ for _ in ()).throw(ImportError(f"The import {fullname!r} could refer to any following packages: "+" ".join("\n\t" + str(p.relative_to(r)) for p in dup[fullname.casefold()])+f"\n\nSpecify which package it is by using the folder.\nFor example:\n\t'import SFD.{fullname}'")) if "." not in fullname and fullname.casefold() in dup else None})()); sys.path.insert(0,str(r)) if str(r) not   in sys.path else None; [sys.path.append(str(v[0].parent)) for k,v in m.items() if k not in dup and str(v[0].parent) not in sys.path]
+import constants as c
+import verifyrelief
 
 Cv = 0.8
 P1 = 300 * c.BAR2PA * c.PA2PSI
@@ -12,7 +12,7 @@ T = 300 * c.KELVIN2RANK
 Gs = 0.967
 
 qdot = Cv * 13.61*P1*math.sqrt(1/(T*Gs))
-print(qdot)
+print(f"qdot: {qdot:.2f}")
 
 scfm_history = []
 pressure_history = np.linspace(3000, 5000, 100)

@@ -10,19 +10,19 @@ import vehicle_parameters
 import vehicle_parameters_functions
 import print_filter
 import constants as c
-import pressure_calculations
 
 import six_DoF_caller
 import rdof_v2
 import structural_loads
 import shear_bolted_joints
+import pressure_calculations
 
 
 def vehicle_analysis():
     
     repository_root_path, _ = vehicle_parameters_functions.Get_Repository_Root_Path()
 
-    PSPL_ROCKET_A_file_path = repository_root_path / Path(f"vehicle_parameters.csv")
+    PSPL_ROCKET_A_file_path = repository_root_path / Path("vehicle_parameters.csv")
     six_DoF_file_path = (repository_root_path / ".." / "PSPL-6DOF"/ "TheSixDoF").resolve()
     structures_analysis_file_path = (repository_root_path / "Structures_Analysis").resolve()
     
@@ -33,6 +33,10 @@ def vehicle_analysis():
     
     parameters = pressure_calculations.main(parameters)
     parameters = shear_bolted_joints.main(parameters)
+
+    parameters = pressure_calculations.main(parameters)
+
+    import stress_analysis
 
     vehicle_parameters_functions.ExportObjectToCSV(parameters, PSPL_ROCKET_A_file_path)
     vehicle_parameters_functions.ExportObjectToCSV(wet_mass_distribution, "wet_mass_distribution")

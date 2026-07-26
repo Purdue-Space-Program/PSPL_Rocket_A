@@ -4,12 +4,13 @@ import sys
 import sys,pathlib,collections,importlib.abc; r=next(p for p in pathlib.Path(__file__).resolve().parents if p.name=="PSPL_Rocket_A");   m=collections.defaultdict(list); [m[f.stem.casefold()].append(f) for f in r.rglob("*.py") if f.stem.isidentifier() and f.name != "__init__.py" and not (set(f.relative_to(r).parts)&{".git",".venv","__pycache__","build","dist"})]; dup={k:v for k,v in m.items() if   len(v)>1}; sys.meta_path.insert(0,type("AmbiguousBareImportBlocker",(importlib.abc.MetaPathFinder,),{"find_spec":lambda   self,fullname,path=None,target=None: (_ for _ in ()).throw(ImportError(f"The import {fullname!r} could refer to any following packages: "+" ".join("\n\t" + str(p.relative_to(r)) for p in dup[fullname.casefold()])+f"\n\nSpecify which package it is by using the folder.\nFor example:\n\t'import SFD.{fullname}'")) if "." not in fullname and fullname.casefold() in dup else None})()); sys.path.insert(0,str(r)) if str(r) not   in sys.path else None; [sys.path.append(str(v[0].parent)) for k,v in m.items() if k not in dup and str(v[0].parent) not in sys.path]
 
 from constants import *
-import Vehicle_Level.vehicle_parameters as v
+import Vehicle_Level.vehicle_parameters as vehicle
+import pressure_calculations
 
 ##### INPUT PARAMETERS #####
-inner_diameter = v.parameters.tank_inner_diameter # [m]
-wall_thickness = v.parameters.tank_wall_thickness # [m]
-tank_pressure = 930 * PSI2PA # [Pa]
+inner_diameter = vehicle.parameters.tank_inner_diameter # [m]
+wall_thickness = vehicle.parameters.tank_wall_thickness # [m]
+tank_pressure = vehicle.parameters.hydroproof_tank_pressure # [Pa]
 aluminum_6061_T6_yield_strength = 35000 * PSI2PA # [Pa]
 aluminum_6061_T6_ultimate_strength = 42000 * PSI2PA # [Pa]
 FoS_yield = 1.5

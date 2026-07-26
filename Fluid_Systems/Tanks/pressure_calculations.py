@@ -17,14 +17,14 @@ def Calculate_Pressure(parameters): # this is a separate function for reasons i 
         return(rounded_value)
     
     
-    droop_factor = 0.70 # our guess of our regulator's droop based on bzb data
+    droop_factor = 0.67 # our guess of our regulator's droop based on bzb data
     
     parameters.unfreeze()
     parameters.maximum_tank_pressure_to_acount_for_droop = parameters.nominal_tank_pressure / droop_factor # the set pressure is higher than the nominal tank pressure to account for droop that occurs when the run valves open and there is flow through the regulator
     
-    relief_valve_set_pressure = Round_Up_To_Nearest_Multiple(original_value = (parameters.maximum_tank_pressure_to_acount_for_droop + c.ATM2PA), 
+    relief_valve_set_pressure = Round_Up_To_Nearest_Multiple(original_value = (parameters.maximum_tank_pressure_to_acount_for_droop - c.ATM2PA), 
                                                              nearest_multiple = (50 * c.PSI2PA)
-                                                            ) - c.ATM2PA # relief valves sold in increments and in PSIG: https://www.globaltestsupply.com/product/generant-hprva-series-vent-to-atmosphere-high-pressure-relief-valve?cfrconfigurator_id=F172453&cfrkey=HPRVA-500B-T-500&cfrmodel=500B&cfrseal=T&cfrcrack=500
+                                                            ) + c.ATM2PA # relief valves sold in increments and in PSIG: https://www.globaltestsupply.com/product/generant-hprva-series-vent-to-atmosphere-high-pressure-relief-valve?cfrconfigurator_id=F172453&cfrkey=HPRVA-500B-T-500&cfrmodel=500B&cfrseal=T&cfrcrack=500
         
     parameters.maximum_allowable_regulator_droop_factor = parameters.nominal_tank_pressure / relief_valve_set_pressure  # the set pressure is higher than the nominal tank pressure to account for droop that occurs when the run valves open and there is flow through the regulator
 
@@ -38,7 +38,7 @@ def Calculate_Pressure(parameters): # this is a separate function for reasons i 
     output_table_data.append(("nominal_tank_pressure", f"{parameters.nominal_tank_pressure * c.PA2PSI:.2f} PSIA"))
     output_table_data.append(("maximum_tank_pressure_to_acount_for_droop", f"{parameters.maximum_tank_pressure_to_acount_for_droop * c.PA2PSI:.2f} PSIA"))
     output_table_data.append(("relief_valve_set_pressure", f"{relief_valve_set_pressure * c.PA2PSI:.2f} PSIA"))
-    output_table_data.append(("relief_valve_set_pressure", f"{(relief_valve_set_pressure + c.ATM2PA) * c.PA2PSI:.2f} PSIG"))
+    output_table_data.append(("relief_valve_set_pressure", f"{(relief_valve_set_pressure - c.ATM2PA) * c.PA2PSI:.2f} PSIG"))
     output_table_data.append(("maximum_allowable_regulator_droop_factor", f"{parameters.maximum_allowable_regulator_droop_factor * 100:.2f}%"))
     output_table_data.append(("maximum_allowable_tank_pressure", f"{parameters.maximum_allowable_tank_pressure * c.PA2PSI:.2f} PSIA"))
     output_table_data.append(("hydroproof_tank_pressure", f"{parameters.hydroproof_tank_pressure * c.PA2PSI:.2f} PSIA"))
