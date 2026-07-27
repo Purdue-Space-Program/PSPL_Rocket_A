@@ -14,7 +14,7 @@ tank_pressure = vehicle.parameters.hydroproof_tank_pressure # [Pa]
 aluminum_6061_T6_yield_strength = 35000 * PSI2PA # [Pa]
 aluminum_6061_T6_ultimate_strength = 42000 * PSI2PA # [Pa]
 FoS_yield = 1.5
-FoS_ultimate = 2
+FoS_ultimate = 1.75
 
 
 def calc_MoS(limit_load_stress, max_allowable_stress, FoS):
