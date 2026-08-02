@@ -9,7 +9,7 @@ import os
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from constants import *
-import Vehicle_Level.vehicle_parameters as vehicle
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 
 
 def calculatePressure(mass_g, initialTemperature_K, deltaTemperature_K, radius_in, length_in):
@@ -35,8 +35,8 @@ def main():
     cartridgeMass_g = 33
     roomTemperature_K = 273
     dropTemperature_K = -50
-    recoveryBayRadius_in = (vehicle.parameters.tube_inner_diameter*m_to_in)/2
-    recoveryBayLength_in = vehicle.parameters.recovery_bay_length*m_to_in + (vehicle.parameters.nosecone_length*m_to_in)/3
+    recoveryBayRadius_in = (vehicle_parameters.parameters.tube_inner_diameter*m_to_in)/2
+    recoveryBayLength_in = vehicle_parameters.parameters.recovery_bay_length*m_to_in + (vehicle_parameters.parameters.nosecone_length*m_to_in)/3
     print(f"recoveryBayLength_in: {recoveryBayLength_in:.2f}")
     recoveryBayPressure_psi = calculatePressure(cartridgeMass_g, roomTemperature_K, dropTemperature_K, recoveryBayRadius_in, recoveryBayLength_in)
     

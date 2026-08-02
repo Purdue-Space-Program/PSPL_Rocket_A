@@ -11,7 +11,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import Vehicle_Level.vehicle_parameters as vehicle
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 
 # Vector operations
 def magnitude(vector):
@@ -27,10 +27,10 @@ def normalize(vector):
         return vector
     return vector / mag
 
-rocket_dict_dry = vehicle.rocket_dict_dry
-parachute_mass = vehicle.parachute_mass  # [kg]
+rocket_dict_dry = vehicle_parameters.rocket_dict_dry
+parachute_mass = vehicle_parameters.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
-max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
+max_height = vehicle_parameters.parameters.six_DoF_estimated_apogee  # [m]
 
 # Mass Model
 def mass_model(rocket_dict, parachute_mass):
@@ -74,8 +74,8 @@ inertia = sfd.calcRotationalInertia(linear_density_array, length_along_rocket_li
 # ------------------------------------------------------------------------------
 
 # Import values
-apogee = vehicle.parameters.six_DoF_estimated_apogee
-max_q_velocity = vehicle.parameters.six_DoF_max_Q_velocity
+apogee = vehicle_parameters.parameters.six_DoF_estimated_apogee
+max_q_velocity = vehicle_parameters.parameters.six_DoF_max_Q_velocity
 wind_gust = pw.percentile_75_wind_gust_speed
 max_AOA = np.arctan(wind_gust / max_q_velocity)  # Maximum angle of attack based on wind gust and max velocity
 
@@ -90,7 +90,7 @@ drag_coefficient = 2.2  # Drag coefficient for a parachute, can vary
 gravity = np.array([0.0, -9.81, 0.0])  # Gravity vector [m/s^2]
 
 # Initial conditions
-initial_position = np.array([0.0, vehicle.parameters.six_DoF_estimated_apogee, 0.0])  # Starting at the estimated apogee [m]
+initial_position = np.array([0.0, vehicle_parameters.parameters.six_DoF_estimated_apogee, 0.0])  # Starting at the estimated apogee [m]
 initial_velocity = np.array([max_q_velocity * np.sin(max_AOA), 0.0, 0.0])  # Initial velocity vector based on max AOA and max velocity [m/s]
 initial_acceleration = gravity  # Initial acceleration (gravity) [m/s^2]
 initial_angular_acceleration = 0.0  # Initial angular acceleration [rad/s^2]

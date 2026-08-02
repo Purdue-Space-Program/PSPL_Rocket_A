@@ -16,7 +16,7 @@ import rdof_v2
 import structural_loads
 import shear_bolted_joints
 import pressure_calculations
-
+import stress_analysis
 
 def vehicle_analysis():
     
@@ -34,9 +34,8 @@ def vehicle_analysis():
     parameters = pressure_calculations.main(parameters)
     parameters = shear_bolted_joints.main(parameters)
 
-    parameters = pressure_calculations.main(parameters)
-
-    import stress_analysis
+    parameters = stress_analysis.main(parameters)
+    
 
     vehicle_parameters_functions.ExportObjectToCSV(parameters, PSPL_ROCKET_A_file_path)
     vehicle_parameters_functions.ExportObjectToCSV(wet_mass_distribution, "wet_mass_distribution")

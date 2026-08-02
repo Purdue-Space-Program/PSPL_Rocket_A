@@ -30,7 +30,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import Vehicle_Level.vehicle_parameters as vehicle
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 # ------------------------------------------------------------------------------
 
 # Vector operations
@@ -73,17 +73,17 @@ air_density = 1.225 # [kg / m^3]
 AOA = 0 # [radians]
 
 # VERY SCUFFED VELOCITY 
-max_q_velocity = vehicle.parameters.six_DoF_max_Q_velocity # [m / s] Velocity at max q
+max_q_velocity = vehicle_parameters.parameters.six_DoF_max_Q_velocity # [m / s] Velocity at max q
 wind_gust = pw.percentile_75_wind_gust_speed # [m / s] Assume constant wind gust
 max_q_AOA = sfd.calcAOA(wind_gust, max_q_velocity) # [radians] Angle of attack at max q
 velocity = max_q_velocity * np.sin(max_q_AOA) * xhat # [m / s] Adjusted velocity for AOA
-max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
+max_height = vehicle_parameters.parameters.six_DoF_estimated_apogee  # [m]
 position = np.array([0, max_height])  # [m] Initial position at apogee
 
 orientation = [1, 0] # Initial orientation of rocket in polar coordinates [magnitude, angle]
 
-rocket_dict_dry = vehicle.rocket_dict_dry # Dictionary of rocket components when dry
-parachute_mass = vehicle.parachute_mass  # [kg]
+rocket_dict_dry = vehicle_parameters.rocket_dict_dry # Dictionary of rocket components when dry
+parachute_mass = vehicle_parameters.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
 drag_coefficient = 2.2 # [-]
 canopy_area = ((14 * c.FT2M) / 2)**2 * np.pi # [m^2]

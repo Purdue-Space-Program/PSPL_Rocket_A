@@ -9,7 +9,7 @@ from scipy.io import savemat
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import Vehicle_Level.vehicle_parameters as vehicle
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 import constants as c
 
 try:
@@ -44,14 +44,14 @@ def norm(vector):
     return vector / mag
 
 # Input Parameters 
-rocket_dict_dry = vehicle.rocket_dict_dry
-parachute_mass = vehicle.parachute_mass  # [kg]
+rocket_dict_dry = vehicle_parameters.rocket_dict_dry
+parachute_mass = vehicle_parameters.parachute_mass  # [kg]
 recovery_bay_start = rocket_dict_dry["recovery_bay"]["bottom_distance_from_aft"]  # [m]
-max_height = vehicle.parameters.six_DoF_estimated_apogee  # [m]
+max_height = vehicle_parameters.parameters.six_DoF_estimated_apogee  # [m]
 
 # Scuffed velocity
-max_q_velocity = vehicle.parameters.six_DoF_max_Q_velocity # [m/s]
-AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle.parameters.six_DoF_max_Q_velocity) # [radians] # NEED
+max_q_velocity = vehicle_parameters.parameters.six_DoF_max_Q_velocity # [m/s]
+AOA_max_q = sfd.calcAOA(loads.max_q_wind_gust, vehicle_parameters.parameters.six_DoF_max_Q_velocity) # [radians] # NEED
 wind_gust_speed = parseWind.percentile_75_wind_gust_speed # [m/s]
 horizontal_velocity = max_q_velocity * np.sin(AOA_max_q) # [m/s] # NEED
 

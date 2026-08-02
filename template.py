@@ -11,10 +11,10 @@ import print_filter
 
 def Name_of_Script_Main_Function(parameters): # this is a separate function for reasons i dont remember but its important...
     
-    da code and stuff
-    da code and stuff
-    da code and stuff
-    da code and stuff
+    # da code and stuff
+    # da code and stuff
+    # da code and stuff
+    # da code and stuff
     
     return(parameters)
 

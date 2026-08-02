@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import constants as c
-import Vehicle_Level.vehicle_parameters as vehicle
+import Vehicle_Level.vehicle_parameters as vehicle_parameters
 import pandas as pd
 
 
@@ -101,7 +101,7 @@ def calculate_strains_stresses_contour(xchamb, ychamb, P_engine_arr, T_wg_arr, w
 
 
 
-xchamb, ychamb = chamber.nozzle_contour(vehicle.parameters.chamber_throat_diameter, chamber.expansion_ratio, chamber.Lstar, vehicle.parameters.contraction_ratio, chamber.con_angle, vehicle.parameters.chamber_inner_diameter, chamber.filename)
+xchamb, ychamb = chamber.nozzle_contour(vehicle_parameters.parameters.chamber_throat_diameter, chamber.expansion_ratio, chamber.Lstar, vehicle_parameters.parameters.contraction_ratio, chamber.con_angle, vehicle_parameters.parameters.chamber_inner_diameter, chamber.filename)
 xchamb = c.IN2M * xchamb
 ychamb = c.IN2M * ychamb
 
