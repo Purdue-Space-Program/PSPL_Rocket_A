@@ -17,4 +17,4 @@ tqdm
 pint
 pandas
 fluids
-
+tabulate

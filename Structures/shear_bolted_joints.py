@@ -16,20 +16,6 @@ import Vehicle_Level.vehicle_parameters as vehicle_parameters
 import Vehicle_Level.vehicle_main as vehicle_main
 import Vehicle_Level.print_filter as print_filter
 
-
-YELLOW = '\033[93m'
-RED = '\033[91m'
-BOLD = '\033[1m'
-ENDC = '\033[0m'
-GREEN = '\033[92m'
-
-def MoS_Text_Color(MoS):
-    if MoS >= 0:
-        text_color = GREEN
-    else:
-        text_color = RED
-    return(text_color)
-
 def Calculate_Circle_Area(diameter):
     circle_area = np.pi*((diameter/2)**2)
     return (circle_area)
@@ -215,10 +201,9 @@ def Calculate_Shear_Bolted_Joint(bolt_thread_size,
     clamped_material_bearing_yield_MoS = CalculateMoS(joint_member_1_maximum_allowable_bearing_yield_load, limit_shear_load_per_bolt, yield_FoS, fitting_factor)
     # print(f"\tdesign_shear_load_per_bolt ULTIMATE: {limit_shear_load_per_bolt*(parameters.ultimate_FoS*fitting_factor) * c.N2LBF}")
 
-    print(f"\t{MoS_Text_Color(bolt_shear_ultimate_MoS)}Bolt shear ultimate MoS: {bolt_shear_ultimate_MoS:.3f}{ENDC}", i_am_a_margin = True)
-    print(f"\t{MoS_Text_Color(clamped_material_bearing_ultimate_MoS)}Clamped material bearing ultimate MoS: {clamped_material_bearing_ultimate_MoS:.3f}{ENDC}", i_am_a_margin = True)
-    print(f"\t{MoS_Text_Color(clamped_material_bearing_yield_MoS)}Clamped material bearing yield MoS: {clamped_material_bearing_yield_MoS:.3f}{ENDC}", i_am_a_margin = True)
-
+    print("\t" + print_filter.Color_MoS_Text(bolt_shear_ultimate_MoS, f"Bolt shear ultimate MoS: {bolt_shear_ultimate_MoS:.3f}"), i_am_a_margin = True)
+    print("\t" + print_filter.Color_MoS_Text(clamped_material_bearing_ultimate_MoS, f"Clamped material bearing ultimate MoS: {clamped_material_bearing_ultimate_MoS:.3f}"), i_am_a_margin = True)
+    print("\t" + print_filter.Color_MoS_Text(clamped_material_bearing_yield_MoS, f"Clamped material bearing yield MoS: {clamped_material_bearing_yield_MoS:.3f}"), i_am_a_margin = True)
     print("", i_am_a_title = True)
 
     return (bolt_shear_ultimate_MoS, clamped_material_bearing_ultimate_MoS, clamped_material_bearing_yield_MoS)

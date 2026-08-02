@@ -1,4 +1,4 @@
-# Accessed: 2026-07-26_19-12-47 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-08-02_14-38-31 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: Vehicle_Level/vehicle_main.py
 parameter_name,value
 yield_FoS,1.5
@@ -77,13 +77,13 @@ one_DoF_estimated_apogee,819.9119737628168
 six_DoF_off_the_rail_TWR,
 six_DoF_off_the_rail_acceleration,
 six_DoF_off_the_rail_velocity,
-six_DoF_max_Q_acceleration,69.83420537185782
-six_DoF_max_Q_mach,0.6513192640733407
-six_DoF_max_Q_velocity,223.40250757715586
-six_DoF_max_Q_horizontal_velocity,27.30758793441191
-six_DoF_apogee_horizontal_velocity,23.8049774795224
+six_DoF_max_Q_acceleration,70.35413970185697
+six_DoF_max_Q_mach,0.6544327200236989
+six_DoF_max_Q_velocity,224.47042296812873
+six_DoF_max_Q_horizontal_velocity,27.586145572707373
+six_DoF_apogee_horizontal_velocity,22.966543864607015
 six_DoF_total_impulse,
-six_DoF_estimated_apogee,2907.032086892182
+six_DoF_estimated_apogee,2891.3099869870816
 wet_mass,47.51553774058722
 dry_mass,43.89414993098722
 total_length,3.3687766000000003

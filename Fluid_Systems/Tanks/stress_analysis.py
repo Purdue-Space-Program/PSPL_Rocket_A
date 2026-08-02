@@ -5,17 +5,18 @@ import sys,pathlib,collections,importlib.abc; r=next(p for p in pathlib.Path(__f
 
 from constants import *
 import pressure_calculations
-
+import vehicle_parameters
+import print_filter
 
 def Calculate_Tank_Stress(parameters): # this is a separate function for reasons i dont remember but its important...
     ##### INPUT PARAMETERS #####
     inner_diameter = parameters.tank_inner_diameter # [m]
     wall_thickness = parameters.tank_wall_thickness # [m]
-    tank_pressure = parameters.hydroproof_tank_pressure # [Pa]
+    limit_load_tank_pressure = parameters.hydroproof_tank_pressure # [Pa]
     aluminum_6061_T6_yield_strength = 35000 * PSI2PA # [Pa]
     aluminum_6061_T6_ultimate_strength = 42000 * PSI2PA # [Pa]
-    FoS_yield = parameters.
-    FoS_ultimate = 2
+    FoS_yield = parameters.yield_FoS
+    FoS_ultimate = parameters.ultimate_FoS
 
 
     def calc_MoS(limit_load_stress, max_allowable_stress, FoS):
@@ -27,22 +28,19 @@ def Calculate_Tank_Stress(parameters): # this is a separate function for reasons
         material_stress = pressure * (inner_diameter/2) / thickness
         return material_stress
 
-    limit_load_stress = calc_hoop_stress(tank_pressure, inner_diameter, wall_thickness)
+    limit_load_stress = calc_hoop_stress(limit_load_tank_pressure, inner_diameter, wall_thickness)
 
     MoS_yield = calc_MoS(limit_load_stress, aluminum_6061_T6_yield_strength, FoS_yield)
     MoS_ultimate = calc_MoS(limit_load_stress, aluminum_6061_T6_ultimate_strength, FoS_ultimate)
 
+    print(f"Limit Load Tank Pressure: {limit_load_tank_pressure * PA2PSI:.2f} psi")
+    print(f"Limit Load Tank Hoop Stress: {limit_load_stress * PA2PSI / 1000:.1f} ksi")
+    
     print(f"\nYield FoS: {FoS_yield}, Ultimate FoS: {FoS_ultimate}")
-    print(f"Tank Pressure: {tank_pressure * PA2PSI:.2f} psi")
-
-    print(f"Tank Hoop Stress: {limit_load_stress * PA2PSI / 1000:.1f} ksi")
-    print(f"\nYield stress MoS: {MoS_yield:.3f}")
-    print(f"Ultimate stress MoS: {MoS_ultimate:.3f}")
+    print(f"\n{print_filter.Color_MoS_Text(MoS_yield, f"Yield stress MoS: {MoS_yield:.4f}")}, {print_filter.Color_MoS_Text(MoS_ultimate, f"Ultimate stress MoS: {MoS_ultimate:.4f}")}")
     print(f"Pressure at which there is zero margin for yield stress: {aluminum_6061_T6_yield_strength / FoS_yield * (2 * wall_thickness / inner_diameter) * PA2PSI:.1f} psi")
     print(f"Tank explodes at (Pressure at which there is zero margin for ultimate stress) {aluminum_6061_T6_ultimate_strength / FoS_ultimate * (2 * wall_thickness / inner_diameter) * PA2PSI:.1f} psi")
-    
-    
-    
+        
     return(parameters)
 
 def main(parameters):
