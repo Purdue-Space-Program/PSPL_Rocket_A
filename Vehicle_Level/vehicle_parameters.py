@@ -15,7 +15,7 @@ class VehicleParameters:
     # factors of shit
     yield_FoS: float = 1.5
     ultimate_FoS: float = 2.0
-    hydroproof_factor: float = 1.5
+    hydroproof_factor: float = 1.4 # Prototype Qualification Test Factor: https://standards.nasa.gov/sites/default/files/standards/NASA/B-w/CHANGE-3/3/2022-10-24-NASA-STD-5001B-w-Change-3-Approved.pdf
 
     # General Parameters
     fuel_name: str = "isopropyl alcohol" 

@@ -1,9 +1,9 @@
-# Accessed: 2026-08-02_14-38-31 (format: YYYY-MM-DD_HH-MM-SS)
+# Accessed: 2026-08-02_15-06-15 (format: YYYY-MM-DD_HH-MM-SS)
 # Accessed by: Vehicle_Level/vehicle_main.py
 parameter_name,value
 yield_FoS,1.5
 ultimate_FoS,2.0
-hydroproof_factor,1.5
+hydroproof_factor,1.4
 fuel_name,isopropyl alcohol
 oxidizer_name,oxygen
 pressurant_name,nitrogen
@@ -31,7 +31,7 @@ maximum_expected_jet_thrust,3668.40899619095
 nominal_tank_pressure,2413166.0
 maximum_tank_pressure_to_acount_for_droop,3601740.2985074623
 maximum_allowable_tank_pressure,4282787.300000001
-hydroproof_tank_pressure,6424180.950000001
+hydroproof_tank_pressure,5995902.220000001
 oxidizer_tank_pressure,2413166.0
 fuel_tank_pressure,2413166.0
 tank_outer_diameter,0.15239999999999998
