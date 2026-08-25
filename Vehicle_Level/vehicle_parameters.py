@@ -295,8 +295,8 @@ def Setup_Vehicle_Parameters(show_plots = False, print_outputs = False, print_co
         bulkhead_top_thickness = 0.76 * c.IN2M
 
         bulkhead_mass =  c.DENSITY_AL * (
-            (Calculate_Cylinder_Volume(propellant_tank_outer_diameter, parameters.tank_bulkhead_length) - 
-            Calculate_Cylinder_Volume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), parameters.tank_bulkhead_length - bulkhead_top_thickness))
+            Calculate_Cylinder_Volume(propellant_tank_outer_diameter, parameters.tank_bulkhead_length) - 
+            Calculate_Cylinder_Volume(propellant_tank_outer_diameter - (2 * bulkhead_wall_thickness), parameters.tank_bulkhead_length - bulkhead_top_thickness)
         )
     else:
         bulkhead_mass = 1.971 * c.LBM2KG # [lbm] measured CAD value

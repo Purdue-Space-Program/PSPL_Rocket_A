@@ -22,3 +22,8 @@ tempCodeRunnerFile.py
 .vscode/settings.json
 .vscode/c_cpp_properties.json
 CEA_Wrap_error.out
+SFD/rfd_outputs_recovery.mat
+SFD/sfd_outputs_max_q.mat
+Structures/Structural_Loads/structural_loads.mat
+Structures/Structural_Loads/vehicle_parameters.mat
+Structures/Structural_Loads/wet_mass_distribution.mat
