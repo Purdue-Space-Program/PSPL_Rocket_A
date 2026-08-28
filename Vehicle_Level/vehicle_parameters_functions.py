@@ -6,7 +6,7 @@ from datetime import datetime
 import inspect
 import io
 from dataclasses import dataclass, fields, field, make_dataclass, asdict
-import scipy.io as sio 
+import scipy.io as sio
 import numpy as np
 import vehicle_parameters as vehicle_parameters
 
@@ -15,15 +15,15 @@ from vehicle_parameters import VehicleParameters, MassComponent, MassDistributio
 
 def load_matlab_struct_as_dataclass(file_path_string):
     weird_matlab_struct = sio.loadmat(file_path_string, struct_as_record=False, squeeze_me=True, simplify_cells=False)
-    
+
     matlab_struct_name = list(weird_matlab_struct)[-1]
     normal_matlab_data_struct = weird_matlab_struct[matlab_struct_name]
 
-    
+
     # for field_name in normal_matlab_data_struct._fieldnames:
-    #     print(f"field_name: {field_name}")    
-    
-    
+    #     print(f"field_name: {field_name}")
+
+
     # the_dataclass = make_dataclass(
     #     matlab_struct_name,
     #     [(normal_matlab_data_struct._fieldnames, type(field_values_dictionary[field_name])) for field_name in field_values_dictionary]
@@ -88,7 +88,7 @@ def ExportObjectToCSV(object, export_file_path):
         export_file_path = export_file_path.with_suffix(".csv")
     # if not export_file_path.is_absolute():
     #     export_file_path = repository_root_path / export_file_path
-    
+
 
     try:
         caller_file_path = Path(caller_file_path.relative_to(repository_root_path).as_posix())
@@ -100,15 +100,15 @@ def ExportObjectToCSV(object, export_file_path):
 
 
     with open(export_file_path, "w", newline="", encoding="utf-8") as csv_file_handle:
-        
+
         csv_writer_handle = csv.writer(csv_file_handle)
 
         # fuck epoch
-        csv_file_handle.write(f"# Accessed: {timestamp_string} (format: YYYY-MM-DD_HH-MM-SS)\n")
-        csv_file_handle.write(f"# Accessed by: {caller_file_path.as_posix()}\n")
-        
+        csv_file_handle.write(f"# Accessed: {timestamp_string} (format: YYYY-MM-DD_HH-MM-SS), ")
+        csv_file_handle.write(f" Accessed by: {caller_file_path.as_posix()}\n")
+
         csv_writer_handle.writerow(["parameter_name", "value"])
-        
+
         if isinstance(object, VehicleParameters) or isinstance(object, MassDistribution):
 
             for field_object in fields(object):
@@ -239,5 +239,5 @@ def Get_Repository_Root_Path():
             text=True,
         ).strip()
     ).resolve()
-    
+
     return(repository_root_path, selected_path)
