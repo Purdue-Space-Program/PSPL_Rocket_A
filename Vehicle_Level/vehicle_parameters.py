@@ -52,7 +52,7 @@ class VehicleParameters:
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
     nominal_tank_pressure: float = 350 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
-    maximum_tank_pressure_to_acount_for_droop: float = None
+    maximum_tank_pressure_to_account_for_droop: float = None
     maximum_allowable_tank_pressure: float = None
     hydroproof_tank_pressure: float = None
     
