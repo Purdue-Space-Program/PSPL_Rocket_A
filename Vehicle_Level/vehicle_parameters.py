@@ -52,6 +52,7 @@ class VehicleParameters:
     # Tank Parameters
     # FYI the sizing of the tanks accounted for tank ullages and propellant residuals, so (burn_time * mass_flow_rate) will not equal total_propellant_mass.
     nominal_tank_pressure: float = 350 * c.PSI2PA     # The estimated required tank pressure to sustain the combustion pressure in the engine [Pascals]
+    maximum_allowable_regulator_droop_factor: float = None
     maximum_tank_pressure_to_account_for_droop: float = None
     maximum_allowable_tank_pressure: float = None
     hydroproof_tank_pressure: float = None
@@ -101,6 +102,7 @@ class VehicleParameters:
     fin_top: float = None # the location of the top of the fin
 
     # 1-DoF Results:
+    one_DoF_off_the_rail_time: float = None                          # The time when the bottom of the rocket is at the top of the launch rail [seconds]
     one_DoF_off_the_rail_TWR: float = 7.43                         # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     one_DoF_off_the_rail_acceleration: float = 6.43 * c.STANDARD_GRAVITY    # The target acceleration of the rocket off the launch rail [standard gravities]
     one_DoF_off_the_rail_velocity: float = 27.64                   # The target velocity of the rocket off the launch rail [meters/second]
@@ -113,6 +115,7 @@ class VehicleParameters:
     one_DoF_estimated_apogee: float = 2690 * c.FT2M                # The estimated 1-DoF altitude [meters]
 
     # 6-DoF results:
+    six_DoF_off_the_rail_time: float = None                          # The time when the bottom of the rocket is at the top of the launch rail [seconds]
     six_DoF_off_the_rail_TWR: float = None                          # The target thrust-to-weight ratio of the rocket off the launch rail [dimensionless]
     six_DoF_off_the_rail_acceleration: float = None  # The target acceleration of the rocket off the launch rail [standard gravities]
     six_DoF_off_the_rail_velocity: float = None                   # The target velocity of the rocket off the launch rail [meters/second]
@@ -160,6 +163,9 @@ class VehicleParameters:
         object.__setattr__(self, "_frozen", False)
 
     def __setattr__(self, name, value):
+        if name not in self.__dataclass_fields__:
+            raise AttributeError(f"VehicleParameters has no attribute '{name}'")
+        
         if getattr(self, "_frozen", False) and name != "_frozen":
             raise AttributeError("The vehicle parameters are frozen, you cannot change values, to unfreeze it use:\n\tparameters.unfreeze()\nAnd then to refreeze:\n\tparameters.freeze()")
         super().__setattr__(name, value)

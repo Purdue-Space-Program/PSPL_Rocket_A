@@ -94,6 +94,7 @@ def run_six_DoF(parameters):
     six_DoF_output = vehicle_parameters_functions.load_matlab_struct_as_dataclass(six_DoF_file_path / "output.mat")
 
     parameters.unfreeze()
+    parameters.six_DoF_off_the_rail_time = six_DoF_output.off_the_rail_time
     # parameters.six_DoF_off_the_rail_acceleration = six_DoF_output.
     # parameters.six_DoF_off_the_rail_velocity = six_DoF_output.
     # parameters.six_DoF_max_acceleration = six_DoF_output.
