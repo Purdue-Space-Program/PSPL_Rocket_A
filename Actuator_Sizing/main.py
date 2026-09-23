@@ -61,22 +61,33 @@ def calc_net_force(piston_force, piston_seal_length, shaft_seal_length, piston_s
         print(f"F_net: {f_net * N2LBF:.2f} LBF")
     return f_net
 
-def calc_volumetric_flow(volume_swept_history, time_history, outputs):
+def calc_volumetric_flow(volume_swept_history, time_history, outputs, operating_pressure_psig):
     volumetric_flow_history = []
     time_step = time_history[1] - time_history[0] if len(time_history) > 1 else 0
     volumetric_flow_history.append(0)
+
+    P_standard = 14.7  # psia
+    P_actual = operating_pressure_psig + 14.7
+
     for i in range(1, len(volume_swept_history)):
         volumetric_flow = (volume_swept_history[i] - volume_swept_history[i-1]) / time_step
-        volumetric_flow_history.append(volumetric_flow)
+        volumetric_flow_scfm = volumetric_flow * 2118.88 * (P_actual / P_standard) # Convert to SCFM
+        volumetric_flow_history.append(volumetric_flow_scfm)
+
     if outputs == 1:
         plt.subplot(2, 1, 1)
         plt.plot(volume_swept_history, volumetric_flow_history)
+        plt.xlabel("Volume Swept [m^3]")
+        plt.ylabel("Volumetric Flow [SCFM]")
         plt.title("Volume vs Volumetric Flow")
         plt.subplot(2, 1, 2)
         plt.plot(time_history, volumetric_flow_history)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Volumetric Flow [SCFM]")
         plt.title("Time vs Volumetric Flow")
         plt.tight_layout()
         plt.show()
+    
     return volumetric_flow_history, time_history
 
 def calc_torque_piston(braking_torque, safety_factor, piston_force, piston_stroke_length, outputs):
@@ -224,5 +235,4 @@ elif piston.lower() == "real":
     volume_swept_history, time_history, angle_history, time = actuation_time_kinematics_real(f_net, rod_mass, piston_diameter, arm_length, outputs)
 else:
     print('Invalid piston chosen')
-volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history, outputs)
-
+volumetric_flow_history, time_history = calc_volumetric_flow(volume_swept_history, time_history, outputs, operating_pressure_psig=pressure*PA2PSI)
