@@ -84,9 +84,9 @@ class VehicleParameters:
     injector_length: float =       1.01 * c.IN2M
     lower_length: float =          20 * c.IN2M
     tank_bulkhead_length: float =       1.22 * c.IN2M
-    mid_length: float =            8 * c.IN2M
+    mid_length: float =            10 * c.IN2M
 
-    upper_length: float =          33 * c.IN2M
+    upper_length: float =          37 * c.IN2M
     recovery_bay_length: float =   30 * c.IN2M
     nosecone_length: float =       15 * c.IN2M
 
