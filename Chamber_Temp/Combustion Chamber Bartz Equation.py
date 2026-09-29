@@ -157,7 +157,7 @@ def main():
     R_grid = (station_inner_radii[:, None] + wall_depths[None, :]) * c.M2IN
 
 
-    #I used AI to plot this graph
+    #I used AI to plot this graph lol idk syntax
     fig, ax = plt.subplots(figsize=(11, 4.5))
     field = ax.pcolormesh(X_grid, R_grid, wall_temps, shading="gouraud", cmap="inferno", vmin=300)
     ax.contour(X_grid, R_grid, wall_temps, levels=[ISOTHERM_TEMP], colors="deepskyblue", linewidths=1.5)
