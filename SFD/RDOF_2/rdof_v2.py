@@ -275,7 +275,7 @@ def plot(subplot, x_vectors, y_vectors, title, x_label, y_label, legends=['']):
     if legends != ['']:
         subplot.legend()
 
-def simulate_recovery(parameters, show_plots = False):       
+def simulate_recovery(parameters, show_plots = True):       
     
     # Plot styling
     plt.rcParams['lines.linewidth'] = 0.5
@@ -714,7 +714,7 @@ def simulate_recovery(parameters, show_plots = False):
 
 
 def main(parameters):
-    parameters = simulate_recovery(parameters, show_plots=False)
+    parameters = simulate_recovery(parameters, show_plots=True)
     return(parameters)
 
 if __name__ == "__main__":

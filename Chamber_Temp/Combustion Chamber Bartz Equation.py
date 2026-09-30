@@ -1,5 +1,6 @@
 from math import exp, erfc, erf, pi
 from scipy.optimize import fsolve
+from scipy.linalg import solve_banded # EDIT: added for the wall conduction solve
 from dataclasses import dataclass
 
 import sys
@@ -8,7 +9,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ChamberContour", "chamber_contour_meters.csv"))
+
+chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Chamber_Contour", "chamber_contour_meters.csv"))
+
+#MORE CONSERVATIVE O/F Ratio
+OF_RATIO = 0.77 
+ISOTHERM_TEMP = 500 #Kelvin
 
 
 import Vehicle_Level.vehicle_parameters as vehicle_parameters
@@ -46,7 +52,7 @@ def main():
     T_static_total = np.zeros_like(station_area_ratios) #static temperature at each axial position
     c_visc_total = np.zeros_like(station_area_ratios) #dynamic viscosity at each axial position
 
-    cea_results = RunCEA(parameters.chamber_pressure, "ipa", "liquid oxygen", parameters.OF_ratio)
+    cea_results = RunCEA(parameters.chamber_pressure, "ipa", "liquid oxygen", OF_RATIO) # EDIT: was parameters.OF_ratio
 
     #now calculating Mach number, heat transfer coefficient, and surface temperature at each position along the chamber length
     for station_index, A_ratio in enumerate(station_area_ratios):
@@ -131,9 +137,53 @@ def main():
         P_total[station_index] = P_loc
         c_visc_total[station_index] = visc_loc
 
-            
 
-    #plots
+    ###NEW#####
+    #trying to see how the heat penetrates into the wall thickness at each station, using transient conduction through the wall thickness
+    wall_thickness = (parameters.chamber_outer_diameter - parameters.chamber_inner_diameter) / 2 #wall thickness (m)
+    wall_depths, wall_temps = wall_temperature_field(
+        h_values = h_total,
+        T_aw_values = T_infinty_total,
+        inner_radii = station_inner_radii,
+        wall_thickness = wall_thickness,
+        k = 51.9, #thermal conductivity of the chamber wall material (W/(m*K)) #1018 Steel
+        t = parameters.burn_time #s, burn time
+    )
+    isotherm_depths = isotherm_depth(wall_depths, wall_temps, ISOTHERM_TEMP)
+
+    #temperature field in the wall at the end of the burn (x_relative puts the throat at 0)
+    #Doesnt include the temp after burn 
+    X_grid = np.repeat(x_relative[:, None], len(wall_depths), axis=1) * c.M2IN
+    R_grid = (station_inner_radii[:, None] + wall_depths[None, :]) * c.M2IN
+
+
+    #I used AI to plot this graph
+    fig, ax = plt.subplots(figsize=(11, 4.5))
+    field = ax.pcolormesh(X_grid, R_grid, wall_temps, shading="gouraud", cmap="inferno", vmin=300)
+    ax.contour(X_grid, R_grid, wall_temps, levels=[ISOTHERM_TEMP], colors="deepskyblue", linewidths=1.5)
+    ax.plot([], [], color="deepskyblue", label=f"{ISOTHERM_TEMP} K isotherm")
+    fig.colorbar(field, ax=ax, label="Temperature (K)", shrink=0.8)
+    ax.set_xlabel("Axial Position Relative to Throat (in)")
+    ax.set_ylabel("Radius (in)")
+    ax.set_title(f"Final Wall Temperature Field with Isotherm (t = {parameters.burn_time} s, OF = {OF_RATIO})")
+    ax.set_aspect("equal")
+    ax.legend(loc="upper right")
+    plt.tight_layout()
+    plt.show()
+
+    plt.figure()
+    for T_iso in [350, 400, ISOTHERM_TEMP]:
+        plt.plot(x_relative * c.M2IN, isotherm_depth(wall_depths, wall_temps, T_iso) * c.M2IN, label=f"{T_iso} K isotherm depth")
+    plt.axhline(wall_thickness * c.M2IN, color="gray", linewidth=1, label="Wall thickness")
+    plt.xlabel("Axial Position Relative to Throat (in) ")
+    plt.ylabel("Depth Into Wall (in) ")
+    plt.title("Heat Penetration Depth vs Axial Position")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    # EDIT (end)
+
+    #plots for additional outputs
     plt.figure()
     plt.plot(station_depths * c.M2IN, Temp_surface_total)
     plt.xlabel("Axial Position Relative to Throat (in) ")
@@ -217,6 +267,10 @@ def main():
     print("max temp in Kelvin:", max(Temp_surface_total))
     print("max heat transfer coefficient:", max(h_total))
     print("combustion temp", cea_results["c_t"])
+    #Wall conduction stuff
+    print("max wall inner surface temp from conduction solve (K):", wall_temps[:, 0].max())
+    print("max wall outer surface temp from conduction solve (K):", wall_temps[:, -1].max())
+    print(f"max {ISOTHERM_TEMP} K isotherm depth (in):", isotherm_depths.max() * c.M2IN)
 
     
     #saving data to csvs
@@ -275,7 +329,7 @@ def RunCEA(
 
     cea_results = rocket.run()
 
-    print ("CEA result keys:", list(cea_results.keys()))
+    #print ("CEA result keys:", list(cea_results.keys()))
 
     return{
         "gamma": cea_results.c_gamma,
@@ -363,7 +417,61 @@ def viscosity_calc(T, T_ref, mu_ref, S):
 
     mu = mu_ref * ((T / T_ref) ** 1.5) * ((T_ref + S) / (T + S))
 
-    return mu  
+    return mu
+
+
+def wall_temperature_field(h_values, T_aw_values, inner_radii, wall_thickness, k, t, n_nodes = 60, n_steps = 500):
+    # 1D transient radial conduction through the wall at each station (implicit finite volume)
+    # inner wall: convection from the hot gas, outer wall: adiabatic (heat stays in the wall, conservative)
+    Ti = 300 #K, initial temperature of the chamber wall
+    alpha = thermal_diffusivity_calc(k) #thermal diffusivity of the chamber wall material (m^2/s)
+    dt = t / n_steps #time step (s)
+    dr = wall_thickness / (n_nodes - 1) #radial node spacing (m)
+    depths = np.linspace(0, wall_thickness, n_nodes) #depth into the wall from the inner surface (m)
+
+    temps = np.zeros((len(inner_radii), n_nodes))
+    for station_index, r_inner in enumerate(inner_radii):
+        r = r_inner + depths
+        r_face = r[:-1] + dr / 2 #radii of the faces between nodes (m)
+
+        volume = r * dr #per radian per unit length (m^2)
+        volume[0] = (r[0] + dr / 4) * dr / 2 #half cells at the boundaries
+        volume[-1] = (r[-1] - dr / 4) * dr / 2
+        storage = volume / (alpha * dt) #(m^2 / (m^2/s * s)) -> multiplies T, conduction terms divided by k
+        conductance = r_face / dr
+
+        # banded matrix (upper, main, lower) for the implicit step
+        bands = np.zeros((3, n_nodes))
+        bands[1] = storage
+        bands[1, :-1] += conductance
+        bands[1, 1:] += conductance
+        bands[0, 1:] = -conductance
+        bands[2, :-1] = -conductance
+        convection = h_values[station_index] * r_inner / k
+        bands[1, 0] += convection
+
+        T = np.full(n_nodes, float(Ti))
+        for _ in range(n_steps):
+            rhs = storage * T
+            rhs[0] += convection * T_aw_values[station_index]
+            T = solve_banded((1, 1), bands, rhs)
+        temps[station_index] = T
+
+    return depths, temps
+
+
+def isotherm_depth(depths, temps, T_iso):
+    # depth where the wall temperature drops below T_iso at each station (0 if the surface is below T_iso)
+    iso_depths = np.zeros(temps.shape[0])
+    for station_index, T in enumerate(temps):
+        if T[0] < T_iso:
+            continue
+        if T[-1] >= T_iso:
+            iso_depths[station_index] = depths[-1]
+            continue
+        below = np.argmax(T < T_iso)
+        iso_depths[station_index] = np.interp(T_iso, [T[below], T[below - 1]], [depths[below], depths[below - 1]])
+    return iso_depths
 
 
 if __name__ == "__main__":

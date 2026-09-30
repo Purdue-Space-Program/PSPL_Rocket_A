@@ -18,3 +18,6 @@ pint
 pandas
 fluids
 tabulate
+openmeteo_requests
+requests_cache
+retry_requests
