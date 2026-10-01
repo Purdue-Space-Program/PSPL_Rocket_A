@@ -176,8 +176,22 @@ xlabel('Chamber Depth [m]')
 ylabel('Stress [Pa]')
 legend('Hoop Stress', 'Max Stress', 'Target Stress', 'Location','southwest')
 
-% Total Stress
+% Thermal Stress
 figure(5); clf;
+hold on; grid on;
+
+plot(x_mid, hoop_thermal, 'Color', '[0 0.2 0.9]', 'LineWidth', 1)
+plot(x_mid, max_stress, 'Color', '[0 0.3 0.7]', 'LineWidth', 1, 'LineStyle','--')
+plot(x_mid, rec_stress, 'Color', '[0 0.6 0.9]', 'LineWidth', 1, 'LineStyle','--')
+xline(x_mid(hoop_index), 'Color', 'black', 'LineStyle', ':','Label','Thick to Thin Wall Hoop Stress')
+
+title('Hoop Stress Over Chamber Contour')
+xlabel('Chamber Depth [m]')
+ylabel('Stress [Pa]')
+legend('Thermal Stress', 'Max Stress', 'Target Stress', 'Location','southwest')
+
+% Total Stress
+figure(6); clf;
 hold on; grid on;
 
 plot(x_mid(1:end-150), tot_stress(1:end-150), 'Color', '[0.1 0.4 0.5]', 'LineWidth', 1)
@@ -200,7 +214,8 @@ fprintf("Total wall mass at design thickness: %.2f kg\n", sum(sec_mass));
 
 
 % --- EXPORTS ---
-exportgraphics(figure(5), fullfile(outputFolder, 'total_stress.png'))
+exportgraphics(figure(6), fullfile(outputFolder, 'total_stress.png'))
+exportgraphics(figure(5), fullfile(outputFolder, 'thermal_stress.png'))
 exportgraphics(figure(4), fullfile(outputFolder, 'hoop_stress.png'))
 exportgraphics(figure(3), fullfile(outputFolder, 'chamber_cross_section.png'))
 exportgraphics(figure(2), fullfile(outputFolder, 'biot_number.png'))
