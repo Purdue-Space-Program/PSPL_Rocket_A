@@ -233,7 +233,7 @@ def actuation_time_kinematics_flow_limited_real(rod_mass, piston_diameter, arm_l
     chamber_mass = (P_ATM_PA * dead_volume_m3) / (R_SPECIFIC_N2 * T_K)
  
     time = 0
-    time_step = 0.0001
+    time_step = 0.00001
     max_time = 5.0  # safety cutoff in case Cv/force balance never reaches 90 deg
     piston_velocity = 0
     dist_travelled = 0
@@ -347,9 +347,9 @@ elif piston.lower() == "real":
     force_valve = braking_torque * np.sqrt(2) / arm_length
     friction_total = -calc_net_force(0, piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, 0, 0)
 
-    # Solenoid constants
-    Cv = 1
-    dead_volume_m3 = 0.5 * IN2M**3  # PLACEHOLDER - replace with actual tubing+fitting+clearance volume
+    # Constants
+    Cv = 0.06 # Cv for BCLS N2 Regulator (Should be the bottleneck)
+    dead_volume_m3 = 0.5 * IN2M**3  # PLACEHOLDER - replace with actual tubing+fitting+clearance volume in in^3
     T_ambient_R = 530  # PLACEHOLDER - 70F, replace if you know actual ambient/supply gas temp
 
     volume_swept_history, time_history, angle_history, time, chamber_pressure_history, flow_scfm_history = actuation_time_kinematics_flow_limited_real(

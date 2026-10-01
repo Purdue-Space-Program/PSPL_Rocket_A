@@ -103,9 +103,9 @@ def ExportObjectToCSV(object, export_file_path):
 
         csv_writer_handle = csv.writer(csv_file_handle)
 
-        # fuck epoch
-        csv_file_handle.write(f"# Accessed: {timestamp_string} (format: YYYY-MM-DD_HH-MM-SS), ")
-        csv_file_handle.write(f" Accessed by: {caller_file_path.as_posix()}\n")
+        # # fuck epoch
+        # csv_file_handle.write(f"# Accessed: {timestamp_string} (format: YYYY-MM-DD_HH-MM-SS), ")
+        # csv_file_handle.write(f" Accessed by: {caller_file_path.as_posix()}\n")
 
         csv_writer_handle.writerow(["parameter_name", "value"])
 
