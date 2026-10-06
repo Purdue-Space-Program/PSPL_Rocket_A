@@ -83,7 +83,7 @@ biot_index = min(find(biot > 0.1));
 
 % [kg] Engine Mass 
 sec_vol  = A_sec .* Lc_build;
-sec_mass = steel_rho * sec_vol; 
+sec_mass = steel_rho * sec_vol;
 
 % -- HOOP STRESS --
 % Inputs
@@ -194,9 +194,9 @@ legend('Thermal Stress', 'Max Stress', 'Target Stress', 'Location','southwest')
 figure(6); clf;
 hold on; grid on;
 
-plot(x_mid(1:end-150), tot_stress(1:end-150), 'Color', '[0.1 0.4 0.5]', 'LineWidth', 1)
-plot(x_mid(1:end-150), max_stress(1:end-150), 'Color', '[0 0.3 0.7]', 'LineWidth', 1, 'LineStyle','--')
-plot(x_mid(1:end-150), rec_stress(1:end-150), 'Color', '[0 0.6 0.9]', 'LineWidth', 1, 'LineStyle','--')
+plot(x_mid(1:end), tot_stress(1:end), 'Color', '[0.1 0.4 0.5]', 'LineWidth', 1)
+plot(x_mid(1:end), max_stress(1:end), 'Color', '[0 0.3 0.7]', 'LineWidth', 1, 'LineStyle','--')
+plot(x_mid(1:end), rec_stress(1:end), 'Color', '[0 0.6 0.9]', 'LineWidth', 1, 'LineStyle','--')
 xline(x_mid(hoop_index),'Color', 'black', 'LineStyle', ':','Label','Thick to Thin Wall Hoop Stress')
 
 title('Circumferential Stress Over Chamber Contour')
