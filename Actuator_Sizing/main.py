@@ -92,16 +92,6 @@ def calc_friction_force(piston_seal_length, shaft_seal_length, piston_seal_area,
         print(f"F_total_friction: {total_friction * c.N2LBF:.2f} LBF")
     return total_friction
     
-def calc_torque_piston(breaking_torque, breaking_torque_safety_factor, piston_force, piston_stroke_length, show_outputs):
-    required_torque = breaking_torque * breaking_torque_safety_factor
-    arm_length = piston_stroke_length / np.sqrt(2)
-    torque = arm_length * piston_force / np.sqrt(2)
-    if show_outputs == True:
-        print(f"The piston will produce ~{torque * c.NM2IN_LB:.2f} lb-in torque at {pressure * c.PA2PSI} psi.")
-        print(f"The required torque with a safety factor of 3 is {required_torque * c.NM2IN_LB:.2f}")
-        print(f"Length of valve arm would be {arm_length * c.M2IN:.2f}")
-    return required_torque, arm_length, torque
-
 def actuation_time_kinematics_flow_limited(rod_mass, piston_diameter, arm_length, friction_total, force_valve, Cv, supply_pressure_psig, dead_volume_m3, show_outputs, T_ambient_R=530, gas_SG=0.967):
     R_SPECIFIC_N2 = 296.8  # J/(kg*K)
     P_ATM_PSIA = 14.7
@@ -228,7 +218,7 @@ piston_force = pressure * np.pi * ((piston_diameter**2) / 4)
 if show_outputs == True:
     print(f'Maximum possible net force disregarding friction (and valve arm if real condition): {piston_force * c.N2LBF:.2f}')
 
-required_torque, arm_length, torque = calc_torque_piston(breaking_torque, breaking_torque_safety_factor, piston_force, piston_stroke_length, show_outputs)
+arm_length = piston_stroke_length / np.sqrt(2)
 force_valve = breaking_torque * np.sqrt(2) / arm_length
 friction_total = calc_friction_force(piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, 0)
 
