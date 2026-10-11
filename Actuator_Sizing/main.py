@@ -56,8 +56,8 @@ import print_filter # type: ignore
 
 
 ###############################
-# OUTPUTS "on" (1) or "off" (0)
-show_outputs = True
+# OUTPUTS on or off
+show_outputs = False
 ###############################
 
 ###############################
@@ -76,6 +76,15 @@ shaft_seal_length = np.pi * shaft_diameter
 piston_seal_area = 0.21 * c.IN2M * piston_seal_length # worst case scenario, 300 series
 shaft_seal_area = 0.21 * c.IN2M * shaft_seal_length
 pressure = 100 * c.PSI2PA
+
+Cv_regulator = 0.06 # Cv for BCLS N2 Regulator (Should be the bottleneck)
+dead_volume_m3 = 0.5 * c.IN2M**3  # PLACEHOLDER - replace with actual tubing+fitting+clearance volume in in^3
+T_ambient_R = 530  # PLACEHOLDER - 70F, replace if you know actual ambient/supply gas temp
+
+Cv_accumulator = 2  # PLACEHOLDER - Cv of accumulator outlret
+accumulator_volume_m3 = 25 * c.IN2M**3  # PLACEHOLDER - accumulator volume in in^3
+
+Cv_solenoid = 1
 
 def calc_friction_force(piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, show_outputs):
     fc_piston = (4 * piston_seal_length * c.M2IN) * c.LBF2N # assuming 4, worst case, for now
@@ -105,7 +114,8 @@ def calc_torque_piston(breaking_torque, breaking_torque_safety_factor, piston_fo
 
 def sum_Cv(*Cvs):
     total_Cv = 1 / np.sqrt(sum(1 / cv**2 for cv in Cvs))
-    print(f"Total Cv: {total_Cv:.2f}")
+    if show_outputs == True:
+        print(f"Total Cv: {total_Cv:.2f}")
     return total_Cv
 
 def actuation_time_kinematics_flow_limited(rod_mass, piston_diameter, arm_length, friction_total, force_valve, Cv, supply_pressure_psig, dead_volume_m3, show_outputs, T_ambient_R=530, gas_SG=0.967):
@@ -423,20 +433,10 @@ required_torque, arm_length, torque = calc_torque_piston(breaking_torque, breaki
 force_valve = breaking_torque * np.sqrt(2) / arm_length
 friction_total = calc_friction_force(piston_seal_length, shaft_seal_length, piston_seal_area, shaft_seal_area, 0)
 
-# Constants
-Cv_regulator = 0.06 # Cv for BCLS N2 Regulator (Should be the bottleneck)
-dead_volume_m3 = 0.5 * c.IN2M**3  # PLACEHOLDER - replace with actual tubing+fitting+clearance volume in in^3
-T_ambient_R = 530  # PLACEHOLDER - 70F, replace if you know actual ambient/supply gas temp
-
-Cv_accumulator = 2  # PLACEHOLDER - Cv of accumulator outlret
-accumulator_volume_m3 = 25 * c.IN2M**3  # PLACEHOLDER - accumulator volume in in^3
-
-Cv_solenoid = 1
-
 Cv_total = sum_Cv(Cv_accumulator, Cv_solenoid)
 
 #volume_swept_history, time_history, angle_history, time, chamber_pressure_history, flow_scfm_history = actuation_time_kinematics_flow_limited(
 #        rod_mass, piston_diameter, arm_length, friction_total, force_valve, Cv, pressure * c.PA2PSI, dead_volume_m3, show_outputs, T_ambient_R)
-
-acc_volume_swept_history, acc_time_history, acc_angle_history, acc_time, acc_chamber_pressure_history, acc_flow_scfm_history, accumulator_pressure_history = actuation_time_kinematics_accumulator(
+if __name__ == "__main__":
+    acc_volume_swept_history, acc_time_history, acc_angle_history, acc_time, acc_chamber_pressure_history, acc_flow_scfm_history, accumulator_pressure_history = actuation_time_kinematics_accumulator(
         rod_mass, piston_diameter, arm_length, friction_total, force_valve, Cv_total, pressure * c.PA2PSI, accumulator_volume_m3, dead_volume_m3, show_outputs, T_ambient_R, source_Cv=Cv_regulator)
