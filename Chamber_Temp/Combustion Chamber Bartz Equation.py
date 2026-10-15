@@ -182,7 +182,7 @@ def main():
     plt.legend()
     plt.grid(True)
     plt.show()
-    # EDIT (end)
+    #(end)
 
     #plots for additional outputs
     plt.figure()
@@ -276,18 +276,23 @@ def main():
     
     #saving data to csvs
     
+    #inner (gas side) wall surface temperature (K)
     temp_array = np.transpose(np.array([wall_temps[:, 0]]))
     np.savetxt("chamber_temp.csv", temp_array, delimiter=',')
 
+    #heat flux at each axial position (W/m^2)
     heat_flux_array = np.transpose(np.array([heat_flux_calc(h_total, T_infinty_total, wall_temps[:, 0])]))
     np.savetxt("chamber_heat_flux.csv", heat_flux_array, delimiter=',')
 
+    #adiabatic wall (recovery) temperature (K)
     ambient_temp_array = np.transpose(np.array([T_infinty_total]))
     np.savetxt("chamber_ambient_temp.csv", ambient_temp_array, delimiter=',')
 
+    #heat transfer coefficient at each axial position (W/m^2 K)
     heat_transfer_coefficient_array = np.transpose(np.array([h_total]))
     np.savetxt("chamber_heat_transfer_coefficient.csv", heat_transfer_coefficient_array, delimiter=',')
 
+    #static pressure of the gas at each axial position (Pa)
     pressure_array = np.transpose(np.array([P_total]))
     np.savetxt("chamber_pressure.csv", pressure_array, delimiter=',')
     
