@@ -29,7 +29,6 @@ import sys,pathlib,collections,importlib.abc; r=next(p for p in pathlib.Path(__f
 import constants as c # type: ignore
 import vehicle_parameters_functions # type: ignore
 import vehicle_parameters # type: ignore
-import vehicle_main # type: ignore
 import print_filter # type: ignore
 
 # def Name_of_Script_Main_Function(parameters): # this is a separate function for reasons i dont remember but its important...

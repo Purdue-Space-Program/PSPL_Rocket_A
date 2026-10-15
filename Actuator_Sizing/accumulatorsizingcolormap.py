@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Patch
 
-volume_range = (10,100)
+volume_range = (10,50)
 volume_step = 2
 normalized_volume_range = ((int(volume_range[0]/volume_step), int(volume_range[1]/volume_step)))
 cv_range = (0.5, 10)
