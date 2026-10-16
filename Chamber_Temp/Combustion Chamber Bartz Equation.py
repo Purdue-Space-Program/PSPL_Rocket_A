@@ -84,7 +84,7 @@ def main():
         M_local = calculating_MachNumber(gamma = gamma_loc, area_ratio_value = A_ratio, initial_guess = initial_guess, branch = branch)
         Mach_total[station_index] = M_local 
         
-        Dt = 2 * station_inner_radii[station_index]  # local diameter
+        Dt = parameters.chamber_throat_diameter  # throat diameter
         T_static = t_loc / (1 + (((gamma_loc - 1)/2) * M_local**2)) #static temperature at the local axial point (K)
         P_loc = (parameters.chamber_pressure) / ((1 + (((gamma_loc - 1)/2) * M_local**2)) ** (gamma_loc/(gamma_loc-1))) #static pressure at the local axial point (Pascals)
 
@@ -95,34 +95,35 @@ def main():
             S = 110.4 #Sutherland's constant for combustion gases (K)
         )
 
-        h_local = heat_transfer_coefficient(
-            Dt = Dt,  # local diameter
-            Rt = ((1.5 * (parameters.chamber_throat_diameter/2)) + (0.382 *(parameters.chamber_throat_diameter/2) )) / 2,     #radius of throat curve (m)
-            Pr = Pr_loc, #Prandtl number of the combustion gas (n/a)
-            gamma = gamma_loc, #specific heat ratio of the combustion gas (n/a)
-            c_star = cstar_loc, #characteristic exhaust velocity (m/s)
-            T0 = t_loc, #stagnation temperature of the combustion gas ((K))
-            Twg = recovery_temperature( #recovery temperature at the wall
-                T_static = T_static,
-                gamma = gamma_loc,
-                M = M_local,
-                Pr = Pr_loc
-            ),
-            Cp = cp_loc, #specific heat at constant pressure of the combustion
-            P0 = parameters.chamber_pressure, #chamber pressure (Pascals)
-            mu = visc_loc, #dynamic viscosity of the combustion gas (Pascal - seconds)
-            M = M_local, #Mach number at the local axial point (no units)
-            local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
-            )
-        h_total[station_index] = h_local
+        T_wall = 300
+        for _ in range(50):
+            h_local = heat_transfer_coefficient(
+                Dt = Dt,  # throat diameter
+                Rt = ((1.5 * (parameters.chamber_throat_diameter/2)) + (0.382 *(parameters.chamber_throat_diameter/2) )) / 2,     #radius of throat curve (m)
+                Pr = Pr_loc, #Prandtl number of the combustion gas (n/a)
+                gamma = gamma_loc, #specific heat ratio of the combustion gas (n/a)
+                c_star = cstar_loc, #characteristic exhaust velocity (m/s)
+                T0 = t_loc, #stagnation temperature of the combustion gas ((K))
+                Twg = T_wall,
+                Cp = cp_loc, #specific heat at constant pressure of the combustion
+                P0 = parameters.chamber_pressure, #chamber pressure (Pascals)
+                mu = visc_loc, #dynamic viscosity of the combustion gas (Pascal - seconds)
+                M = M_local, #Mach number at the local axial point (no units)
+                local_Area_ratio = A_ratio #area ratio at the local axial point (no units)
+                )
+            h_total[station_index] = h_local
 
-        Temp_surface_total[station_index] = temperature_surface_calculation(
-            heat_transfer_coefficient_value = h_total[station_index],
-            axial_position = station_depths[station_index],
-            T_infinity = recovery_temperature(T_static, gamma_loc, M_local, Pr_loc), #chamber temperature (K)
-            k = 51.9, #thermal conductivity of the chamber wall material (W/(m*K)) #1018 Steel
-            t = parameters.burn_time #s, burn time
-        )
+            Temp_surface_total[station_index] = temperature_surface_calculation(
+                heat_transfer_coefficient_value = h_total[station_index],
+                axial_position = station_depths[station_index],
+                T_infinity = recovery_temperature(T_static, gamma_loc, M_local, Pr_loc), #chamber temperature (K)
+                k = 51.9, #thermal conductivity of the chamber wall material (W/(m*K)) #1018 Steel
+                t = parameters.burn_time #s, burn time
+            )
+
+            if abs(Temp_surface_total[station_index] - T_wall) < 0.01:
+                break
+            T_wall = Temp_surface_total[station_index]
 
         Heat_flux_total[station_index] = heat_flux_calc(
             h = h_total[station_index], #Bartz heat transfer coefficient (W/m^2 K)
@@ -157,7 +158,7 @@ def main():
     R_grid = (station_inner_radii[:, None] + wall_depths[None, :]) * c.M2IN
 
 
-    #I used AI to plot this graph
+    #I used AI to plot this graph lol idk syntax
     fig, ax = plt.subplots(figsize=(11, 4.5))
     field = ax.pcolormesh(X_grid, R_grid, wall_temps, shading="gouraud", cmap="inferno", vmin=300)
     ax.contour(X_grid, R_grid, wall_temps, levels=[ISOTHERM_TEMP], colors="deepskyblue", linewidths=1.5)
@@ -181,7 +182,7 @@ def main():
     plt.legend()
     plt.grid(True)
     plt.show()
-    # EDIT (end)
+    #(end)
 
     #plots for additional outputs
     plt.figure()
@@ -275,18 +276,23 @@ def main():
     
     #saving data to csvs
     
-    temp_array = np.transpose(np.array([Temp_surface_total]))
+    #inner (gas side) wall surface temperature (K)
+    temp_array = np.transpose(np.array([wall_temps[:, 0]]))
     np.savetxt("chamber_temp.csv", temp_array, delimiter=',')
 
-    heat_flux_array = np.transpose(np.array([Heat_flux_total]))
+    #heat flux at each axial position (W/m^2)
+    heat_flux_array = np.transpose(np.array([heat_flux_calc(h_total, T_infinty_total, wall_temps[:, 0])]))
     np.savetxt("chamber_heat_flux.csv", heat_flux_array, delimiter=',')
 
+    #adiabatic wall (recovery) temperature (K)
     ambient_temp_array = np.transpose(np.array([T_infinty_total]))
     np.savetxt("chamber_ambient_temp.csv", ambient_temp_array, delimiter=',')
 
+    #heat transfer coefficient at each axial position (W/m^2 K)
     heat_transfer_coefficient_array = np.transpose(np.array([h_total]))
     np.savetxt("chamber_heat_transfer_coefficient.csv", heat_transfer_coefficient_array, delimiter=',')
 
+    #static pressure of the gas at each axial position (Pa)
     pressure_array = np.transpose(np.array([P_total]))
     np.savetxt("chamber_pressure.csv", pressure_array, delimiter=',')
     
