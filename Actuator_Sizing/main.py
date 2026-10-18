@@ -20,7 +20,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 import matplotlib.pyplot as plt
-plt.style.use('dark_background')
+#plt.style.use('dark_background')
 import numpy as np
 
 # sorry
@@ -56,7 +56,7 @@ import print_filter # type: ignore
 
 ###############################
 # OUTPUTS on or off
-show_outputs = False
+show_outputs = True
 ###############################
 
 ###############################
@@ -80,8 +80,8 @@ Cv_regulator = 0.06 # Cv for BCLS N2 Regulator (Should be the bottleneck)
 dead_volume_m3 = 0.5 * c.IN2M**3  # PLACEHOLDER - replace with actual tubing+fitting+clearance volume in in^3
 T_ambient_R = 530  # PLACEHOLDER - 70F, replace if you know actual ambient/supply gas temp
 
-Cv_accumulator = 2  # PLACEHOLDER - Cv of accumulator outlret
-accumulator_volume_m3 = 25 * c.IN2M**3  # PLACEHOLDER - accumulator volume in in^3
+Cv_accumulator = 0.5  # Estimated Cv of accumulator outlet
+accumulator_volume_m3 = 1155 * c.IN2M**3  # PLACEHOLDER - accumulator volume in in^3
 
 Cv_solenoid = 1
 
