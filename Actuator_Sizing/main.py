@@ -76,7 +76,7 @@ piston_seal_area = 0.21 * c.IN2M * piston_seal_length # worst case scenario, 300
 shaft_seal_area = 0.21 * c.IN2M * shaft_seal_length
 pressure = 100 * c.PSI2PA
 
-Cv_regulator = 0.06 # Cv for BCLS N2 Regulator (Should be the bottleneck)
+Cv_regulator = 0.06 # Cv for BCLS N2 Regulator
 dead_volume_m3 = 0.5 * c.IN2M**3  # PLACEHOLDER - replace with actual tubing+fitting+clearance volume in in^3
 T_ambient_R = 530  # PLACEHOLDER - 70F, replace if you know actual ambient/supply gas temp
 
@@ -144,6 +144,7 @@ def actuation_time_kinematics_flow_limited(rod_mass, piston_diameter, arm_length
     distance_travelled_history = []
     chamber_pressure_history = []
     flow_scfm_history = []
+    gas_velocity_history = []
  
     while valve_angle <= 90 and time < max_time:
         V_chamber = dead_volume_m3 + piston_area * dist_travelled
@@ -158,6 +159,7 @@ def actuation_time_kinematics_flow_limited(rod_mass, piston_diameter, arm_length
         else:
             Q_scfh = 0
         Q_scfm = Q_scfh / 60
+        gas_velocity = ((Q_scfm * np.pi * ((1/2)/2*12)**2) / 60) * c.FT2M # Converted to m/s, with 1/2in diameter tubing
         mdot = (Q_scfh / 3600) * 0.0283168 * density_std  # kg/s (0.0283168 = m^3 per ft^3)
         chamber_mass += mdot * time_step
  
@@ -182,6 +184,7 @@ def actuation_time_kinematics_flow_limited(rod_mass, piston_diameter, arm_length
         distance_travelled_history.append(dist_travelled)
         chamber_pressure_history.append(P_chamber_psia)
         flow_scfm_history.append(Q_scfm)
+        gas_velocity_history.append(gas_velocity)
         time += time_step
  
     if time >= max_time:
@@ -230,6 +233,14 @@ def actuation_time_kinematics_flow_limited(rod_mass, piston_diameter, arm_length
         plt.title("Solenoid Flow Demand")
         plt.grid(True)
 
+        plt.subplot(2, 3, 6)
+        plt.plot(time_history, gas_velocity_history)
+        plt.ylim(bottom=0)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Gas Velocity [m/s]")
+        plt.title("Gas Velocity in Tubing")
+        plt.grid(True)
+
         plt.tight_layout()
         plt.show()
  
@@ -273,6 +284,7 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
     accumulator_pressure_history = []
     flow_scfm_history = []
     source_flow_scfm_history = []
+    gas_velocity_history = []
 
     while valve_angle <= 90 and time < max_time:
         V_chamber = dead_volume_m3 + piston_area * dist_travelled
@@ -289,6 +301,7 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
         else:
             Q_scfh = 0
         Q_scfm = Q_scfh / 60
+        gas_velocity = ((Q_scfm * np.pi * ((1/2)/2*12)**2) / 60) * c.FT2M # Converted to m/s, with 1/2in diameter tubing
         mdot = (Q_scfh / 3600) * 0.0283168 * density_std  # kg/s (0.0283168 = m^3 per ft^3)
 
         # Mass leaves the accumulator and enters the chamber. Cap the transfer at the amount that would just equalize
@@ -341,6 +354,7 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
         accumulator_pressure_history.append(P_acc_psia)
         flow_scfm_history.append(Q_scfm)
         source_flow_scfm_history.append(Q_src_scfh / 60)
+        gas_velocity_history.append(gas_velocity)
         time += time_step
 
     reached_90 = valve_angle > 90
@@ -353,7 +367,7 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
 
     if show_outputs == True:
         plt.figure(figsize=(14, 8))
-        plt.subplot(2, 3, 1)
+        plt.subplot(2, 4, 1)
         plt.plot(time_history, angle_history)
         plt.xlabel("Time [s]")
         plt.ylabel("Valve Angle [˚]")
@@ -362,7 +376,7 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
         plt.yticks(np.arange(0, plt.ylim()[1] + 10, 10))
         plt.grid(True)
 
-        plt.subplot(2, 3, 2)
+        plt.subplot(2, 4, 2)
         plt.plot(time_history, velocity_history)
         plt.xlabel("Time [s]")
         plt.ylabel("Velocity [m/s]")
@@ -370,14 +384,14 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
         plt.ylim(bottom = min(np.min(velocity_history) - (0.05 * (np.max(velocity_history) - np.min(velocity_history))), 0))
         plt.grid(True)
 
-        plt.subplot(2, 3, 3)
+        plt.subplot(2, 4, 3)
         plt.plot(time_history, distance_travelled_history)
         plt.xlabel("Time [s]")
         plt.ylabel("Distance Swept [m]")
         plt.title("Time vs Distance Swept")
         plt.grid(True)
 
-        plt.subplot(2, 3, 4)
+        plt.subplot(2, 4, 4)
         plt.plot(time_history, chamber_pressure_history)
         plt.axhline(P_fill_psia, color='r', linestyle='--', label='Accumulator fill')
         plt.ylim(bottom=0)
@@ -387,7 +401,7 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
         plt.legend()
         plt.grid(True)
 
-        plt.subplot(2, 3, 5)
+        plt.subplot(2, 4, 5)
         plt.plot(time_history, flow_scfm_history, label='Accumulator discharge')
         if source_Cv > 0:
             plt.plot(time_history, source_flow_scfm_history, linestyle='--', label='Regulator refill')
@@ -398,7 +412,7 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
         plt.title("Accumulator Discharge Flow")
         plt.grid(True)
 
-        plt.subplot(2, 3, 6)
+        plt.subplot(2, 4, 6)
         plt.plot(time_history, accumulator_pressure_history, label='Accumulator')
         plt.plot(time_history, chamber_pressure_history, label='Actuator chamber', linestyle=':')
         plt.ylim(bottom=0)
@@ -406,6 +420,14 @@ def actuation_time_kinematics_accumulator(rod_mass, piston_diameter, arm_length,
         plt.ylabel("Pressure [psia]")
         plt.title("Accumulator Blowdown")
         plt.legend()
+        plt.grid(True)
+
+        plt.subplot(2, 4, 7)
+        plt.plot(time_history, gas_velocity_history)
+        plt.ylim(bottom=0)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Gas Velocity [m/s]")
+        plt.title("Gas Velocity in Tubing")
         plt.grid(True)
 
         plt.tight_layout()
