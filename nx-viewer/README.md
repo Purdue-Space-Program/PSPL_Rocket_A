@@ -1,11 +1,9 @@
 # NX CAD Viewer
 
-Static GitHub Pages 3D viewer for STL and GLB files. Works on mobile and desktop.
+**Viewer URL (after deployment):** https://purdue-space-program.github.io/PSPL_Rocket_A/
 
-**Native Siemens NX PRT files are not supported yet.** A licensed or otherwise compatible NX geometry reader must be integrated; simply renaming a PRT file will not work.
+STL and GLB files are rendered locally in the browser. Mobile and desktop supported.
 
-The site processes supported model files in the browser without uploading them to a server.
+**Siemens NX .prt:** This project cannot directly decode PRT files. The interface links to the third-party [Native CAD Viewer](https://jfk-solutions.github.io/native-cad-viewer/), which reports browser support for NX PRT files containing embedded JT 9.x geometry. Select your PRT file on that external site. Some files, including JT 10.x, will not work. Its proprietary decoder is not included in this repository.
 
-Deploy using the workflow in .github/workflows/nx-viewer-pages.yml and configure GitHub Pages to use GitHub Actions. The workflow publishes the nx-viewer directory at the repository's Pages root.
-
-The viewer uses Three.js from a CDN and requires an internet connection.
+The repository already hosts other Pages content; review the deployment workflow before enabling it because Pages publishes one site per repository.
