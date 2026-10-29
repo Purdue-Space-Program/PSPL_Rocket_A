@@ -23,6 +23,8 @@ h_list = readmatrix(fullfile(dataFolder, "chamber_heat_transfer_coefficient.csv"
 T_flame = readmatrix(fullfile(dataFolder, "chamber_ambient_temp.csv"));
 % Pressure
 wall_pressure = readmatrix(fullfile(dataFolder, "chamber_pressure.csv"));
+% Inner Wall Temp
+wi_temp = readmatrix(fullfile(dataFolder, 'chamber_temp.csv'));
 
 % MATERIAL PROPERTIES
 % 1018 Steel
@@ -39,8 +41,8 @@ t_burn  = 2;                % [sec]         Burn Time
 T_init  = 293;              % [K]           Initial Temperature
 
 % SAFETY PARAMETERS
-T_max         = 773;       % [K]            Maximum Safe Temperature
-safety_factor = 1.25;
+T_max         = 698.15;     % [K]            Maximum Safe Temperature
+safety_factor = 1.4;
 
 % --- CALCULATIONS ---
 
@@ -59,6 +61,7 @@ A_sec = 2*pi*r_mid .* ds;               % [m^2] Surface area
 % Sectioning Values
 h_sec = (h_list(1:end-1)+h_list(2:end))/2;          % [W/m^2-K] Sectioned h value
 T_gas_wall = (T_flame(1:end-1)+T_flame(2:end))/2;   % [K] Section wall gas value
+wi_temp_sec = (wi_temp(1:end-1)+wi_temp(2:end))/2;  % [K] Section inner wall temps
 
 % - LCA Calculations -
 log_term   = log((T_gas_wall - T_init) ./ (T_gas_wall - T_max));
@@ -133,7 +136,7 @@ yline(max(Lc_build), 'Label', 'Maximum Thickness', 'Color', 'black','LineStyle',
 xlabel('Depth [m]')
 ylabel('Thickness [m]');
 title('Chamber Wall Thickness');
-legend('Recommended FoS: 1.25', 'Absolute Minumum', 'Location','southeast')
+legend(sprintf('Recommended FoS: %f', safety_factor), 'Absolute Minumum', 'Location','southeast')
 
 % Biot and Chamber Contour
 figure(2); clf;
