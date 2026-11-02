@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NX CAD Viewer</title><style>body{margin:0;background:#111827;color:#e5e7eb;font:15px system-ui}header{padding:14px 18px;background:#1f2937;display:flex;gap:12px;flex-wrap:wrap;align-items:center}button,input{font:inherit}button{padding:8px;border:1px solid #64748b;border-radius:6px;background:#334155;color:white}#viewport{height:calc(100dvh - 130px);touch-action:none}#status{padding:12px}label{cursor:pointer}</style></head><body><header><strong>NX CAD Viewer</strong><label>Open STL / GLB <input id="file" type="file" accept=".stl,.glb,.gltf,.prt"></label><a href="https://jfk-solutions.github.io/native-cad-viewer/" target="_blank" rel="noopener noreferrer" style="color:#93c5fd">NX .prt viewer ↗</a><button id="fit">Fit view</button><button id="front">Front</button><button id="top">Top</button><button id="iso">Isometric</button></header><main id="viewport"></main><div id="status" role="status">Select an STL or GLB file. Native Siemens NX .prt decoding is not yet available.</div><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script><script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/controls/OrbitControls.js';
+import {STLLoader} from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/loaders/STLLoader.js';
+import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/loaders/GLTFLoader.js';
+const viewport=document.getElementById('viewport'),status=document.getElementById('status');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x111827);
+const camera=new THREE.PerspectiveCamera(50,1,0.001,100000);camera.position.set(4,3,5);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));viewport.append(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xffffff,0x334155,2));
+const light=new THREE.DirectionalLight(0xffffff,2);light.position.set(5,10,8);scene.add(light);
+scene.add(new THREE.GridHelper(10,20,0x64748b,0x334155));
+let model=null;
+function resize(){const width=viewport.clientWidth,height=viewport.clientHeight;renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(viewport);
+function fit(){if(!model)return;const bounds=new THREE.Box3().setFromObject(model),center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3()).length();controls.target.copy(center);camera.position.copy(center).add(new THREE.Vector3(size,size,size));camera.near=Math.max(size/10000,0.00001);camera.far=Math.max(size*100,1);camera.updateProjectionMatrix();controls.update()}
+function setView(direction){if(!model)return;const center=controls.target.clone(),distance=camera.position.distanceTo(center);camera.position.copy(center).add(direction.multiplyScalar(distance));controls.update()}
+document.getElementById('fit').onclick=fit;
+document.getElementById('front').onclick=()=>setView(new THREE.Vector3(0,0,1));
+document.getElementById('top').onclick=()=>setView(new THREE.Vector3(0,1,0));
+document.getElementById('iso').onclick=()=>setView(new THREE.Vector3(1,1,1).normalize());
+document.getElementById('file').onchange=async event=>{const file=event.target.files?.[0];if(!file)return;const extension=file.name.split('.').pop().toLowerCase();if(extension==='prt'){status.textContent='For supported NX PRT files, use the linked third-party Native CAD Viewer and select the file there.';return}try{let loaded;if(extension==='stl'){const geometry=new STLLoader().parse(await file.arrayBuffer());geometry.computeVertexNormals();loaded=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:0x93c5fd,metalness:0.1,roughness:0.65,side:THREE.DoubleSide}))}else if(extension==='glb'||extension==='gltf'){loaded=(await new GLTFLoader().parseAsync(await file.arrayBuffer(),'')).scene}else{throw Error('Unsupported format')}if(model)scene.remove(model);model=loaded;scene.add(model);fit();status.textContent='Loaded '+file.name+' locally in your browser'}catch(error){status.textContent='Could not open file: '+error.message}};
+renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera)});
+</script></body></html>
