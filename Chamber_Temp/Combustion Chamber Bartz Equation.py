@@ -14,7 +14,7 @@ chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__
 
 #MORE CONSERVATIVE O/F Ratio
 OF_RATIO = 0.77 
-ISOTHERM_TEMP = 500 #Kelvin
+ISOTHERM_TEMP = 400 #Kelvin
 
 
 import Vehicle_Level.vehicle_parameters as vehicle_parameters
@@ -173,7 +173,7 @@ def main():
     plt.show()
 
     plt.figure()
-    for T_iso in [350, 400, ISOTHERM_TEMP]:
+    for T_iso in [350, ISOTHERM_TEMP, 500]:
         plt.plot(x_relative * c.M2IN, isotherm_depth(wall_depths, wall_temps, T_iso) * c.M2IN, label=f"{T_iso} K isotherm depth")
     plt.axhline(wall_thickness * c.M2IN, color="gray", linewidth=1, label="Wall thickness")
     plt.xlabel("Axial Position Relative to Throat (in) ")
