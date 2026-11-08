@@ -14,7 +14,7 @@ chamber_contour_csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__
 
 #MORE CONSERVATIVE O/F Ratio
 OF_RATIO = 0.77 
-ISOTHERM_TEMP = 500 #Kelvin
+ISOTHERM_TEMP = 400 #Kelvin
 
 
 import Vehicle_Level.vehicle_parameters as vehicle_parameters
@@ -41,14 +41,15 @@ def main():
     station_area_ratios = station_areas / A_star
 
     #initializing arrays to store Mach number, heat transfer coefficient, and surface temperature values for full chamber + nozzle
+    csv_folder = os.path.dirname(os.path.abspath(__file__))
     Mach_total = np.zeros_like(station_area_ratios) #mach number at each axial position
-    h_total = np.zeros_like(station_area_ratios) #heat transfer coefficient at each axial position
-    Temp_surface_total = np.zeros_like(station_area_ratios) #surface temperature at each axial position
-    T_infinty_total = np.zeros_like(station_area_ratios) #ambient temperature at each axial position
-    Heat_flux_total = np.zeros_like(station_area_ratios) #heat flux at each axial position
+    h_total = np.loadtxt(os.path.join(csv_folder, "chamber_heat_transfer_coefficient.csv"),delimiter=",",) #heat transfer coefficient at each axial position
+    Temp_surface_total = np.loadtxt(os.path.join(csv_folder, "chamber_temp.csv"),delimiter=",",) #surface temperature at each axial position
+    T_infinty_total = np.loadtxt(os.path.join(csv_folder, "chamber_ambient_temp.csv"),delimiter=",",) #ambient temperature at each axial position
+    Heat_flux_total = np.loadtxt(os.path.join(csv_folder, "chamber_heat_flux.csv"),delimiter=",",) #heat flux at each axial position
     c_star_total = np.zeros_like(station_area_ratios) #characteristic exhaust velocity at each axial position
     Twg_total = np.zeros_like(station_area_ratios) #adiabatic wall temperature at each axial position
-    P_total = np.zeros_like(station_area_ratios) #pressure at each axial position
+    P_total = np.loadtxt(os.path.join(csv_folder, "chamber_pressure .csv"),delimiter=",",) #pressure at each axial position
     T_static_total = np.zeros_like(station_area_ratios) #static temperature at each axial position
     c_visc_total = np.zeros_like(station_area_ratios) #dynamic viscosity at each axial position
 
@@ -173,7 +174,7 @@ def main():
     plt.show()
 
     plt.figure()
-    for T_iso in [350, 400, ISOTHERM_TEMP]:
+    for T_iso in [350, ISOTHERM_TEMP, 500]:
         plt.plot(x_relative * c.M2IN, isotherm_depth(wall_depths, wall_temps, T_iso) * c.M2IN, label=f"{T_iso} K isotherm depth")
     plt.axhline(wall_thickness * c.M2IN, color="gray", linewidth=1, label="Wall thickness")
     plt.xlabel("Axial Position Relative to Throat (in) ")
